@@ -29,6 +29,9 @@ class MagmaProtocolMeta(type):
         # To create an instance from a value.
         raise NotImplementedError()
 
+    def _from_magma_ref_(cls, ref: 'Ref'):
+        return cls._from_magma_value_(cls._to_magma_()(name=ref))
+
     def _is_oriented_magma_(cls, direction):
         return cls._to_magma_().is_oriented(direction)
 
@@ -133,6 +136,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
 
     def const(self):
         return self._get_magma_value_().const()
+
+    def set_enclosing_when_context(self, ctx):
+        self._get_magma_value_().set_enclosing_when_context(ctx)
 
 
 def magma_type(T):

@@ -1,4 +1,3 @@
-import itertools
 from functools import lru_cache
 import functools
 import operator
@@ -6,23 +5,22 @@ from collections import OrderedDict
 from hwtypes.adt import (
     TupleMeta,
     Tuple as Tuple_,
-    AnonymousProduct,
     AnonymousProductMeta,
-    Product,
     ProductMeta,
 )
 from hwtypes import BitVector, Bit
-from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
+from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS, ReservedNameError
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .common import deprecated
-from .ref import AnonRef, TupleRef
+from .ref import TupleRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
-from magma.wire_container import WiringLog
+from magma.wire_container import (WiringLog, AggregateWireable,
+                                  aggregate_wireable_method)
 from magma.wire import wire
 from magma.protocol_type import MagmaProtocol
 from magma.operator_utils import output_only
@@ -44,7 +42,8 @@ class TupleKind(TupleMeta, Kind):
     def __new__(mcs, name, bases, namespace, fields=None, **kwargs):
         for rname in RESERVED_SUNDERS:
             if rname in namespace:
-                raise ReservedNameError(f'class attribute {rname} is reserved by the type machinery')
+                raise ReservedNameError(f'class attribute {rname} is reserved '
+                                        'by the type machinery')
 
         bound_types = fields
         has_bound_base = False
@@ -69,7 +68,8 @@ class TupleKind(TupleMeta, Kind):
                                 except AttributeError:
                                     pass
                                 raise TypeError(
-                                    "Can't inherit from multiple different bound_types"
+                                    "Can't inherit from multiple different "
+                                    "bound_types"
                                 )
                 else:
                     unbound_bases.append(base)
@@ -110,7 +110,7 @@ class TupleKind(TupleMeta, Kind):
         bases = tuple(bases)
         class_name = cls._name_cb(idx)
 
-        t = mcs(class_name, bases, {'__module__' : cls.__module__}, fields=idx)
+        t = mcs(class_name, bases, {'__module__': cls.__module__}, fields=idx)
         if t._unbound_base_ is None:
             t._unbound_base_ = cls
         mcs._class_cache[cls, idx] = t
@@ -188,30 +188,33 @@ class TupleKind(TupleMeta, Kind):
     __hash__ = TupleMeta.__hash__
 
 
-class Tuple(Type, Tuple_, metaclass=TupleKind):
+class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
-        Type.__init__(self, **kwargs) # name=
+        Type.__init__(self, **kwargs)
+        AggregateWireable.__init__(self)
 
-        self.ts = []
-        if len(largs) > 0:
+        self._ts = {}
+        if largs:
             assert len(largs) == len(self)
-            for k, t, T in zip(self.keys(), largs, self.types()):
+            for i, (k, t, T) in enumerate(zip(self.keys(),
+                                              largs,
+                                              self.types())):
                 if isinstance(t, (IntegerTypes, BitVector, Bit)):
                     t = T(t)
-                self.ts.append(t)
+                self._ts[i] = t
                 if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
-        else:
-            for k, T in zip(self.keys(), self.types()):
-                ref = TupleRef(self, k)
-                if issubclass(T, MagmaProtocol):
-                    t = T._from_magma_value_(T._to_magma_()(name=ref))
-                else:
-                    t = T(name=ref)
-                self.ts.append(t)
-                if not isinstance(self, AnonProduct):
-                    setattr(self, k, t)
+
+        self._keys_list = list(self.keys())
+
+    def __getattr__(self, key):
+        if not isinstance(self, AnonProduct) and key in self.keys():
+            # On demand setattr for lazy children
+            t = self[key]
+            setattr(self, key, t)
+            return t
+        return object.__getattribute__(self, key)
 
     __hash__ = Type.__hash__
 
@@ -249,9 +252,25 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __repr__(self):
         if not self.name.anon():
             return super().__repr__()
-        ts = [repr(t) for t in self.ts]
+        ts = [repr(t) for t in self]
         kts = ['{}={}'.format(k, v) for k, v in zip(self.keys(), ts)]
         return 'tuple(dict({})'.format(', '.join(kts))
+
+    def _make_t(self, idx):
+        T = self.types()[idx]
+        ref = TupleRef(self, self._keys_list[idx])
+        if issubclass(T, MagmaProtocol):
+            value = T._from_magma_ref_(ref)
+        else:
+            value = T(name=ref)
+        value.set_enclosing_when_context(self._enclosing_when_context)
+        return value
+
+    def _has_elaborated_children(self):
+        return bool(self._ts)
+
+    def _enumerate_children(self):
+        return self.items()
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -261,7 +280,14 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
                 raise KeyError(key) from None
         if not isinstance(key, int):
             raise KeyError(key)
-        return self.ts[key]
+        if key not in self._ts:
+            self._ts[key] = self._make_t(key)
+            self._resolve_bulk_wire()
+        return self._ts[key]
+
+    @property
+    def ts(self):
+        return [self[k] for k in self.keys()]
 
     def __setitem__(self, key, val):
         old = self[key]
@@ -281,77 +307,68 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 
-
     @debug_wire
-    def wire(i, o, debug_info):
+    def wire(self, o, debug_info):
         o = magma_value(o)
         if not isinstance(o, Tuple):
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
-                          f"(type={type(i)}) because {{}} is not a Tuple",
-                          o, i, o),
+                          f"(type={type(self)}) because {{}} is not a Tuple",
+                          o, self, o),
                 debug_info=debug_info
             )
             return
 
-        if i.keys() != o.keys():
+        if self.keys() != o.keys():
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}, "
-                          f"keys={list(i.keys())}) to {{}} (type={type(i)}, "
+                          f"keys={list(self.keys())}) to "
+                          f" {{}} (type={type(self)}, "
                           f"keys={list(o.keys())}) because the tuples do not "
-                          f"have the same keys", o, i),
+                          f"have the same keys", o, self),
                 debug_info=debug_info
             )
             return
-
-        for i_elem, o_elem in zip(i, o):
-            i_elem = magma_value(i_elem)
-            o_elem = magma_value(o_elem)
-            wire(o_elem, i_elem, debug_info)
+        if (self.is_mixed() or
+                self._has_elaborated_children() or
+                o._has_elaborated_children()):
+            for self_elem, o_elem in zip(self, o):
+                self_elem = magma_value(self_elem)
+                o_elem = magma_value(o_elem)
+                wire(o_elem, self_elem, debug_info)
+        else:
+            AggregateWireable.wire(self, o, debug_info)
 
     @debug_unwire
+    @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
-        for k, t in self.items():
-            if o is None:
-                t.unwire(debug_info=debug_info,
-                         keep_wired_when_contexts=keep_wired_when_contexts)
-            elif o[k].is_input():
-                o[k].unwire(t, debug_info=debug_info,
-                            keep_wired_when_contexts=keep_wired_when_contexts)
-            else:
-                t.unwire(o[k], debug_info=debug_info,
-                         keep_wired_when_contexts=keep_wired_when_contexts)
+        if not self._has_elaborated_children():
+            return AggregateWireable.unwire(self, o, debug_info,
+                                            keep_wired_when_contexts)
 
+    @aggregate_wireable_method
     def driven(self):
-        for t in self.ts:
-            if not t.driven():
-                return False
-        return True
+        return all(t.driven() for t in self)
 
+    @aggregate_wireable_method
     def wired(self):
-        for t in self.ts:
-            if not t.wired():
-                return False
-        return True
+        return all(t.wired() for t in self)
 
-    # test whether the values refer a whole tuple
     @staticmethod
     def _iswhole(ts, keys):
 
         for i in range(len(ts)):
             if ts[i].anon():
-                #print('not an inst or defn')
                 return False
 
         for i in range(len(ts)):
             # elements must be an tuple reference
             if not isinstance(ts[i].name, TupleRef):
-                #print('not an tuple ref')
                 return False
 
-        for i in range(1,len(ts)):
+        for i in range(1, len(ts)):
             # elements must refer to the same tuple
-            if ts[i].name.tuple is not ts[i-1].name.tuple:
+            if ts[i].name.tuple is not ts[i - 1].name.tuple:
                 return False
 
         for i in range(len(ts)):
@@ -366,11 +383,12 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return True
 
     def iswhole(self):
-        return Tuple._iswhole(self.ts, self.keys())
+        return Tuple._iswhole(list(self), self.keys())
 
+    @aggregate_wireable_method
     def trace(self, skip_self=True):
         ts = []
-        for t in self.ts:
+        for t in self:
             result = t.trace(skip_self)
             if result is not None:
                 ts.append(result)
@@ -384,8 +402,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    @aggregate_wireable_method
     def value(self):
-        ts = [t.value() for t in self.ts]
+        ts = [t.value() for t in self]
 
         for t in ts:
             if t is None:
@@ -396,6 +415,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    @aggregate_wireable_method
     def driving(self):
         return {k: t.driving() for k, t in self.items()}
 
@@ -411,24 +431,20 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return cls(*values)
 
     def flatten(self):
-        return sum([t.flatten() for t in self.ts], [])
+        return sum([t.flatten() for t in self], [])
 
     def const(self):
-        for t in self.ts:
-            if not t.const():
-                return False
-
-        return True
+        return all(t.const() for t in self)
 
     @classmethod
     def types(cls):
         return cls.fields
 
     def values(self):
-        return self.ts
+        return list(self)
 
     def items(self):
-        return zip(self.keys(), self.ts)
+        return zip(self.keys(), self)
 
     def undriven(self):
         for elem in self:
@@ -504,7 +520,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         bases = tuple(bases)
         class_name = cls._name_from_idx(idx)
 
-        ns = {'__module__' : cls.__module__}
+        ns = {'__module__': cls.__module__}
         # add properties to namespace
         # build properties
         _add_properties(ns, idx)
@@ -560,19 +576,25 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
 
     def is_wireable(cls, rhs):
         rhs = magma_type(rhs)
-        if not isinstance(rhs, AnonProductKind) or len(cls.fields) != len(rhs.fields):
+        if (
+            not isinstance(rhs, AnonProductKind) or
+            len(cls.fields) != len(rhs.fields)
+        ):
             return False
         for k, v in cls.field_dict.items():
-            if not k in rhs.field_dict or not v.is_wireable(rhs.field_dict[k]):
+            if k not in rhs.field_dict or not v.is_wireable(rhs.field_dict[k]):
                 return False
         return True
 
     def is_bindable(cls, rhs):
         rhs = magma_type(rhs)
-        if not isinstance(rhs, AnonProductKind) or len(cls.fields) != len(rhs.fields):
+        if (
+            not isinstance(rhs, AnonProductKind) or
+            len(cls.fields) != len(rhs.fields)
+        ):
             return False
         for k, v in cls.field_dict.items():
-            if not k in rhs.field_dict or not v.is_bindable(rhs.field_dict[k]):
+            if k not in rhs.field_dict or not v.is_bindable(rhs.field_dict[k]):
                 return False
         return True
 
@@ -593,22 +615,6 @@ class AnonProduct(Tuple, metaclass=AnonProductKind):
     def keys(cls):
         return cls.field_dict.keys()
 
-    @classmethod
-    def types(cls):
-        return cls.fields
-
-    def value(self):
-        ts = [t.value() for t in self.ts]
-
-        for t in ts:
-            if t is None:
-                return None
-
-        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
-            return ts[0].name.tuple
-
-        return type(self).flip()(*ts)
-
 
 class ProductKind(ProductMeta, AnonProductKind, Kind):
     __hash__ = type.__hash__
@@ -616,7 +622,7 @@ class ProductKind(ProductMeta, AnonProductKind, Kind):
     def __new__(mcs, name, bases, namespace, cache=True, **kwargs):
         return super().__new__(mcs, name, bases, namespace, cache, **kwargs)
 
-    def from_fields(cls, name, fields , cache=True):
+    def from_fields(cls, name, fields, cache=True):
         return super().from_fields(name, fields, cache)
 
     @classmethod
@@ -631,8 +637,8 @@ class ProductKind(ProductMeta, AnonProductKind, Kind):
         # this is all really gross but I don't know how to do this cleanly
         # need to build t so I can call super() in new and init
         # need to exec to get proper signatures
-        t = TupleKind.__new__(mcs, name, bases, ns, fields=tuple(fields.values()),
-                              **kwargs)
+        t = TupleKind.__new__(mcs, name, bases, ns,
+                              fields=tuple(fields.values()), **kwargs)
         if t._unbound_base_ is None:
             t._unbound_base_ = cls
 

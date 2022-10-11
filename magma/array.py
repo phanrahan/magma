@@ -14,9 +14,13 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-from magma.wire_container import WiringLog, Wireable
 from magma.protocol_type import MagmaProtocol
 from magma.when import no_when, temp_when
+from magma.wire_container import (
+    WiringLog,
+    AggregateWireable,
+    aggregate_wireable_method
+)
 
 
 _logger = root_logger()
@@ -357,9 +361,10 @@ def _is_slice_child(child):
     return isinstance(child, Array) and child._is_slice()
 
 
-class Array(Type, Wireable, metaclass=ArrayMeta):
+class Array(Type, AggregateWireable, metaclass=ArrayMeta):
     """
-    Wireable class allows Array values to be "bulk wired" like a Digital value
+    AggregateWireable class allows Array values to be "bulk wired" like a
+    Digital value
 
     The `self._ts` attribute contains a lazily constructed mapping from index
     to child value.
@@ -370,16 +375,17 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     child objects and populating the corresponding entries in the `._ts`
     dictionary of both the slice object the parent array object.
 
-    A large portion of the Array logic for the Wireable interface must dispatch
-    on `self._ts` and `self._slices` to see if the Array has been expanded
-    (requiring the logic to be implemented recursively over the children),
-    otherwise the logic will treat the Array as a "bulk wired" value.
+    A large portion of the Array logic for the AggregateWireable interface
+    must dispatch on `self._ts` and `self._slices` to see if the Array has been
+    expanded (requiring the logic to be implemented recursively over the
+    children), otherwise the logic will treat the Array as a "bulk wired"
+    value.
     """
 
     def __init__(self, *args, **kwargs):
         # Pass name= kwarg to Type constructor
         Type.__init__(self, **kwargs)
-        Wireable.__init__(self)
+        AggregateWireable.__init__(self)
         if args:
             # If args is not empty, that means this array is being constructed
             # with existing values, so populate the `_ts` dictionary eagerly
@@ -531,15 +537,13 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             return False
         return True
 
+    @aggregate_wireable_method
     def driving(self):
-        if self._has_elaborated_children():
-            return [t.driving() for t in self]
-        return Wireable.driving(self)
+        return [t.driving() for t in self]
 
+    @aggregate_wireable_method
     def wired(self):
-        if self._has_elaborated_children():
-            return all(t.wired() for t in self)
-        return Wireable.wired(self)
+        return all(t.wired() for t in self)
 
     # test whether the values refer a whole array
     @staticmethod
@@ -617,17 +621,18 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             self._wire_children(o, debug_info)
         else:
             # Perform a bulk wire
-            Wireable.wire(self, o, debug_info)
+            AggregateWireable.wire(self, o, debug_info)
 
     @debug_unwire
+    @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
-        if self._has_elaborated_children():
-            for i, child in self._enumerate_children():
-                o_i = None if o is None else o[i]
-                child.unwire(o_i, debug_info=debug_info,
-                             keep_wired_when_contexts=keep_wired_when_contexts)
-        else:
-            Wireable.unwire(self, o, debug_info, keep_wired_when_contexts)
+        if not self._has_elaborated_children():
+            return AggregateWireable.unwire(self, o, debug_info,
+                                            keep_wired_when_contexts)
+        for i, child in self._enumerate_children():
+            o_i = None if o is None else o[i]
+            child.unwire(o_i, debug_info=debug_info,
+                         keep_wired_when_contexts=keep_wired_when_contexts)
 
     def iswhole(self):
         if self._has_elaborated_children():
@@ -639,84 +644,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             return all(child.const()
                        for _, child in self._enumerate_children())
         return False
-
-    def _get_conditional_drivee_info(self):
-        """
-        * wired_when_contexts: list of contexts in which this value appears as
-                               conditionally driven.
-
-        * conditional_wires: for each ctx in `wired_when_contexts`, contains a
-                             list of conditional wire objects where `self` is a
-                             drivee.
-
-        * default_drivers: for each ctx in `wired_when_contexts`, contains the
-                           default driver (if it exists) for `self`.
-        """
-        conditional_wires = []
-        default_drivers = []
-        for ctx in self._wired_when_contexts:
-            conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
-            default_drivers.append(ctx._default_drivers.pop(self, None))
-        return self._wired_when_contexts, conditional_wires, default_drivers
-
-    def _rewire_conditional_children(self, wired_when_contexts,
-                                     conditional_wires, default_drivers):
-        for i, child in self._enumerate_children():
-            for ctx, wires, default_driver in zip(wired_when_contexts,
-                                                  conditional_wires,
-                                                  default_drivers):
-                if default_driver:
-                    # Default driver is wired outside of a when context.
-                    with no_when():
-                        child.wire(default_driver[i])
-
-                # Use original wired when context.
-                with temp_when(ctx):
-                    for wire in wires:
-                        child.wire(wire.driver[i])
-
-    def _resolve_conditional_children(self, value):
-        # Save conditional wire info before unwire happens
-        info = self._get_conditional_drivee_info()
-
-        Wireable.unwire(self, value)
-
-        self._rewire_conditional_children(*info)
-
-    def _resolve_driven_bulk_wire(self):
-        # Remove bulk wire since children will now track the wiring
-        value = self._wire.value()
-
-        if self._wired_when_contexts:
-            return self._resolve_conditional_children(value)
-
-        # Else, was not wired in a when context, so children should not be
-        # wired in a when context
-        with no_when():
-            Wireable.unwire(self, value)
-
-            for i, child in self._enumerate_children():
-                child.wire(value[i])
-
-    def _resolve_driving_bulk_wire(self):
-        driving = self._wire.driving()
-        for drivee in driving:
-            # Force drivee to resolve by triggering the
-            # _resolve_driven_bulk_wire logic which occurs when referencing a
-            # child which begins the elaboration process.  Using this pattern
-            # avoids having to duplicate the logic for driving/driven
-            drivee[0]
-        return
-
-    def _resolve_bulk_wire(self):
-        """
-        If a child reference is made, we "expand" a bulk wire into the
-        constiuent children to maintain consistency
-        """
-        if self._wire.driven():
-            self._resolve_driven_bulk_wire()
-        if self._wire.driving():
-            self._resolve_driving_bulk_wire()
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
@@ -966,10 +893,9 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def _has_elaborated_children(self):
         return bool(self._ts) or bool(self._slices)
 
+    @aggregate_wireable_method
     def value(self):
-        if self._has_elaborated_children():
-            return self._collect_children(lambda x: x.value())
-        return super().value()
+        return self._collect_children(lambda x: x.value())
 
     def _make_trace_child(self, skip_self):
         def _trace_child(t):
@@ -996,21 +922,16 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             return None
         return _trace_child
 
+    @aggregate_wireable_method
     def trace(self, skip_self=True):
-        if self._has_elaborated_children():
-            result = self._collect_children(self._make_trace_child(skip_self))
-            return result
-        return Wireable.trace(self)
+        return self._collect_children(self._make_trace_child(skip_self))
 
+    @aggregate_wireable_method
     def driven(self):
-        if not self._has_elaborated_children():
-            return Wireable.driven(self)
-        for _, child in self._enumerate_children():
-            if child is None:
-                return False
-            if not child.driven():
-                return False
-        return True
+        return all(
+            child is not None and child.driven()
+            for _, child in self._enumerate_children()
+        )
 
     def _is_slice(self):
         return (isinstance(self.name, ArrayRef) and
