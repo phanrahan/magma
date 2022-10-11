@@ -71,6 +71,7 @@ def test_binop():
             O3=m.Out(m.UInt[16]))
         O1 = m.UInt[8]()
         O1 @= op(m.zext_to(io.I0, 12), io.I1)[:8]
+        O1[0]  # force elaboration for repr test
         io.O1 @= O1
         io.O2 @= op(m.zext_to(io.I0, 12), io.I1)
         io.O3 @= op(m.zext_to(io.I0, 16), m.zext_to(io.I1, 16))
@@ -162,6 +163,7 @@ def test_rshift():
             O3=m.Out(m.UInt[16]))
         O1 = m.UInt[4]()
         O1 @= (io.I0 >> m.zext_to(io.I1, 8))[:4]
+        O1[0]  # force elaboration for repr test
         io.O1 @= O1
         io.O2 @= m.zext_to(io.I0 >> m.zext_to(io.I1, 8), 8)
         O3 = m.UInt[16]()
@@ -227,6 +229,7 @@ def test_unary():
             O2=m.Out(m.UInt[16]))
         O1 = m.UInt[4]()
         O1 @= op(io.I0)[:4]
+        O1[0]  # force elaboration for repr test
         io.O1 @= O1
         io.O2 @= op(m.zext_to(io.I0, 16))
 

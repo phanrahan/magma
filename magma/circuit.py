@@ -40,7 +40,7 @@ from magma.logging import root_logger, capture_logs
 from magma.ref import TempNamedRef
 from magma.t import In
 from magma.view import PortView
-from magma.wire_container import WiringLog
+from magma.wire_container import WiringLog, AggregateWireable
 
 
 __all__ = ['AnonymousCircuitType']
@@ -185,13 +185,15 @@ def _get_intermediate_values(value):
     driver = value.value()
     if driver is None:
         return OrderedIdentitySet()
-    if getattr(type(driver), "N", False) and driver.name.anon():
-        conn_iter = list(value.connection_iter())
-        if len(conn_iter) > 1:
-            return functools.reduce(
-                operator.or_, (_get_intermediate_values(v) for v, _ in
-                               conn_iter),
-                OrderedIdentitySet())
+    if (
+            isinstance(driver, AggregateWireable) and
+            driver.name.anon() and
+            driver.has_elaborated_children()
+    ):
+        return functools.reduce(
+            operator.or_, (_get_intermediate_values(v) for v, _ in
+                           value.connection_iter()),
+            OrderedIdentitySet())
     values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)
