@@ -133,3 +133,22 @@ def test_clocks():
     driver = _Foo.reg.I.trace()
     assert driver.const() and int(driver) == 0
     assert not _Foo.reg.CLK.driven()
+
+
+def test_nested_clocks():
+
+    class Clk(m.Product):
+        clk = m.Clock
+
+    class _Bar(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), clk=m.In(Clk))
+
+    class _Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), clk=m.In(Clk))
+        bar = _Bar()
+        m.stubify(bar.interface)
+
+    assert _Foo.bar.I.driven()
+    driver = _Foo.bar.I.trace()
+    assert driver.const() and int(driver) == 0
+    assert not _Foo.bar.clk.driven()
