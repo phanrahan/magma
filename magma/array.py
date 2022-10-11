@@ -606,8 +606,8 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
 
     def _should_wire_children(self, o):
         return (
-            self._has_elaborated_children() or
-            o._has_elaborated_children() or
+            self.has_elaborated_children() or
+            o.has_elaborated_children() or
             self.T.is_mixed()
         )
 
@@ -635,12 +635,12 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
                          keep_wired_when_contexts=keep_wired_when_contexts)
 
     def iswhole(self):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             return Array._iswhole(self._collect_children(lambda x: x))
         return True
 
     def const(self):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             return all(child.const()
                        for _, child in self._enumerate_children())
         return False
@@ -846,7 +846,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         return ts
 
     def __repr__(self):
-        if self.name.anon() and self._has_elaborated_children():
+        if self.name.anon() and self.has_elaborated_children():
             t_strs = ', '.join(repr(t) for t in self.ts)
             return f'array([{t_strs}])'
         return Type.__repr__(self)
@@ -890,7 +890,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
 
         return T
 
-    def _has_elaborated_children(self):
+    def has_elaborated_children(self):
         return bool(self._ts) or bool(self._slices)
 
     @aggregate_wireable_method

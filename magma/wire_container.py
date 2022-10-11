@@ -247,7 +247,7 @@ class Wireable:
 
 class AggregateWireable(Wireable):
     @abc.abstractmethod
-    def _has_elaborated_children(self):
+    def has_elaborated_children(self):
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -336,7 +336,7 @@ def aggregate_wireable_method(fn):
 
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             return fn(self, *args, **kwargs)
         wireable_fn = getattr(AggregateWireable, fn.__name__)
         return wireable_fn(self, *args, **kwargs)

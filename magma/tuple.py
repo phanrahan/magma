@@ -266,7 +266,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
         value.set_enclosing_when_context(self._enclosing_when_context)
         return value
 
-    def _has_elaborated_children(self):
+    def has_elaborated_children(self):
         return bool(self._ts)
 
     def _enumerate_children(self):
@@ -330,8 +330,8 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             )
             return
         if (self.is_mixed() or
-                self._has_elaborated_children() or
-                o._has_elaborated_children()):
+                self.has_elaborated_children() or
+                o.has_elaborated_children()):
             for self_elem, o_elem in zip(self, o):
                 self_elem = magma_value(self_elem)
                 o_elem = magma_value(o_elem)
