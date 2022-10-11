@@ -342,7 +342,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     @debug_unwire
     @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
-        if not self._has_elaborated_children():
+        if not self.has_elaborated_children():
             return AggregateWireable.unwire(self, o, debug_info,
                                             keep_wired_when_contexts)
 
