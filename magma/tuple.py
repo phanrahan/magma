@@ -342,9 +342,16 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     @debug_unwire
     @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
-        if not self.has_elaborated_children():
-            return AggregateWireable.unwire(self, o, debug_info,
-                                            keep_wired_when_contexts)
+        for k, t in self.items():
+            if o is None:
+                t.unwire(debug_info=debug_info,
+                         keep_wired_when_contexts=keep_wired_when_contexts)
+            elif o[k].is_input():
+                o[k].unwire(t, debug_info=debug_info,
+                            keep_wired_when_contexts=keep_wired_when_contexts)
+            else:
+                t.unwire(o[k], debug_info=debug_info,
+                         keep_wired_when_contexts=keep_wired_when_contexts)
 
     @aggregate_wireable_method
     def driven(self):

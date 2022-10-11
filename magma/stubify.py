@@ -4,7 +4,9 @@ from typing import Callable, Iterable
 
 from magma.circuit import CircuitKind, CircuitType, DefineCircuitKind
 from magma.clock import ClockTypes
+from magma.common import is_empty
 from magma.conversions import as_bits
+from magma.passes.clock import get_undriven_clocks_in_value
 from magma.value_utils import ValueVisitor
 from magma.t import Type
 
@@ -21,6 +23,12 @@ Stubbifier = Callable[[Type], _StubbifierResult]
 def zero_stubbifier(value: Type) -> _StubbifierResult:
     if isinstance(value, ClockTypes):
         return _StubbifierResult(modified=False, descend=False)
+    contains_clock = any(
+        not is_empty(get_undriven_clocks_in_value(value, T))
+        for T in ClockTypes
+    )
+    if contains_clock:
+        return _StubbifierResult(modified=False, descend=True)
     if value.is_output():
         value.unused()
         return _StubbifierResult(modified=True, descend=False)

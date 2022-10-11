@@ -626,9 +626,6 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
     @debug_unwire
     @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
-        if not self.has_elaborated_children():
-            return AggregateWireable.unwire(self, o, debug_info,
-                                            keep_wired_when_contexts)
         for i, child in self._enumerate_children():
             o_i = None if o is None else o[i]
             child.unwire(o_i, debug_info=debug_info,

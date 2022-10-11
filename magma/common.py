@@ -189,6 +189,18 @@ def only(lst: Iterable):
         raise NonSingletonIterableException(elements)
 
 
+def is_empty(lst: Iterable) -> bool:
+    """Checks whether the iterable @lst has any elements. If @lst is a
+    generator, then it is modified and should no longer be used.
+    """
+    it = iter(lst)
+    try:
+        next(it)
+    except StopIteration:
+        return True
+    return False
+
+
 class Finalizable(abc.ABC):
     @abc.abstractmethod
     def finalize(self):
