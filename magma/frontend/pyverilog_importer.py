@@ -1,4 +1,6 @@
 from collections import OrderedDict
+import io
+
 import hwtypes
 import pyverilog.dataflow.visit
 import pyverilog.vparser.parser
@@ -14,6 +16,7 @@ from .verilog_importer import (ImportMode, MultipleModuleDeclarationError,
                                VerilogImportError)
 from .verilog_utils import int_const_str_to_int
 from magma.bitutils import clog2
+from magma.stubify import stubify
 
 
 class PyverilogImportError(VerilogImportError):
@@ -186,3 +189,58 @@ class PyverilogImporter(VerilogImporter):
             }
             circ.default_kwargs = default_params
             self.add_module(circ)
+
+
+def _show(node, **kwargs):
+    buf = io.StringIO()
+    node.show(buf=buf, **kwargs)
+    return buf.getvalue()
+
+
+def _update_unique(dct, mapping):
+    for k, v in mapping.items():
+        assert k not in dct, (k)
+        dct[k] = v
+
+
+def _get_instances(defn):
+    for child in defn.children():
+        if isinstance(child, pyverilog.vparser.parser.Instance):
+            yield child
+        elif isinstance(child, pyverilog.vparser.parser.InstanceList):
+            yield from child.instances
+
+
+class PyverilogNetlistImporter(PyverilogImporter):
+    def __init__(self, type_map, stdcells):
+        super().__init__(type_map)
+        self._stdcells = stdcells
+
+    def import_(self, src, mode):
+        super().import_(src, mode)
+        if mode is not ImportMode.DEFINE:
+            return
+        modules = {
+            defn.name: defn
+            for defn in self._magma_defn_to_pyverilog_defn.keys()
+        }
+        try:
+            _update_unique(modules, self._stdcells)
+        except AssertionError as e:
+            raise MultipleModuleDeclarationError(e.args[0])
+
+        for magma_defn, pyverilog_defn in (
+                self._magma_defn_to_pyverilog_defn.items()
+        ):
+            mod = False
+            for inst in _get_instances(pyverilog_defn):
+                instance_module = modules[inst.module]
+                mod = True
+                with magma_defn.open():
+                    i = instance_module()
+                    stubify(i.interface)
+            if mod:
+                magma_defn.verilogFile = ""
+                magma_defn.verilog_source = ""
+                magma_defn._is_definition = True
+                stubify(magma_defn)
