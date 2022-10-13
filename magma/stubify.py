@@ -113,7 +113,7 @@ def _(
     # that we *can't* do this in the class itself, since we need to call open()
     # to tie the outputs first (in stubify()). Afterwards, we can override the
     # method.
-    #setattr(ckt, "open", classmethod(_stub_open))
+    setattr(ckt, "open", classmethod(_stub_open))
 
 
 def circuit_stub(

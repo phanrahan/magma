@@ -123,10 +123,6 @@ class _ModuleGraphVisitor(pyverilog.dataflow.visit.NodeVisitor):
 
 class PyverilogImporter(VerilogImporter):
     """Implementation of VerilogImporter using pyverilog"""
-    def __init__(self, type_map):
-        super().__init__(type_map)
-        self._magma_defn_to_pyverilog_defn = {}
-
     def _import_defn(self, defn, mode):
         ports = {}
         default_params = {}
@@ -169,43 +165,6 @@ class PyverilogImporter(VerilogImporter):
 
         return _FromVerilog, default_params
 
-    def post(self):
-        name_to_module_map = {d.name: d for d in self._magma_defn_to_pyverilog_defn.keys()}
-        import magma as m
-        decls = m.declare_from_verilog_file(
-            "/Users/rajsekhar/private/research/tile-pe-power/power-tool"
-            "/freepdk-45nm-stdcells-cleaned.v"
-        )
-        for decl in decls:
-            assert decl.name not in name_to_module_map
-            name_to_module_map[decl.name] = decl
-
-        def _get_instances(pyverilog_defn):
-            for child in pyverilog_defn.children():
-                if isinstance(child, pyverilog.vparser.parser.Instance):
-                    yield child
-                elif isinstance(child, pyverilog.vparser.parser.InstanceList):
-                    yield from child.instances
-        
-        from magma.stubify import stubify
-        for magma_defn, pyverilog_defn in self._magma_defn_to_pyverilog_defn.items():
-            mod = False
-            for inst in _get_instances(pyverilog_defn):
-                try:
-                    instance_module = name_to_module_map[inst.module]
-                except KeyError:
-                    raise Exception("bad!") from None
-                    continue
-                mod = True
-                with magma_defn.open():
-                    i = instance_module()
-                    stubify(i.interface)
-            if mod:
-                magma_defn.verilogFile = ""
-                magma_defn.verilog_source = ""
-                magma_defn._is_definition = True
-                stubify(magma_defn)
-
     def import_(self, src, mode):
         parser = pyverilog.vparser.parser.VerilogParser()
         ast = parser.parse(src)
@@ -213,8 +172,6 @@ class PyverilogImporter(VerilogImporter):
         visitor.visit(ast)
         for name, defn in visitor.defns.items():
             circ, default_params = self._import_defn(defn, mode)
-            print ("!", circ.name)
-            self._magma_defn_to_pyverilog_defn[circ] = defn
             if mode is ImportMode.DEFINE:
                 circ.verilogFile = _get_lines(src, defn.lineno, defn.end_lineno)
                 circ.verilog_source = src
@@ -224,5 +181,3 @@ class PyverilogImporter(VerilogImporter):
             }
             circ.default_kwargs = default_params
             self.add_module(circ)
-        if mode is ImportMode.DEFINE:
-            self.post()
