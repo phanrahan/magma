@@ -211,6 +211,16 @@ def _get_instances(defn):
             yield from child.instances
 
 
+def _get_wires(defn):
+    for child in defn.children():
+        if not isinstance(child, pyverilog.vparser.parser.Decl):
+            continue
+        for subchild in child.children():
+            if not isinstance(subchild, pyverilog.vparser.parser.Wire):
+                continue
+            yield subchild
+
+
 class PyverilogNetlistImporter(PyverilogImporter):
     def __init__(self, type_map, stdcells):
         super().__init__(type_map)
@@ -233,6 +243,21 @@ class PyverilogNetlistImporter(PyverilogImporter):
                 self._magma_defn_to_pyverilog_defn.items()
         ):
             mod = False
+            for wire in _get_wires(pyverilog_defn):
+                assert (
+                    not wire.signed
+                    and wire.dimensions is None
+                    and wire.value is None
+                )
+                T = Bit
+                if wire.width is not None:
+                    width = _get_width(wire.width, {})
+                    T = Bits[width]
+                mod = True
+                with magma_defn.open():
+                    t = T(name=wire.name)
+                    t.unused()
+                    t.undriven()
             for inst in _get_instances(pyverilog_defn):
                 instance_module = modules[inst.module]
                 mod = True
