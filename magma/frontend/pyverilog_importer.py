@@ -221,6 +221,41 @@ def _get_wires(defn):
             yield subchild
 
 
+def _wire_directed_to_undirected(directed, undirected):
+    if isinstance(directed, Bits[1]):
+        directed = directed[0]
+    if isinstance(undirected, Bits[1]):
+        undirected = undirected[0]
+    if directed.is_input():
+        directed @= undirected
+        return
+    if directed.is_output():
+        undirected @= directed
+        return
+    raise Exception()
+
+
+def _process_port_connections(pyverilog_inst, magma_inst, wires, modules):
+    for child in pyverilog_inst.children():
+        if not isinstance(child, pyverilog.vparser.parser.PortArg):
+            continue
+        magma_port = getattr(magma_inst, child.portname)
+        if isinstance(child.argname, pyverilog.vparser.parser.IntConst):
+            assert magma_port.is_input()
+            driver = _evaluate_node(child.argname, {})
+            magma_port @= driver
+        elif isinstance(child.argname, pyverilog.vparser.parser.Identifier):
+            try:
+                value = wires[child.argname.name]
+            except KeyError:
+                value = None
+            if value is None:
+                continue
+            _wire_directed_to_undirected(magma_port, value)
+        else:
+            pass
+
+
 class PyverilogNetlistImporter(PyverilogImporter):
     def __init__(self, type_map, stdcells):
         super().__init__(type_map)
@@ -243,6 +278,7 @@ class PyverilogNetlistImporter(PyverilogImporter):
                 self._magma_defn_to_pyverilog_defn.items()
         ):
             mod = False
+            wires = {}
             for wire in _get_wires(pyverilog_defn):
                 assert (
                     not wire.signed
@@ -254,16 +290,22 @@ class PyverilogNetlistImporter(PyverilogImporter):
                     width = _get_width(wire.width, {})
                     T = Bits[width]
                 mod = True
+                assert wire.name not in wires
+                wires[wire.name] = T(name=wire.name)
                 with magma_defn.open():
-                    t = T(name=wire.name)
-                    t.unused()
-                    t.undriven()
-            for inst in _get_instances(pyverilog_defn):
-                instance_module = modules[inst.module]
+                    wires[wire.name].undriven()
+            for pyverilog_inst in _get_instances(pyverilog_defn):
+                instance_module = modules[pyverilog_inst.module]
                 mod = True
                 with magma_defn.open():
-                    i = instance_module()
-                    stubify(i.interface)
+                    magma_inst = instance_module()
+                    _process_port_connections(
+                        pyverilog_inst,
+                        magma_inst,
+                        wires,
+                        modules,
+                    )
+                    stubify(magma_inst.interface)
             if mod:
                 magma_defn.verilogFile = ""
                 magma_defn.verilog_source = ""
