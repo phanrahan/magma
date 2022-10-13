@@ -289,25 +289,25 @@ class AggregateWireable(Wireable):
                     for wire in wires:
                         child.wire(wire.driver[i])
 
-    def _resolve_conditional_children(self, value):
+    def _resolve_conditional_children(self, value, info):
         # Save conditional wire info before unwire happens
-        info = self._get_conditional_drivee_info()
+        # info = self._get_conditional_drivee_info()
 
-        AggregateWireable.unwire(self, value)
+        # AggregateWireable.unwire(self, value)
 
         self._rewire_conditional_children(*info)
 
-    def _resolve_driven_bulk_wire(self):
+    def _resolve_driven_bulk_wire(self, driver, info):
         # Remove bulk wire since children will now track the wiring
-        value = self._wire.value()
+        value = driver
 
         if self._wired_when_contexts:
-            return self._resolve_conditional_children(value)
+            return self._resolve_conditional_children(value, info)
 
         # Else, was not wired in a when context, so children should not be
         # wired in a when context
         with no_when():
-            AggregateWireable.unwire(self, value)
+            # AggregateWireable.unwire(self, value)
 
             for i, child in self._enumerate_children():
                 child.wire(value[i])
@@ -326,10 +326,21 @@ class AggregateWireable(Wireable):
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
+        driver = None
+        driving = self._wire.driving()
         if self._wire.driven():
-            self._resolve_driven_bulk_wire()
-        if self._wire.driving():
-            self._resolve_driving_bulk_wire()
+            driver = self._wire.value()
+            info = self._get_conditional_drivee_info()
+            AggregateWireable.unwire(self, driver)
+        for value in driving:
+            AggregateWireable.unwire(value, self)
+        if driver:
+            self._resolve_driven_bulk_wire(driver, info)
+        for value in driving:
+            AggregateWireable.wire(value, self, None)
+            next(iter(value))
+        # if self._wire.driving():
+            # self._resolve_driving_bulk_wire()
 
 
 def aggregate_wireable_method(fn):
