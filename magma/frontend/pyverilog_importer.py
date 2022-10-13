@@ -123,6 +123,10 @@ class _ModuleGraphVisitor(pyverilog.dataflow.visit.NodeVisitor):
 
 class PyverilogImporter(VerilogImporter):
     """Implementation of VerilogImporter using pyverilog"""
+    def __init__(self, type_map):
+        super().__init__(type_map)
+        self._magma_defn_to_pyverilog_defn = {}
+
     def _import_defn(self, defn, mode):
         ports = {}
         default_params = {}
@@ -172,6 +176,7 @@ class PyverilogImporter(VerilogImporter):
         visitor.visit(ast)
         for name, defn in visitor.defns.items():
             circ, default_params = self._import_defn(defn, mode)
+            self._magma_defn_to_pyverilog_defn[circ] = defn
             if mode is ImportMode.DEFINE:
                 circ.verilogFile = _get_lines(src, defn.lineno, defn.end_lineno)
                 circ.verilog_source = src
