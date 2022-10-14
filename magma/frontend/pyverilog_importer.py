@@ -10,7 +10,7 @@ from ..bits import Bits
 from ..circuit import Circuit
 from ..interface import IO
 from ..passes.tsort import tsort
-from ..t import In, Out, InOut
+from ..t import In, Out, InOut, Type
 from .verilog_importer import (ImportMode, MultipleModuleDeclarationError,
                                MultiplePortDeclarationError, VerilogImporter,
                                VerilogImportError)
@@ -227,7 +227,7 @@ def _wire_directed_to_undirected(directed, undirected):
     if isinstance(undirected, Bits[1]):
         undirected = undirected[0]
     if directed.is_input():
-        if undirected.is_input():
+        if isinstance(undirected, Type) and undirected.is_input():
             return False
         directed @= undirected
         return True
@@ -237,6 +237,14 @@ def _wire_directed_to_undirected(directed, undirected):
     raise Exception()
 
 
+def _evaluate_arg(node, values):
+    if isinstance(node, pyverilog.vparser.parser.IntConst):
+        return _evaluate_node(node, {})
+    if isinstance(node, pyverilog.vparser.parser.Identifier):
+        return values[node.name]
+    return None
+
+
 def _process_port_connections(
         pyverilog_inst,
         magma_inst,
@@ -244,24 +252,19 @@ def _process_port_connections(
         wires,
 ):
     stash = []
+    magma_values = {}
+    magma_values.update(wires)
+    magma_values.update(containing_magma_defn.interface.ports)
     for child in pyverilog_inst.children():
         if not isinstance(child, pyverilog.vparser.parser.PortArg):
             continue
         magma_port = getattr(magma_inst, child.portname)
-        if isinstance(child.argname, pyverilog.vparser.parser.IntConst):
-            assert magma_port.is_input()
-            driver = _evaluate_node(child.argname, {})
-            magma_port @= driver
-        elif isinstance(child.argname, pyverilog.vparser.parser.Identifier):
-            try:
-                value = wires[child.argname.name]
-            except KeyError:
-                value = containing_magma_defn.interface.ports[child.argname.name]
-            wired = _wire_directed_to_undirected(magma_port, value)
-            if not wired:
-                stash.append((magma_port, value))
-        else:
-            pass
+        magma_arg = _evaluate_arg(child.argname, magma_values)
+        if magma_arg is None:
+            continue
+        wired = _wire_directed_to_undirected(magma_port, magma_arg)
+        if not wired:
+            stash.append((magma_port, magma_arg))
     return stash
 
 
