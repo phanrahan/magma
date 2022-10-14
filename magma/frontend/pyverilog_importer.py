@@ -262,8 +262,7 @@ def _process_port_connections(
                 stash.append((magma_port, value))
         else:
             pass
-    if stash:
-        print ("@", stash)
+    return stash
 
 
 class PyverilogNetlistImporter(PyverilogImporter):
@@ -304,18 +303,21 @@ class PyverilogNetlistImporter(PyverilogImporter):
                 wires[wire.name] = T(name=wire.name)
                 with magma_defn.open():
                     wires[wire.name].undriven()
+            stash = []
             for pyverilog_inst in _get_instances(pyverilog_defn):
                 instance_module = modules[pyverilog_inst.module]
                 mod = True
                 with magma_defn.open():
                     magma_inst = instance_module()
-                    _process_port_connections(
+                    stash += _process_port_connections(
                         pyverilog_inst,
                         magma_inst,
                         magma_defn,
                         wires,
                     )
                     stubify(magma_inst.interface)
+            for inst_port, driver in stash:
+                inst_port @= driver.trace()
             if mod:
                 magma_defn.verilogFile = ""
                 magma_defn.verilog_source = ""
