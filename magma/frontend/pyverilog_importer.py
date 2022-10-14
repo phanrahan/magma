@@ -16,6 +16,7 @@ from .verilog_importer import (ImportMode, MultipleModuleDeclarationError,
                                VerilogImportError)
 from .verilog_utils import int_const_str_to_int
 from magma.bitutils import clog2
+from magma.conversions import concat
 from magma.stubify import stubify
 
 
@@ -251,7 +252,9 @@ def _evaluate_arg(node, values):
         msb = _evaluate_node(node.msb, {})
         lsb =  _evaluate_node(node.lsb, {})
         return value[lsb : msb + 1]
-    return None
+    if isinstance(node, pyverilog.vparser.parser.Concat):
+        return concat(*(_evaluate_arg(n, values) for n in reversed(node.list)))
+    raise Exception()
 
 
 def _process_port_connections(
@@ -269,8 +272,6 @@ def _process_port_connections(
             continue
         magma_port = getattr(magma_inst, child.portname)
         magma_arg = _evaluate_arg(child.argname, magma_values)
-        if magma_arg is None:
-            continue
         wired = _wire_directed_to_undirected(magma_port, magma_arg)
         if not wired:
             stash.append((magma_port, magma_arg))
@@ -313,8 +314,6 @@ class PyverilogNetlistImporter(PyverilogImporter):
                 mod = True
                 assert wire.name not in wires
                 wires[wire.name] = T(name=wire.name)
-                with magma_defn.open():
-                    wires[wire.name].undriven()
             stash = []
             for pyverilog_inst in _get_instances(pyverilog_defn):
                 instance_module = modules[pyverilog_inst.module]
