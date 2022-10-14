@@ -246,6 +246,13 @@ class Wireable:
 
 
 class AggregateWireable(Wireable):
+    def __init__(self):
+        super().__init__()
+        # Flag used to mark a value that is currently being
+        # resolved, and therefor it doesn't need to repeat the
+        # resolution logic that is being done in the calling code
+        self._should_resolve = True
+
     @abc.abstractmethod
     def has_elaborated_children(self):
         raise NotImplementedError()
@@ -326,10 +333,22 @@ class AggregateWireable(Wireable):
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
-        if self._wire.driven():
-            self._resolve_driven_bulk_wire()
-        if self._wire.driving():
-            self._resolve_driving_bulk_wire()
+        if not self._should_resolve:
+            return
+        # Trace as far back as possible to know where to start
+        source = self._wire.trace()
+        if source is None:
+            source = self
+        source._should_resolve = False
+
+        # Process values one at a time so that we avoid recursion
+        # error for large wire chains
+        to_process = source._wire.driving()
+        while to_process:
+            next = to_process.pop()
+            next._should_resolve = False
+            next._resolve_driven_bulk_wire()
+            to_process.extend(next._wire.driving())
 
 
 def aggregate_wireable_method(fn):
