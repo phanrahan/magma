@@ -246,6 +246,11 @@ def _evaluate_arg(node, values):
         value = _evaluate_arg(node.var, values)
         index = _evaluate_node(node.ptr, {})
         return value[index]
+    if isinstance(node, pyverilog.vparser.parser.Partselect):
+        value = _evaluate_arg(node.var, values)
+        msb = _evaluate_node(node.msb, {})
+        lsb =  _evaluate_node(node.lsb, {})
+        return value[lsb : msb + 1]
     return None
 
 
