@@ -197,6 +197,8 @@ def list_lookup(list_, select, default=None):
     if default is None:
         output = list_[-1]
         list_ = list_[:-1]
+    # We chain the muxes in reverse order so that the emitted Verilog is in
+    # forward order.
     for i in range(len(list_) - 1, -1, -1):
         output = mux([output, list_[i]], i == select)
     return output
