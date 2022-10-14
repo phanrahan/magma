@@ -485,7 +485,7 @@ def test_internal_instantiation():
     assert check_gold(__file__, f"{basename}.mlir")
 
 
-@pytest.mark.skip("There's a bug in this test")
+@pytest.mark.skip("Test does not pass due to when issue (#1156)")
 def test_internal_instantiation_complex():
 
     class _Test(m.Circuit):

@@ -181,7 +181,7 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.simple_memory_wrapper,
         examples.simple_undriven_instances,
         examples.simple_neg,
-        examples.simple_array_slice,
+        examples.simple_array_slice
     ]
 
 
