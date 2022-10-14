@@ -485,7 +485,6 @@ def test_internal_instantiation():
     assert check_gold(__file__, f"{basename}.mlir")
 
 
-@pytest.mark.skip("Test does not pass due to when issue (#1156)")
 def test_internal_instantiation_complex():
 
     class _Test(m.Circuit):
@@ -501,7 +500,6 @@ def test_internal_instantiation_complex():
             io.O @= x
         with m.otherwise():
             io.O @= 0b11
-            x @= 0
 
     basename = "test_when_internal_instantiation_complex"
     m.compile(f"build/{basename}", _Test, output="mlir")

@@ -119,6 +119,12 @@ class InsertCoreIRWires(DefinitionPass):
             for value in instance.interface.ports.values():
                 if not value.is_output():
                     self._insert_wire(value, definition)
+        for builder in definition._context_._builders:
+            if builder._finalized:
+                continue
+            for value in builder._io.inst_ports.values():
+                if not value.is_output():
+                    self._insert_wire(value, definition)
         for value in definition.interface.ports.values():
             if not value.is_output():
                 self._insert_wire(value, definition)
