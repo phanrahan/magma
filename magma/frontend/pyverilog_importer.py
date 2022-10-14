@@ -227,15 +227,23 @@ def _wire_directed_to_undirected(directed, undirected):
     if isinstance(undirected, Bits[1]):
         undirected = undirected[0]
     if directed.is_input():
+        if undirected.is_input():
+            return False
         directed @= undirected
-        return
+        return True
     if directed.is_output():
         undirected @= directed
-        return
+        return True
     raise Exception()
 
 
-def _process_port_connections(pyverilog_inst, magma_inst, wires, modules):
+def _process_port_connections(
+        pyverilog_inst,
+        magma_inst,
+        containing_magma_defn,
+        wires,
+):
+    stash = []
     for child in pyverilog_inst.children():
         if not isinstance(child, pyverilog.vparser.parser.PortArg):
             continue
@@ -248,12 +256,14 @@ def _process_port_connections(pyverilog_inst, magma_inst, wires, modules):
             try:
                 value = wires[child.argname.name]
             except KeyError:
-                value = None
-            if value is None:
-                continue
-            _wire_directed_to_undirected(magma_port, value)
+                value = containing_magma_defn.interface.ports[child.argname.name]
+            wired = _wire_directed_to_undirected(magma_port, value)
+            if not wired:
+                stash.append((magma_port, value))
         else:
             pass
+    if stash:
+        print ("@", stash)
 
 
 class PyverilogNetlistImporter(PyverilogImporter):
@@ -302,8 +312,8 @@ class PyverilogNetlistImporter(PyverilogImporter):
                     _process_port_connections(
                         pyverilog_inst,
                         magma_inst,
+                        magma_defn,
                         wires,
-                        modules,
                     )
                     stubify(magma_inst.interface)
             if mod:
