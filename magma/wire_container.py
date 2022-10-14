@@ -319,15 +319,6 @@ class AggregateWireable(Wireable):
             for i, child in self._enumerate_children():
                 child.wire(value[i])
 
-    def _resolve_driving_bulk_wire(self):
-        driving = self._wire.driving()
-        for drivee in driving:
-            # Force drivee to resolve by triggering the
-            # _resolve_driven_bulk_wire logic which occurs when referencing a
-            # child which begins the elaboration process.  Using this pattern
-            # avoids having to duplicate the logic for driving/driven
-            next(iter(drivee))
-
     def _resolve_bulk_wire(self):
         """
         If a child reference is made, we "expand" a bulk wire into the
