@@ -11,23 +11,21 @@ hw.module @test_internal_instantiation_complex(%I: i2, %S: i2) -> (O: i1) {
     sv.assign %10, %8 : i1
     %9 = sv.read_inout %10 : !hw.inout<i1>
     %11 = hw.constant 1 : i1
-    %12 = hw.constant 0 : i1
+    %13 = sv.reg : !hw.inout<i1>
+    %8 = sv.read_inout %13 : !hw.inout<i1>
     %14 = sv.reg : !hw.inout<i1>
-    %8 = sv.read_inout %14 : !hw.inout<i1>
-    %15 = sv.reg : !hw.inout<i1>
-    %13 = sv.read_inout %15 : !hw.inout<i1>
+    %12 = sv.read_inout %14 : !hw.inout<i1>
     sv.alwayscomb {
         sv.if %0 {
-            sv.bpassign %15, %9 : i1
+            sv.bpassign %14, %9 : i1
             sv.if %1 {
-                sv.bpassign %14, %4 : i1
+                sv.bpassign %13, %4 : i1
             } else {
-                sv.bpassign %14, %7 : i1
+                sv.bpassign %13, %7 : i1
             }
         } else {
-            sv.bpassign %15, %11 : i1
-            sv.bpassign %14, %12 : i1
+            sv.bpassign %14, %11 : i1
         }
     }
-    hw.output %13 : i1
+    hw.output %12 : i1
 }

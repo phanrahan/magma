@@ -501,7 +501,6 @@ def test_internal_instantiation_complex():
             io.O @= x
         with m.otherwise():
             io.O @= 0b11
-            x @= 0
 
     basename = "test_when_internal_instantiation_complex"
     m.compile(f"build/{basename}", _Test, output="mlir")

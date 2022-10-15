@@ -192,6 +192,10 @@ class Wireable:
     def set_enclosing_when_context(self, ctx):
         self._enclosing_when_context = ctx
 
+    @property
+    def enclosing_when_context(self):
+        return self._enclosing_when_context
+
     def wired(self):
         return self._wire.wired()
 

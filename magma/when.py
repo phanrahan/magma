@@ -412,6 +412,11 @@ def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
                 )
             )
             assignees.update(then_assignees.union(else_assignees))
+            # Filter out any latches that were created in this when context.
+            latches = set(filter(
+                lambda x: x.enclosing_when_context is not op,
+                latches
+            ))
             continue
         raise TypeError(op)
     return assignees, latches
