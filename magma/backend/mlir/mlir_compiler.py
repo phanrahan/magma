@@ -39,18 +39,18 @@ class MlirCompiler(Compiler):
         return "mlir"
 
     def _run_passes(self):
-        # NOTE(leonardt): We elaborate tuples before finalizing when statements
-        # because they may cause array expansion (e.g. when we have an array of
-        # tuples).  If we remove the flatten_all_tuples requirement, we may
-        # finalize when earlier, but then we may still need this code path as
-        # an option.
         if self.opts.get("flatten_all_tuples", False):
             elaborate_tuples(self.main)
-        finalize_whens(self.main)
 
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
         wire_clocks(self.main)
+        # NOTE(leonardt): finalizing whens must happen after any
+        # passes that modify the circuit.  This is because passes
+        # could introduce more conditional logic, or they could
+        # trigger elaboration on values used in existing coditiona
+        # logic (which modifies the when builder)
+        finalize_whens(self.main)
         raise_logs_as_exceptions_pass(self.main)
 
     def compile(self):

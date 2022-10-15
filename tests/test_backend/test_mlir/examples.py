@@ -535,3 +535,15 @@ class simple_array_slice(m.Circuit):
     T = m.Bits[8]
     io = m.IO(a=m.In(m.Array[12, T]), y=m.Out(m.Array[4, T]))
     io.y @= io.a[:4]
+
+
+class complex_when_lazy_tuple(m.Circuit):
+    T = m.Tuple[m.Bit, m.Bits[8]]
+    io = m.IO(I0=m.In(T), I1=m.In(T), S=m.In(m.Bit), O=m.Out(T))
+    x = T(name="x")
+    with m.when(io.S):
+        x @= io.I0
+    with m.otherwise():
+        x @= io.I1
+
+    io.O @= x
