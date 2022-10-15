@@ -119,6 +119,11 @@ class InsertCoreIRWires(DefinitionPass):
             for value in instance.interface.ports.values():
                 if not value.is_output():
                     self._insert_wire(value, definition)
+
+        # See https://github.com/phanrahan/magma/pull/1157 for more context, we
+        # need to run this on specifically the when builder instance, since
+        # this hasn't been finalized yet and may trace back to temporary
+        # values.
         for builder in definition._context_._builders:
             if builder._finalized:
                 continue
