@@ -1,4 +1,5 @@
 import magma as m
+
 from examples import complex_when_lazy_tuple
 
 
