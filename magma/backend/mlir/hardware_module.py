@@ -54,6 +54,7 @@ from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.primitives.when import iswhen
 from magma.primitives.xmr import XMRSink, XMRSource
+from magma.protocol_type import magma_value as get_magma_value
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
@@ -141,6 +142,7 @@ def get_module_interface(
     operands = []
     results = []
     for port in module.interface.ports.values():
+        port = get_magma_value(port)
         visit_magma_value_or_value_wrapper_by_direction(
             port,
             lambda p: operands.append(ctx.get_or_make_mapped_value(p)),
@@ -1007,6 +1009,7 @@ class NativeBindProcessor(BindProcessorInterface):
         for bind_module, (args, _) in self._defn.bind_modules.items():
             operands = []
             for port in self._defn.interface.ports.values():
+                port = get_magma_value(port)
                 visit_magma_value_or_value_wrapper_by_direction(
                     port,
                     lambda p: operands.append(self._ctx.get_mapped_value(p)),
@@ -1183,10 +1186,14 @@ class HardwareModule:
 
         def new_values(fn, ports):
             namer = magma_value_or_type_to_string
-            return [fn(port, name=namer(port), force=True) for port in ports]
+            return [
+                fn(port, name=namer(port), force=True)
+                for port in map(get_magma_value, ports)
+            ]
 
         i, o = [], []
         for port in self._magma_defn_or_decl.interface.ports.values():
+            port = get_magma_value(port)
             visit_magma_value_or_value_wrapper_by_direction(
                 port, i.append, o.append,
                 flatten_all_tuples=self._opts.flatten_all_tuples,
