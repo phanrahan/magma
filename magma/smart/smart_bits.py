@@ -124,6 +124,15 @@ class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
     def reduce(self, op) -> 'SmartReductionOp':
         return SmartReductionOp(op, self)
 
+    def reduce_and(self) -> 'SmartReductionOp':
+        return self.reduce(operator.and_)
+
+    def reduce_or(self) -> 'SmartReductionOp':
+        return self.reduce(operator.or_)
+
+    def reduce_xor(self) -> 'SmartReductionOp':
+        return self.reduce(operator.xor)
+
     # Extension operators.
     def zext(self, width) -> 'SmartExtendOp':
         return SmartExtendOp(width, False, self)
