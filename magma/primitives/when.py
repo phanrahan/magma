@@ -5,6 +5,7 @@ from typing import Dict, Iterable, Optional, Set, Tuple, Union
 
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
+from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import Register
@@ -65,7 +66,18 @@ def _add_default_drivers_to_memory_ports(builder: 'WhenBuilder'):
         builder.block.add_default_driver(drivee, zero)
 
 
-def _get_corresponding_register_output(value: Type) -> Optional[Type]:
+def _get_corresponding_register_default(value: Type) -> Optional[Type]:
+    """
+    Used to get the corresponding default for `value` if it is a
+    reference to a register input value.
+
+    `value` should either be reg.I or reg.CE:
+        * For reg.I, the default will be reg.O (default update is the
+          current value).
+        * For reg.CE, the default will be False (default to no update).
+
+    CE is assumed to be of type `Enable`.
+    """
     root_ref = value.name.root()
     try:
         value_inst = root_ref.inst
@@ -73,15 +85,30 @@ def _get_corresponding_register_output(value: Type) -> Optional[Type]:
         return None
     if not isinstance(type(value_inst), Register):
         return None
+    if isinstance(value, Enable):
+        return Enable(False)
     sel = make_selector(value)
     return sel.select(value_inst.O)
 
 
 def _add_default_drivers_to_register_inputs(builder: 'WhenBuilder'):
+    """
+    Adds default drivers to register inputs (reg.O is the default value
+    for inputs, False is the default for enables).
+
+    The current implementation assumes the magma internally defined
+    register primitive is used, which always has only one input and an
+    optional enable port.  If we encounter a subclass of m.Register, we
+    will drive all inputs with reg.O and all enables with reg.I (if they
+    have multiple).
+
+    If we wanted to make this interface more extensible, we could have
+    the user provide an API for setting up default values.
+    """
     for drivee in builder.output_to_index:
         if drivee in builder.default_drivers:
             continue
-        O = _get_corresponding_register_output(drivee)
+        O = _get_corresponding_register_default(drivee)
         if O is None:
             continue
         builder.block.add_default_driver(drivee, O)
