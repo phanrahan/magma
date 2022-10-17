@@ -185,6 +185,7 @@ class Register(Generator2):
                            has_async_resetn=has_async_resetn,
                            has_reset=has_reset,
                            has_resetn=has_resetn)
+        self.ce_name = CE_name
         if init is None:
             init = 0
 

@@ -814,3 +814,36 @@ def test_when_lazy_array_multiple_whens(caplog):
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_reg_ce():
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  CE=m.In(m.Bit))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        with m.when(io.CE):
+            x.I @= io.I
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_reg_ce_multiple():
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce_multiple"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  CE=m.In(m.Bits[2]))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        with m.when(io.CE[0]):
+            x.I @= io.I
+        with m.elsewhen(io.CE[1]):
+            x.I @= ~io.I
+
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")

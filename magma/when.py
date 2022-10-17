@@ -1,8 +1,18 @@
 import abc
 import contextlib
 import dataclasses
+import functools
 import itertools
 from typing import Any, Iterable, Optional, Set, Tuple, Union
+
+from magma.ref import get_ref_inst
+
+
+@functools.lru_cache(None)
+def _register_type():
+    # NOTE(rsetaluri): Circular dependency.
+    from magma.primitives.register import Register
+    return Register
 
 
 class WhenSyntaxError(SyntaxError):
@@ -118,6 +128,42 @@ class _BlockBase(contextlib.AbstractContextManager):
         _set_curr_block(self)
         return self
 
+    def _add_reg_enables(self):
+        """
+        If we wire the input of a register, check if there is an enable port
+        and wire to 1 if found.
+
+        This will overwrite an existing wiring if the user already has done it.
+
+        The warning raised will indicate to the user that the explicit wiring
+        is unnecessary and promote the idiom of not explicitly wiring enables.
+        """
+        # We need to copy the conditional wires list first since we might update
+        # the member variable list.
+        conditional_wires = list(self._conditional_wires)
+        for wire in list(self._conditional_wires):
+            inst = get_ref_inst(wire.drivee.name)
+            if inst is None:
+                continue
+            if not isinstance(type(inst), _register_type()):
+                continue
+            ce_port = getattr(inst, inst.ce_name, None)
+            if ce_port is None:
+                continue
+            ce_port @= 1
+
+    @abc.abstractmethod
+    def _get_exit_block(self):
+        """Returns the block that should be set as the current block when
+        __exit__ is called.
+        """
+        raise NotImplementedError()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._add_reg_enables()
+        _set_curr_block(self._get_exit_block())
+        _set_prev_block(self)
+
 
 BlockBase = _BlockBase
 
@@ -199,9 +245,8 @@ class _WhenBlock(_BlockBase):
         _set_prev_block(None)
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        _set_curr_block(self._parent)
-        _set_prev_block(self)
+    def _get_exit_block(self):
+        return self._parent
 
 
 class _ElseWhenBlock(_BlockBase):
@@ -230,9 +275,8 @@ class _ElseWhenBlock(_BlockBase):
     def otherwise_block(self) -> None:
         return None
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        _set_curr_block(self._parent._parent)
-        _set_prev_block(self)
+    def _get_exit_block(self):
+        return self._parent._parent
 
 
 class _OtherwiseBlock(_BlockBase):
@@ -257,9 +301,8 @@ class _OtherwiseBlock(_BlockBase):
     def otherwise_block(self) -> None:
         return None
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        _set_curr_block(self._parent._parent)
-        _set_prev_block(self)
+    def _get_exit_block(self):
+        return self._parent._parent
 
 
 _curr_block = None
