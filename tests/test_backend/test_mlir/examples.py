@@ -3,6 +3,7 @@ import itertools
 import magma as m
 from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.passes.drive_undriven import drive_undriven
+from magma.testing.utils import SimpleMagmaProtocol
 
 
 class simple_comb(m.Circuit):
@@ -547,3 +548,21 @@ class complex_when_lazy_tuple(m.Circuit):
         x @= io.I1
 
     io.O @= x
+
+
+class simple_magma_protocol(m.Circuit):
+    T = SimpleMagmaProtocol[m.Bits[8]]
+    io = m.IO(I=m.In(T), O=m.Out(T))
+    io.O @= io.I
+
+
+class simple_smart_bits(m.Circuit):
+    T = m.smart.SmartBits[8]
+    io = m.IO(I=m.In(T), O=m.Out(T))
+    io.O @= io.I
+
+
+class complex_magma_protocol(m.Circuit):
+    T = simple_magma_protocol.T
+    io = m.IO(I=m.In(T), O=m.Out(T))
+    io.O @= simple_magma_protocol()(io.I)

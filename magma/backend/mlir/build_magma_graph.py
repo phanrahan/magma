@@ -15,6 +15,7 @@ from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.compile_exception import UnconnectedPortException
 from magma.digital import Digital
+from magma.protocol_type import magma_value as get_magma_value
 from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef, LazyInstRef
 from magma.t import Type
 from magma.tuple import Tuple as m_Tuple
@@ -163,6 +164,7 @@ def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
 def _visit_inputs(
         ctx: ModuleContext, module: ModuleLike, flatten_all_tuples: bool):
     for port in module.interface.ports.values():
+        port = get_magma_value(port)
         visit_value_or_value_wrapper_by_direction(
             port,
             lambda p: _visit_input(ctx, p, module),
