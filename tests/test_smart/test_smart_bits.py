@@ -3,14 +3,6 @@ import operator
 import pytest
 
 import magma as m
-from magma.smart import (
-    SmartBit,
-    SmartBits,
-    concat,
-    signed,
-    make_smart,
-    eval as smart_eval,
-)
 from magma.testing import check_files_equal
 
 
@@ -51,11 +43,11 @@ def test_binop():
     class _Test(m.Circuit):
         name = "test_binop"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            I1=m.In(SmartBits[12]),
-            O1=m.Out(SmartBits[8]),
-            O2=m.Out(SmartBits[12]),
-            O3=m.Out(SmartBits[16]))
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[12]),
+            O1=m.Out(m.smart.SmartBits[8]),
+            O2=m.Out(m.smart.SmartBits[12]),
+            O3=m.Out(m.smart.SmartBits[16]))
         val = op(io.I0, io.I1)
         io.O1 @= val
         io.O2 @= val
@@ -87,10 +79,10 @@ def test_comparison():
     class _Test(m.Circuit):
         name = "test_comparison"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            I1=m.In(SmartBits[12]),
-            O1=m.Out(SmartBits[1]),
-            O2=m.Out(SmartBits[16]))
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[12]),
+            O1=m.Out(m.smart.SmartBits[1]),
+            O2=m.Out(m.smart.SmartBits[16]))
         val = op(io.I0, io.I1)
         io.O1 @= val
         io.O2 @= val
@@ -114,10 +106,10 @@ def test_lshift():
     class _Test(m.Circuit):
         name = "test_lshift"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            I1=m.In(SmartBits[4]),
-            O1=m.Out(SmartBits[8]),
-            O2=m.Out(SmartBits[16]))
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[4]),
+            O1=m.Out(m.smart.SmartBits[8]),
+            O2=m.Out(m.smart.SmartBits[16]))
         val = io.I0 << io.I1
         io.O1 @= val
         io.O2 @= val
@@ -143,11 +135,11 @@ def test_rshift():
     class _Test(m.Circuit):
         name = "test_rshift"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            I1=m.In(SmartBits[4]),
-            O1=m.Out(SmartBits[4]),
-            O2=m.Out(SmartBits[8]),
-            O3=m.Out(SmartBits[16]))
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[4]),
+            O1=m.Out(m.smart.SmartBits[4]),
+            O2=m.Out(m.smart.SmartBits[8]),
+            O3=m.Out(m.smart.SmartBits[16]))
         val = io.I0 >> io.I1
         io.O1 @= val
         io.O2 @= val
@@ -179,12 +171,12 @@ def test_concat():
     class _Test(m.Circuit):
         name = "test_concat"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            I1=m.In(SmartBits[4]),
-            I2=m.In(SmartBits[10]),
-            O1=m.Out(SmartBits[4]),
-            O2=m.Out(SmartBits[16]))
-        val = concat(io.I0 + io.I1, io.I2)
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[4]),
+            I2=m.In(m.smart.SmartBits[10]),
+            O1=m.Out(m.smart.SmartBits[4]),
+            O2=m.Out(m.smart.SmartBits[16]))
+        val = m.smart.concat(io.I0 + io.I1, io.I2)
         io.O1 @= val
         io.O2 @= val
 
@@ -214,9 +206,9 @@ def test_unary():
     class _Test(m.Circuit):
         name = "test_unary"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            O1=m.Out(SmartBits[4]),
-            O2=m.Out(SmartBits[16]))
+            I0=m.In(m.smart.SmartBits[8]),
+            O1=m.Out(m.smart.SmartBits[4]),
+            O2=m.Out(m.smart.SmartBits[16]))
         val = op(io.I0)
         io.O1 @= val
         io.O2 @= val
@@ -244,9 +236,9 @@ def test_reduction():
     class _Test(m.Circuit):
         name = "test_reduction"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            O1=m.Out(SmartBits[1]),
-            O2=m.Out(SmartBits[16]))
+            I0=m.In(m.smart.SmartBits[8]),
+            O1=m.Out(m.smart.SmartBits[1]),
+            O2=m.Out(m.smart.SmartBits[16]))
         val = io.I0.reduce(op)
         io.O1 @= val
         io.O2 @= val
@@ -269,8 +261,8 @@ def test_slice():
     class _Test(m.Circuit):
         name = "test_slice"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            O0=m.Out(SmartBits[12]),
+            I0=m.In(m.smart.SmartBits[8]),
+            O0=m.Out(m.smart.SmartBits[12]),
         )
         io.O0 @= io.I0[2:6]
 
@@ -310,7 +302,7 @@ def test_smoke():
             for i, width in enumerate(widths):
                 name = self.fresh_name()
                 width = widths[i]
-                T = SmartBit if width is None else SmartBits[width]
+                T = m.smart.SmartBit if width is None else m.smart.SmartBits[width]
                 dir_ = m.Out if i == 0 else m.In
                 self._add_port(name, dir_(T))
                 names.append(name)
@@ -359,7 +351,7 @@ def test_smoke():
 
             # Concat.
             out, x, y, z = self.make_ports(32, 10, 16, None)
-            out @= concat(x, y, z)  # extend concat; width = 10 + 16 + 1 = 27.
+            out @= m.smart.concat(x, y, z)  # extend concat; width = 10 + 16 + 1 = 27.
 
 
     class _TestTop(m.Circuit):
@@ -373,16 +365,16 @@ def test_complex():
 
     class _Test(m.Circuit):
         io = m.IO(
-            I0=m.In(SmartBits[7]),
-            I1=m.In(SmartBits[9, True]),
-            I2=m.In(SmartBits[12, True]),
-            O=m.Out(SmartBits[10]),
-            O2=m.Out(SmartBits[7]),
-            O3=m.Out(SmartBit),
+            I0=m.In(m.smart.SmartBits[7]),
+            I1=m.In(m.smart.SmartBits[9, True]),
+            I2=m.In(m.smart.SmartBits[12, True]),
+            O=m.Out(m.smart.SmartBits[10]),
+            O2=m.Out(m.smart.SmartBits[7]),
+            O3=m.Out(m.smart.SmartBit),
         )
 
         x = (~(io.I0 + io.I1) + io.I2) << io.I0.reduce(operator.and_)
-        y = signed(io.I1 <= io.I2) + signed(io.I0)
+        y = m.smart.signed(io.I1 <= io.I2) + m.smart.signed(io.I0)
 
         io.O @= x
         io.O2 @= y
@@ -392,16 +384,16 @@ def test_complex():
 
 
 def test_type_constructors():
-    T1 = SmartBits[8]
+    T1 = m.smart.SmartBits[8]
     assert T1._T_ is m.Bits[8]
     assert T1._signed_ == False
 
-    T2 = SmartBits[12, True]
+    T2 = m.smart.SmartBits[12, True]
     assert T2._T_ is m.Bits[12]
     assert T2._signed_ == True
 
     with pytest.raises(TypeError) as pytest_e:
-        T3 = SmartBits[8][12]
+        T3 = m.smart.SmartBits[8][12]
         assert False
     args = pytest_e.value.args
     assert args == ("Can not doubly qualify SmartBits",)
@@ -411,9 +403,9 @@ def test_type_constructors():
 def test_unsigned_add():
     class _Test(m.Circuit):
         io = m.IO(
-            x=m.In(SmartBits[8, True]),
-            y=m.In(SmartBits[16, False]),
-            O=m.Out(SmartBits[20, True])
+            x=m.In(m.smart.SmartBits[8, True]),
+            y=m.In(m.smart.SmartBits[16, False]),
+            O=m.Out(m.smart.SmartBits[20, True])
         )
         io.O @= io.x + io.y
 
@@ -421,9 +413,9 @@ def test_unsigned_add():
 
 
 def test_type():
-    assert SmartBits[32] == SmartBits[32]
-    assert SmartBits[32] == SmartBits[32].qualify(m.Direction.Undirected)
-    assert SmartBits[32] != SmartBits[33]
+    assert m.smart.SmartBits[32] == m.smart.SmartBits[32]
+    assert m.smart.SmartBits[32] == m.smart.SmartBits[32].qualify(m.Direction.Undirected)
+    assert m.smart.SmartBits[32] != m.smart.SmartBits[33]
     # NOTE(rsetaluri): We noticed a bug where, due to equality not being defined
     # on SmartBitsMeta, constructing Products containing SmartBit's failed
     # (subclass check resulted in non-terminating recursion).
@@ -437,15 +429,15 @@ def test_make_smart():
 
     # Value should be non-anonymous so that the value checks below work.
     value = _T(name="value")
-    smart = make_smart(value)
+    smart = m.smart.make_smart(value)
 
     # Type checks.
     assert isinstance(smart, m.Tuple)
     assert set(type(smart).field_dict.keys()) == {"x", "y"}
-    assert isinstance(smart.x, SmartBits)
+    assert isinstance(smart.x, m.smart.SmartBits)
     assert len(smart.x) == 8 and type(smart.x)._signed_ == False
     assert isinstance(smart.y, m.Array)
-    assert isinstance(smart.y[0], SmartBits)
+    assert isinstance(smart.y[0], m.smart.SmartBits)
     assert len(smart.y[0]) == 16
     assert type(smart.y[0])._signed_ == False
 
@@ -461,23 +453,23 @@ def test_eval():
     class _Test(m.Circuit):
         name = "test_eval"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            I1=m.In(SmartBits[12]),
-            O0=m.Out(SmartBits[16])
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[12]),
+            O0=m.Out(m.smart.SmartBits[16])
         )
-        O0 = SmartBits[16]()
+        O0 = m.smart.SmartBits[16]()
         O0 @= io.I0 + io.I1
         io.O0 @= O0
 
     class _Gold(m.Circuit):
         name = "test_eval"
         io = m.IO(
-            I0=m.In(SmartBits[8]),
-            I1=m.In(SmartBits[12]),
-            O0=m.Out(SmartBits[16])
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[12]),
+            O0=m.Out(m.smart.SmartBits[16])
         )
-        O0 = SmartBits[16]()
-        O0 @= smart_eval(io.I0 + io.I1, 16)
+        O0 = m.smart.SmartBits[16]()
+        O0 @= m.smart.evaluate(io.I0 + io.I1, 16)
         io.O0 @= O0
 
     return _Test, _Gold
