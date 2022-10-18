@@ -341,6 +341,8 @@ class AggregateWireable(Wireable):
         to_process = source._wire.driving()
         while to_process:
             next = to_process.pop()
+            if not next._should_resolve:
+                continue
             next._should_resolve = False
             next._resolve_driven_bulk_wire()
             to_process.extend(next._wire.driving())
