@@ -254,11 +254,33 @@ class SmartConcatOp(SmartOp):
         super().__init__(SmartConcatOp.Op(), *args)
 
 
+class SmartMuxOp(SmartOp):
+
+    class Op:
+        def __call__(self, *args) -> Bits:
+            import magma as m
+            values, select = args[:-1], args[-1]
+            return m.mux(values, select)
+
+        def __str__(self) -> str:
+            return "Mux"
+
+    def __init__(self, *args):
+        super().__init__(SmartMuxOp.Op(), *args)
+
+
 def concat(*args) -> SmartExpr:
     if not all(isinstance(arg, SmartExpr) for arg in args):
         types = ", ".join(str(type(arg)) for arg in args)
         raise NotImplementedError(f"Concat not supported for [{types}]")
     return SmartConcatOp(*args)
+
+
+def mux(values, select) -> SmartExpr:
+    if not all(isinstance(value, SmartExpr) for value in values):
+        types = ", ".join(str(type(value)) for value in values)
+        raise NotImplementedError(f"Mux not supported for [{types}]")
+    return SmartMuxOp(*values, select)
 
 
 class SmartSignedOp(SmartOp):
