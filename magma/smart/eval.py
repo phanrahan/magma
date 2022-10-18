@@ -3,10 +3,12 @@ import networkx as nx
 from typing import Any, Dict, Iterable, List, Optional, Set
 
 from magma.bits import Bits
+from magma.bitutils import clog2
 from magma.common import MroVisitor, Stack
 from magma.smart.smart_bits import (
     SmartExprMeta,
     SmartExpr,
+    SmartBitsExpr,
     SmartBits,
     issigned,
     SmartSignedOp,
@@ -150,6 +152,10 @@ class _PartitionGraph(_Visitor):
         for child in node.children:
             self.visit(child, _Context(None, child))
 
+    def visit_SmartMuxOp(self, node: _Node, context: _Context):
+        for child in node.children:
+            self.visit(child, _Context(None, child))
+
     def visit_SmartReductionOp(self, node: _Node, context: _Context):
         super().generic_visit(node, _Context(None, node))
 
@@ -184,6 +190,10 @@ class _ResultWidthDeterminator(_Visitor):
     def visit_SmartConcatOp(self, node: _Node):
         super().generic_visit(node)
         self._widths[node] = sum(self._widths[child] for child in node.children)
+
+    def visit_SmartMuxOp(self, node: _Node):
+        super().generic_visit(node)
+        self._widths[node] = max(self._widths[child] for child in node.children)
 
     def visit_SmartReductionOp(self, node: _Node):
         super().generic_visit(node)
@@ -268,8 +278,7 @@ class _PushDownExtensions(_Transformer):
 
     def _maybe_extend(self, child: _Node, width: int) -> _Node:
         diff = width - self._widths[child]
-        assert diff >= 0
-        if diff == 0:
+        if diff <= 0:
             return child
         signedness = self._signednesses[child]
         node = _Node(SmartExtendOp(diff, signedness, None), [child])
@@ -291,6 +300,17 @@ class _PushDownExtensions(_Transformer):
             self._maybe_extend(self.visit(child), width)
             for child in node.children
         ]
+        node.update(children)
+        return node
+
+    def visit_SmartMuxOp(self, node: _Node) -> _Node:
+        width = self._widths[node]
+        children = [
+            self._maybe_extend(self.visit(child), width)
+            for child in node.children[:-1]
+        ]
+        sel_width = clog2(len(node.children) - 1)
+        children.append(self._maybe_extend(node.children[-1], sel_width))
         node.update(children)
         return node
 
@@ -316,6 +336,15 @@ class _Evaluator(_Visitor):
     def visit_SmartOp(self, node: _Node) -> Bits:
         operands = self.generic_visit(node)
         return node.expr.op(*operands)
+
+    def visit_SmartMuxOp(self, node: _Node) -> Bits:
+        operands = self.generic_visit(node)
+        sel = operands.pop()
+        sel_width = clog2(len(node.children) - 1)
+        assert len(sel) >= sel_width
+        if len(sel) > sel_width:
+            sel = sel[:sel_width]
+        return node.expr.op(*operands, sel)
 
 
 def _determine_result_widths(lhs: SmartBits, root: _Node) -> Dict[_Node, int]:

@@ -477,3 +477,31 @@ def test_eval():
         io.O0 @= O0
 
     return _Test, _Gold
+
+
+@_run_repr_test
+def test_mux():
+
+    class _Test(m.Circuit):
+        name = "test_mux"
+        io = m.IO(
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[12]),
+            S=m.In(m.smart.SmartBits[8]),
+            O0=m.Out(m.smart.SmartBits[16]),
+        )
+        io.O0 @= m.smart.mux([io.I0, io.I1], io.S)
+
+    class _Gold(m.Circuit):
+        name = "test_mux"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            I1=m.In(m.UInt[12]),
+            S=m.In(m.UInt[8]),
+            O0=m.Out(m.UInt[16]),
+        )
+        O0 = m.UInt[16]()  # force elaboration for repr test
+        O0 @= m.zext_to(m.mux([m.zext_to(io.I0, 12), io.I1], io.S[0]), 16)
+        io.O0 @= O0
+
+    return _Test, _Gold
