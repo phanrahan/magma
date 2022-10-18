@@ -14,8 +14,9 @@ from magma.interface import IO
 from magma.generator import Generator2
 from magma.t import Type, Kind, In, Out, Direction
 from magma.tuple import Tuple
-from magma.clock import (AbstractReset,
-                         AsyncReset, AsyncResetN, Clock, get_reset_args)
+from magma.clock import (
+    AbstractReset, AsyncReset, AsyncResetN, Clock, get_reset_args
+)
 from magma.clock_io import ClockIO
 from magma.primitives.mux import Mux
 from magma.wire import wire
@@ -131,7 +132,16 @@ def _check_init_T(init, T):
     return init_T.is_wireable(T)
 
 
-class Register(Generator2):
+class AbstractRegister(Generator2):
+    """Abstract base class for all Register circuits. User-defined register
+    types should implement this interface.
+    """
+
+    def get_enable(self, inst):
+        raise NotImplementedError()
+
+
+class Register(AbstractRegister):
     def __init__(self, T: Kind = None,
                  init: Union[Type, int, ht.BitVector] = None,
                  reset_type: AbstractReset = None, has_enable: bool = False,
@@ -177,7 +187,7 @@ class Register(Generator2):
 
         I_name = name_map.get("I", "I")
         O_name = name_map.get("O", "O")
-        CE_name = name_map.get("CE", "CE")
+        self.CE_name = CE_name = name_map.get("CE", "CE")
         self.io = IO(**{I_name: In(T), O_name: Out(T)})
         if has_enable:
             self.io += IO(**{CE_name: In(Enable)})
@@ -185,7 +195,6 @@ class Register(Generator2):
                            has_async_resetn=has_async_resetn,
                            has_reset=has_reset,
                            has_resetn=has_resetn)
-        self.ce_name = CE_name
         if init is None:
             init = 0
 
@@ -225,6 +234,9 @@ class Register(Generator2):
         elif (has_reset or has_resetn):
             I = Mux(2, T)()(I, init, reset_select)
         reg.I @= as_bits(I)
+
+    def get_enable(self, inst):
+        return getattr(inst, self.CE_name, None)
 
 
 def register(value, **kwargs):

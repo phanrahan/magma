@@ -959,3 +959,67 @@ def test_reg_ce_explicit_wire_twice():
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+
+
+def test_user_reg():
+
+    class Register(m.AbstractRegister):
+        def __init__(self, T):
+            self.io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO()
+            self.verilog = """\
+reg [7:0] x;
+always @(posedge CLK)
+    x <= I;
+assign O = x;
+"""
+
+        def get_enable(self, inst):
+            return None
+
+    class _Test(m.Circuit):
+        name = "test_when_user_reg"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]), x=m.In(m.Bit))
+
+        x = Register(m.Bits[8])()
+        with m.when(io.x):
+            x.I @= io.I
+
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_user_reg_bit_enable():
+
+    class Register(m.AbstractRegister):
+        def __init__(self, T):
+            self.io = m.IO(I=m.In(T), O=m.Out(T), CE=m.In(m.Bit)) + m.ClockIO()
+            self.verilog = """\
+    reg [7:0] x;
+    always @(posedge CLK)
+        if (CE)
+            x <= I;
+    assign O = x;
+    """
+
+        def get_enable(self, inst):
+            return inst.CE
+
+    class _Test(m.Circuit):
+        name = "test_when_user_reg_bit_enable"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]), x=m.In(m.Bits[2]))
+
+        x = Register(m.Bits[8])()
+        io.I[0]  # force elaboration to test enable logic
+        with m.when(io.x[0]):
+            x.I @= io.I
+        with m.elsewhen(io.x[1]):
+            x.I @= ~io.I
+
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")

@@ -9,10 +9,17 @@ from magma.ref import get_ref_inst
 
 
 @functools.lru_cache(None)
-def _register_type():
+def _abstract_register_type():
     # NOTE(rsetaluri): Circular dependency.
-    from magma.primitives.register import Register
-    return Register
+    from magma.primitives.register import AbstractRegister
+    return AbstractRegister
+
+
+@functools.lru_cache(None)
+def _enable_type():
+    # NOTE(rsetaluri): Circular dependency.
+    from magma.clock import Enable
+    return Enable
 
 
 class WhenSyntaxError(SyntaxError):
@@ -138,28 +145,42 @@ class _BlockBase(contextlib.AbstractContextManager):
         The warning raised will indicate to the user that the explicit wiring
         is unnecessary and promote the idiom of not explicitly wiring enables.
         """
-        # We need to copy the conditional wires list first since we might update
-        # the member variable list.
         conditional_wires = list(self._conditional_wires)
+        # We need to keep track of Enable values we've wired and make sure to
+        # only wire them once. Otherwise, an elaborated register input value may
+        # be wired multiple times.
+        # NOTE(leonardt): If we wanted to allow users to wire Enable values
+        # explicitly, we could lookup whether a wire to enable exists in
+        # conditional_wires (which would also avoid multiple wirings).
+        seen = set()
         for wire in conditional_wires:
             inst = get_ref_inst(wire.drivee.name)
             if (
                     inst is None
-                    or not isinstance(type(inst), _register_type())
+                    or not isinstance(type(inst), _abstract_register_type())
             ):
                 continue
-            ce_port = getattr(inst, inst.ce_name, None)
+            ce_port = type(inst).get_enable(inst)
             if (
                     ce_port is None
                     # Explicitly wired in this block, skip.
                     or self.get_conditional_wires_for_drivee(ce_port)
                     or (
                         ce_port.driven()
-                        and not ce_port.driven_implicitly_by_when
+                        and not getattr(
+                            ce_port, "driven_implicitly_by_when", False
+                        )
                     )
+                    or ce_port in seen
             ):
                 continue
-            ce_port.wire(1, driven_implicitly_by_when=True)
+            # NOTE(rsetaluri): If ce_port is an Enable type, then we need to
+            # notify wire() that it is being driven implicitly within by when.
+            kwargs = {}
+            if isinstance(ce_port, _enable_type()):
+                kwargs["driven_implicitly_by_when"] = True
+            ce_port.wire(1, **kwargs)
+            seen.add(ce_port)
 
     @abc.abstractmethod
     def _get_exit_block(self):

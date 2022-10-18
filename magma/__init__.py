@@ -101,9 +101,12 @@ from magma.conversions import (
     replace,
     as_bits, from_bits
 )
-from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
-                              Register, get_slice, set_slice, slice,
-                              Memory, set_index, register, Wire)
+from magma.primitives import (
+    LUT, Mux, mux, dict_lookup, list_lookup,
+    Register, get_slice, set_slice, slice,
+    Memory, set_index, register, Wire,
+    AbstractRegister,
+)
 
 from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
                          Decoupled, EnqIO, DeqIO, Irrevocable, Monitor,
