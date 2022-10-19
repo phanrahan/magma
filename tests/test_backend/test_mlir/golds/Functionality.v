@@ -1,15 +1,15 @@
-module clb(	// <stdin>:1:1
+module clb(
   input  [15:0] a, b, c, d,
   output [15:0] O);
 
-  assign O = a & b | ~c & d;	// <stdin>:2:10, :4:10, :5:10, :6:10, :7:5
+  assign O = a & b | ~c & d;
 endmodule
 
-module Functionality(	// <stdin>:9:1
+module Functionality(
   input  [15:0] x, y,
   output [15:0] z);
 
-  clb clb_inst0 (	// <stdin>:10:10
+  clb clb_inst0 (
     .a (x),
     .b (y),
     .c (x),
