@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @complex_bind_asserts(%I: !hw.struct<I: i1>, %O: i1, %CLK: i1, %I0: i1) -> () {
         %1 = sv.wire sym @complex_bind_asserts._magma_inline_wire0 {name="_magma_inline_wire0"} : !hw.inout<i1>
         sv.assign %1, %O : i1

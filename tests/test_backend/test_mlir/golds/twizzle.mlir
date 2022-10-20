@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @twizzler(%I0: i1, %I1: i1, %I2: i1) -> (O0: i1, O1: i1, O2: i1) {
         %1 = hw.constant -1 : i1
         %0 = comb.xor %1, %I1 : i1

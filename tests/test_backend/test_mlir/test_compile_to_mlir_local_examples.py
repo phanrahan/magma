@@ -153,3 +153,36 @@ def test_compile_to_mlir_disallow_duplicate_symbols(
         ctx_mgr = contextlib.nullcontext()
     with ctx_mgr:
         run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "ckt,location_info_style",
+    itertools.product(
+        (simple_comb,),
+        ("plain", "wrapInAtSquareBracket", "none"),
+    )
+)
+def test_compile_to_mlir_location_info_style(ckt, location_info_style: str):
+    gold_name = f"{ckt.name}_location_info_style_{location_info_style}"
+    kwargs = {
+        "location_info_style": location_info_style,
+        "gold_name": gold_name,
+    }
+    kwargs.update({"check_verilog": False})
+    run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "ckt,explicit_bitcast",
+    itertools.product((simple_comb,), (False, True))
+)
+def test_compile_to_mlir_explicit_bitcast(ckt, explicit_bitcast: bool):
+    gold_name = f"{ckt.name}_explicit_bitcast"
+    if explicit_bitcast:
+        gold_name += "_explicit_bitcast"
+    kwargs = {
+        "explicit_bitcast": explicit_bitcast,
+        "gold_name": gold_name,
+    }
+    kwargs.update({"check_verilog": False})
+    run_test_compile_to_mlir(ckt, **kwargs)

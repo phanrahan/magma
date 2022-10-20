@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @non_power_of_two_mux_wrapper(%a: !hw.struct<x: i8, y: i1>, %s: i4) -> (y: !hw.struct<x: i8, y: i1>) {
         %0 = hw.struct_extract %a["x"] : !hw.struct<x: i8, y: i1>
         %2 = hw.constant -1 : i8

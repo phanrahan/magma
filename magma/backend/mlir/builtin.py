@@ -4,6 +4,7 @@ from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
 from magma.backend.mlir.mlir import MlirAttribute
 from magma.backend.mlir.mlir import MlirOp, MlirRegion, MlirBlock
 from magma.backend.mlir.mlir import MlirType
+from magma.backend.mlir.mlir_printer_utils import print_attr_dict
 from magma.backend.mlir.printer_base import PrinterBase
 
 
@@ -41,6 +42,9 @@ class ModuleOp(MlirOp):
 
     def print_op(self, printer: PrinterBase):
         printer.print("module")
+        if self.attr_dict:
+            printer.print(" attributes ")
+            print_attr_dict(self.attr_dict, printer)
 
 
 end_dialect()

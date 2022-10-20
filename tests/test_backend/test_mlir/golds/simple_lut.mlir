@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @LUT(%I: i2) -> (O: i8) {
         %1 = hw.constant 1 : i1
         %2 = hw.constant 0 : i1

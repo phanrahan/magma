@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @simple_redefinition_module(%a: i1) -> (y: i1) {
         hw.output %a : i1
     }

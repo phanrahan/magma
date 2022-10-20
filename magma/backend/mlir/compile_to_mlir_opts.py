@@ -13,3 +13,5 @@ class CompileToMlirOpts:
     elaborate_magma_registers: bool = False
     extend_non_power_of_two_muxes: bool = False
     disallow_duplicate_symbols: bool = False
+    location_info_style: str = "none"
+    explicit_bitcast: bool = False
