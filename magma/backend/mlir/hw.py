@@ -172,7 +172,7 @@ class ArrayGetOp(MlirOp):
         printer.print("[")
         print_names(self.operands[1], printer)
         printer.print("] : ")
-        print_types(self.operands[0], printer)
+        print_types(self.operands, printer)
 
 
 @dataclasses.dataclass

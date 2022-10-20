@@ -7,7 +7,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         sv.assign %3, %I1 : i1
         %2 = sv.read_inout %3 : !hw.inout<i1>
         %5 = hw.constant 0 : i2
-        %4 = hw.array_get %I2[%5] : !hw.array<4xi8>
+        %4 = hw.array_get %I2[%5] : !hw.array<4xi8>, i2
         %6 = comb.extract %4 from 0 : (i8) -> i1
         %7 = comb.extract %4 from 1 : (i8) -> i1
         %8 = comb.extract %4 from 2 : (i8) -> i1
@@ -17,7 +17,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %12 = comb.extract %4 from 6 : (i8) -> i1
         %13 = comb.extract %4 from 7 : (i8) -> i1
         %15 = hw.constant 1 : i2
-        %14 = hw.array_get %I2[%15] : !hw.array<4xi8>
+        %14 = hw.array_get %I2[%15] : !hw.array<4xi8>, i2
         %16 = comb.extract %14 from 0 : (i8) -> i1
         %17 = comb.extract %14 from 1 : (i8) -> i1
         %18 = comb.extract %14 from 2 : (i8) -> i1
@@ -27,7 +27,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %22 = comb.extract %14 from 6 : (i8) -> i1
         %23 = comb.extract %14 from 7 : (i8) -> i1
         %25 = hw.constant 2 : i2
-        %24 = hw.array_get %I2[%25] : !hw.array<4xi8>
+        %24 = hw.array_get %I2[%25] : !hw.array<4xi8>, i2
         %26 = comb.extract %24 from 0 : (i8) -> i1
         %27 = comb.extract %24 from 1 : (i8) -> i1
         %28 = comb.extract %24 from 2 : (i8) -> i1
@@ -37,7 +37,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %32 = comb.extract %24 from 6 : (i8) -> i1
         %33 = comb.extract %24 from 7 : (i8) -> i1
         %35 = hw.constant 3 : i2
-        %34 = hw.array_get %I2[%35] : !hw.array<4xi8>
+        %34 = hw.array_get %I2[%35] : !hw.array<4xi8>, i2
         %36 = comb.extract %34 from 0 : (i8) -> i1
         %37 = comb.extract %34 from 1 : (i8) -> i1
         %38 = comb.extract %34 from 2 : (i8) -> i1

@@ -18,7 +18,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %15 = hw.struct_create (%1, %4) : !hw.struct<x: i8, y: i1>
         %16 = hw.struct_create (%1, %4) : !hw.struct<x: i8, y: i1>
         %18 = hw.array_create %16, %15, %14, %13, %12, %11, %10, %9, %8, %7, %6, %a : !hw.struct<x: i8, y: i1>
-        %17 = hw.array_get %18[%s] : !hw.array<12x!hw.struct<x: i8, y: i1>>
+        %17 = hw.array_get %18[%s] : !hw.array<12x!hw.struct<x: i8, y: i1>>, i4
         hw.output %17 : !hw.struct<x: i8, y: i1>
     }
 }

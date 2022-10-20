@@ -5,9 +5,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %3 = hw.constant -1 : i1
         %2 = comb.xor %3, %a_y : i1
         %6 = hw.array_create %0, %a_x : i8
-        %4 = hw.array_get %6[%s] : !hw.array<2xi8>
+        %4 = hw.array_get %6[%s] : !hw.array<2xi8>, i1
         %7 = hw.array_create %2, %a_y : i1
-        %5 = hw.array_get %7[%s] : !hw.array<2xi1>
+        %5 = hw.array_get %7[%s] : !hw.array<2xi1>, i1
         hw.output %4, %5 : i8, i1
     }
 }
