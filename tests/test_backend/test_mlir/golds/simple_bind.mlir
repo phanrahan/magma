@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @simple_bind_asserts(%I: i1, %O: i1, %CLK: i1) -> () {
         %1 = sv.wire sym @simple_bind_asserts._magma_inline_wire0 {name="_magma_inline_wire0"} : !hw.inout<i1>
         sv.assign %1, %O : i1

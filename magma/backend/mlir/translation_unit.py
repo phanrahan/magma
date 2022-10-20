@@ -11,11 +11,24 @@ from magma.passes import dependencies
 from magma.t import Type
 
 
+def _set_module_attrs(mlir_module: builtin.ModuleOp, opts: CompileToMlirOpts):
+    lowering_options = [
+        f"locationInfoStyle={opts.location_info_style}",
+    ]
+    if opts.explicit_bitcast:
+        lowering_options.append("explicitBitcast")
+    if lowering_options:
+        mlir_module.attr_dict["circt.loweringOptions"] = (
+            f"\"{','.join(lowering_options)}\""
+        )
+
+
 class TranslationUnit:
     def __init__(self, magma_top: DefineCircuitKind, opts: CompileToMlirOpts):
         self._magma_top = magma_top
         self._opts = opts
         self._mlir_module = builtin.ModuleOp()
+        _set_module_attrs(self._mlir_module, opts)
         self._hardware_modules = {}
         self._symbol_map = {}
         self._symbol_name_generator = ScopedNameGenerator(

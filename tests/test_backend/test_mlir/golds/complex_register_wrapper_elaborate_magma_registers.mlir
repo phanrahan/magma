@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @Register(%I: !hw.struct<x: i8, y: i1>, %CE: i1, %CLK: i1, %ASYNCRESET: i1) -> (O: !hw.struct<x: i8, y: i1>) {
         %1 = comb.extract %0 from 1 : (i9) -> i1
         %2 = comb.extract %0 from 2 : (i9) -> i1

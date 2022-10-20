@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @simple_length_one_array(%I: !hw.array<1xi8>) -> (O: i8) {
         %2 = hw.constant 0 : i8
         %1 = hw.array_create %2 : i8

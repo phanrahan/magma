@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @simple_module_params<width: i32, height: i32>(%I: i1) -> (O: i1) {
         hw.output %I : i1
     }

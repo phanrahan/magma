@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @simple_array_of_bit(%I: i8) -> (O: i8) {
         %0 = comb.extract %I from 7 : (i8) -> i1
         %1 = comb.extract %I from 6 : (i8) -> i1

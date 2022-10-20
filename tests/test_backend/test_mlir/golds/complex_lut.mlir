@@ -1,4 +1,4 @@
-module {
+module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @LUT(%I: i2) -> (O: !hw.array<2x!hw.struct<x: i8, y: i1>>) {
         %1 = hw.constant 0 : i1
         %2 = hw.constant 1 : i1

@@ -63,37 +63,42 @@ def test_bad_input():
 @pytest.mark.parametrize("style", ("plain", "wrapInAtSquareBracket", "none"))
 def test_location_info_style(style):
     _skip_if_circt_opt_binary_does_not_exist()
-    opts = {
-        "location_info_style": style,
-    }
-    _, ostream = _run_test("hw.module @M() -> () {}\n", **opts)
+    ir = (
+        """
+        module attributes {{circt.loweringOptions = "locationInfoStyle={style}"}} {{
+          hw.module @M() -> () {{}}
+        }}
+        """
+    )
+    ir = ir.format(style=style)
+    _, ostream = _run_test(ir)
     ostream.seek(0)
     ostream.readline()  # skip header
     line = ostream.readline().rstrip()
     expected = "module M();"
     if style == "plain":
-        expected += "	// <stdin>:1:1"
+        expected += "	// <stdin>:3:11"
     elif style == "wrapInAtSquareBracket":
-        expected += "	// @[<stdin>:1:1]"
+        expected += "	// @[<stdin>:3:11]"
     assert line == expected
 
 
 @pytest.mark.parametrize("explicit_bitcast", (False, True))
 def test_explicit_bitcast(explicit_bitcast):
     _skip_if_circt_opt_binary_does_not_exist()
-    opts = {
-        "explicit_bitcast": explicit_bitcast,
-        "location_info_style": "none",
-    }
+    explicit_bitcast_attr = ",explicitBitcast" if explicit_bitcast else ""
     ir = (
         """
-        hw.module @M(%a: i8, %b: i8) -> (y: i8) {
-          %0 = comb.add %a, %b : i8
-          hw.output %0 : i8
-        }
+        module attributes {{circt.loweringOptions = "locationInfoStyle=none{explicit_bitcast_attr}"}} {{
+            hw.module @M(%a: i8, %b: i8) -> (y: i8) {{
+              %0 = comb.add %a, %b : i8
+              hw.output %0 : i8
+            }}
+        }}
         """
     )
-    _, ostream = _run_test(ir, **opts)
+    ir = ir.format(explicit_bitcast_attr=explicit_bitcast_attr)
+    _, ostream = _run_test(ir)
     ostream.seek(0)
     # Skip first 5 lines (incl. header).
     for _ in range(6):
