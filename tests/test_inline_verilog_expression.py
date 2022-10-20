@@ -82,7 +82,7 @@ def test_compilation_coreir():
 
 
 def test_compilation_mlir():
-    basename = f"test_inline_veriog_expression_compilation_mlir"
+    basename = f"test_inline_verilog_expression_compilation_mlir"
     m.compile(f"build/{basename}", _Top, output="mlir")
     assert m.testing.check_files_equal(
         __file__, f"build/{basename}.mlir", f"gold/{basename}.mlir")
