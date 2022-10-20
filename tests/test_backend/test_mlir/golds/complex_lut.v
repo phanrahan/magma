@@ -4,28 +4,22 @@ module LUT(
   output struct packed {logic [7:0] x; logic y; }[1:0] O);
 
   wire [3:0]                                    _GEN = {{1'h0}, {1'h1}, {1'h1}, {1'h1}};
-  wire [3:0]                                    _GEN_0 = {{1'h1}, {1'h1}, {1'h1}, {1'h1}};
-  wire [3:0]                                    _GEN_1 = {{1'h1}, {1'h0}, {1'h1}, {1'h1}};
-  wire [3:0]                                    _GEN_2 = {{1'h1}, {1'h1}, {1'h1}, {1'h1}};
-  wire [3:0]                                    _GEN_3 = {{1'h1}, {1'h0}, {1'h0}, {1'h0}};
-  wire [3:0]                                    _GEN_4 = {{1'h0}, {1'h0}, {1'h1}, {1'h0}};
-  wire [3:0]                                    _GEN_5 = {{1'h0}, {1'h1}, {1'h1}, {1'h0}};
-  wire [3:0]                                    _GEN_6 = {{1'h0}, {1'h0}, {1'h0}, {1'h0}};
-  wire [3:0]                                    _GEN_7 = {{1'h1}, {1'h1}, {1'h1}, {1'h0}};
-  wire struct packed {logic [7:0] x; logic y; } _GEN_8 = '{x: {_GEN_6[I], _GEN_5[I], _GEN_4[I], _GEN_3[I], _GEN_2[I], _GEN_1[I], _GEN_0[I],
-                _GEN[I]}, y: _GEN_7[I]};
-  wire [3:0]                                    _GEN_9 = {{1'h0}, {1'h1}, {1'h1}, {1'h1}};
-  wire [3:0]                                    _GEN_10 = {{1'h1}, {1'h0}, {1'h1}, {1'h1}};
-  wire [3:0]                                    _GEN_11 = {{1'h0}, {1'h0}, {1'h0}, {1'h0}};
-  wire [3:0]                                    _GEN_12 = {{1'h0}, {1'h1}, {1'h0}, {1'h1}};
-  wire [3:0]                                    _GEN_13 = {{1'h1}, {1'h0}, {1'h0}, {1'h0}};
-  wire [3:0]                                    _GEN_14 = {{1'h0}, {1'h0}, {1'h0}, {1'h0}};
-  wire [3:0]                                    _GEN_15 = {{1'h0}, {1'h1}, {1'h1}, {1'h0}};
-  wire [3:0]                                    _GEN_16 = {{1'h0}, {1'h1}, {1'h1}, {1'h1}};
-  wire [3:0]                                    _GEN_17 = {{1'h1}, {1'h1}, {1'h0}, {1'h0}};
-  wire struct packed {logic [7:0] x; logic y; } _GEN_18 = '{x: {_GEN_16[I], _GEN_15[I], _GEN_14[I], _GEN_13[I], _GEN_12[I], _GEN_11[I], _GEN_10[I],
-                _GEN_9[I]}, y: _GEN_17[I]};
-  assign O = {{_GEN_18}, {_GEN_8}};
+  wire [3:0]                                    _GEN_0 = {{1'h1}, {1'h0}, {1'h1}, {1'h1}};
+  wire [3:0]                                    _GEN_1 = {{1'h1}, {1'h0}, {1'h0}, {1'h0}};
+  wire [3:0]                                    _GEN_2 = {{1'h0}, {1'h0}, {1'h1}, {1'h0}};
+  wire [3:0]                                    _GEN_3 = {{1'h0}, {1'h1}, {1'h1}, {1'h0}};
+  wire [3:0]                                    _GEN_4 = {{1'h1}, {1'h1}, {1'h1}, {1'h0}};
+  wire struct packed {logic [7:0] x; logic y; } _GEN_5 = '{x: {1'h0, _GEN_3[I], _GEN_2[I], _GEN_1[I], 1'h1, _GEN_0[I], 1'h1, _GEN[I]}, y: _GEN_4[I]};
+  wire [3:0]                                    _GEN_6 = {{1'h0}, {1'h1}, {1'h1}, {1'h1}};
+  wire [3:0]                                    _GEN_7 = {{1'h1}, {1'h0}, {1'h1}, {1'h1}};
+  wire [3:0]                                    _GEN_8 = {{1'h0}, {1'h1}, {1'h0}, {1'h1}};
+  wire [3:0]                                    _GEN_9 = {{1'h1}, {1'h0}, {1'h0}, {1'h0}};
+  wire [3:0]                                    _GEN_10 = {{1'h0}, {1'h1}, {1'h1}, {1'h0}};
+  wire [3:0]                                    _GEN_11 = {{1'h0}, {1'h1}, {1'h1}, {1'h1}};
+  wire [3:0]                                    _GEN_12 = {{1'h1}, {1'h1}, {1'h0}, {1'h0}};
+  wire struct packed {logic [7:0] x; logic y; } _GEN_13 = '{x: {_GEN_11[I], _GEN_10[I], 1'h0, _GEN_9[I], _GEN_8[I], 1'h0, _GEN_7[I], _GEN_6[I]}, y:
+                _GEN_12[I]};
+  assign O = {{_GEN_13}, {_GEN_5}};
 endmodule
 
 module complex_lut(

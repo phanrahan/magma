@@ -5,13 +5,10 @@ module LUT(
 
   wire [3:0] _GEN = {{1'h1}, {1'h0}, {1'h1}, {1'h0}};
   wire [3:0] _GEN_0 = {{1'h1}, {1'h1}, {1'h0}, {1'h1}};
-  wire [3:0] _GEN_1 = {{1'h1}, {1'h1}, {1'h1}, {1'h1}};
-  wire [3:0] _GEN_2 = {{1'h1}, {1'h1}, {1'h1}, {1'h1}};
-  wire [3:0] _GEN_3 = {{1'h0}, {1'h1}, {1'h0}, {1'h1}};
-  wire [3:0] _GEN_4 = {{1'h1}, {1'h1}, {1'h1}, {1'h0}};
-  wire [3:0] _GEN_5 = {{1'h1}, {1'h0}, {1'h0}, {1'h1}};
-  wire [3:0] _GEN_6 = {{1'h1}, {1'h1}, {1'h1}, {1'h1}};
-  assign O = {_GEN_6[I], _GEN_5[I], _GEN_4[I], _GEN_3[I], _GEN_2[I], _GEN_1[I], _GEN_0[I], _GEN[I]};
+  wire [3:0] _GEN_1 = {{1'h0}, {1'h1}, {1'h0}, {1'h1}};
+  wire [3:0] _GEN_2 = {{1'h1}, {1'h1}, {1'h1}, {1'h0}};
+  wire [3:0] _GEN_3 = {{1'h1}, {1'h0}, {1'h0}, {1'h1}};
+  assign O = {1'h1, _GEN_3[I], _GEN_2[I], _GEN_1[I], 2'h3, _GEN_0[I], _GEN[I]};
 endmodule
 
 module simple_lut(

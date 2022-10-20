@@ -3,6 +3,6 @@ module simple_aggregates_nested_array(
   input  [7:0][3:0][15:0] a,
   output [7:0][3:0][15:0] y);
 
-  assign y = {{a[3'h3]}, {a[3'h2]}, {a[3'h1]}, {a[3'h0]}, {a[3'h7]}, {a[3'h6]}, {a[3'h5]}, {a[3'h4]}};
+  assign y = {a[3'h0 +: 4], a[3'h4 +: 4]};
 endmodule
 

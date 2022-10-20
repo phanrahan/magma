@@ -4,7 +4,7 @@ module simple_aggregates_array(
   output [7:0][15:0] y,
   output [3:0][15:0] z);
 
-  assign y = {{a[3'h3]}, {a[3'h2]}, {a[3'h1]}, {a[3'h0]}, {a[3'h7]}, {a[3'h6]}, {a[3'h5]}, {a[3'h4]}};
-  assign z = {{a[3'h3]}, {a[3'h2]}, {a[3'h1]}, {a[3'h0]}};
+  assign y = {a[3'h0 +: 4], a[3'h4 +: 4]};
+  assign z = a[3'h0 +: 4];
 endmodule
 
