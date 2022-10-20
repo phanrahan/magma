@@ -17,6 +17,4 @@ def compile_to_mlir(
     translation_unit = TranslationUnit(top, opts)
     translation_unit.compile()
     printer = PrinterBase(sout=sout)
-    hw_module_ops = translation_unit.mlir_module.block.operations
-    for op in hw_module_ops:
-        op.print(printer)
+    translation_unit.mlir_module.print(printer)
