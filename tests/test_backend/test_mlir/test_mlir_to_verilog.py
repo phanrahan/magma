@@ -109,3 +109,43 @@ def test_explicit_bitcast(explicit_bitcast):
     else:
         expected = "assign y = 8'(a + b);"
     assert line == expected
+
+
+@pytest.mark.parametrize("disallow_expression_inlining_in_ports", (False, True))
+def test_disallow_expression_inlining_in_ports(disallow_expression_inlining_in_ports):
+    _skip_if_circt_opt_binary_does_not_exist()
+    disallow_expression_inlining_in_ports_attr = (
+        ",disallowExpressionInliningInPorts"
+        if disallow_expression_inlining_in_ports
+        else ""
+    )
+
+    ir = (
+        """
+        module attributes {{circt.loweringOptions = "locationInfoStyle=none{disallow_expression_inlining_in_ports_attr}"}} {{
+          hw.module.extern @Foo(%I: i1) -> (O: i1)
+          hw.module @M(%I: i1) -> (O: i1) {{
+              %1 = hw.constant -1 : i1
+              %0 = comb.xor %1, %I : i1
+              %2 = hw.instance "foo" @Foo(I: %0: i1) -> (O: i1)
+              hw.output %2 : i1
+          }}
+        }}
+        """
+    )
+    ir = ir.format(
+        disallow_expression_inlining_in_ports_attr=disallow_expression_inlining_in_ports_attr
+    )
+    _, ostream = _run_test(ir)
+    ostream.seek(0)
+    found = False
+    while True:
+        line = ostream.readline().strip()
+        if line.startswith(".I"):
+            found = True
+            break
+    assert found
+    if not disallow_expression_inlining_in_ports_attr:
+        assert line == ".I (~I),"
+    else:
+        assert line == ".I (_foo_I),"

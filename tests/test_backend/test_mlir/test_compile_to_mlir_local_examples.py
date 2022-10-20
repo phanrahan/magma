@@ -186,3 +186,22 @@ def test_compile_to_mlir_explicit_bitcast(ckt, explicit_bitcast: bool):
     }
     kwargs.update({"check_verilog": False})
     run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "ckt,disallow_expression_inlining_in_ports",
+    itertools.product((simple_comb,), (False, True))
+)
+def test_compile_to_mlir_disallow_expression_inlining_in_ports(
+        ckt,
+        disallow_expression_inlining_in_ports: bool
+):
+    gold_name = f"{ckt.name}_disallow_expression_inlining_in_ports"
+    if disallow_expression_inlining_in_ports:
+        gold_name += "_disallow_expression_inlining_in_ports"
+    kwargs = {
+        "disallow_expression_inlining_in_ports": disallow_expression_inlining_in_ports,
+        "gold_name": gold_name,
+    }
+    kwargs.update({"check_verilog": False})
+    run_test_compile_to_mlir(ckt, **kwargs)
