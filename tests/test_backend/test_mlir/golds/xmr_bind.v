@@ -29,18 +29,16 @@ module xmr_bind(
   input  [15:0] a,
   output [15:0] y);
 
-  wire [15:0] _xmr_bind_asserts_inst_other;
   wire [15:0] _xmr_bind_child_inst0_y;
   xmr_bind_child xmr_bind_child_inst0 (
     .a (a),
     .y (_xmr_bind_child_inst0_y)
   );
-  assign _xmr_bind_asserts_inst_other = xmr_bind_child_inst0.xmr_bind_grandchild_inst0.y;
   /* This instance is elsewhere emitted as a bind statement.
     xmr_bind_asserts xmr_bind_asserts_inst (
       .a     (a),
       .y     (_xmr_bind_child_inst0_y),
-      .other (_xmr_bind_asserts_inst_other)
+      .other (xmr_bind_child_inst0.xmr_bind_grandchild_inst0.y)
     );
   */
   assign y = _xmr_bind_child_inst0_y;
@@ -52,5 +50,5 @@ endmodule
 bind xmr_bind xmr_bind_asserts xmr_bind_asserts_inst (
   .a     (a),
   .y     (_xmr_bind_child_inst0_y),
-  .other (_xmr_bind_asserts_inst_other)
+  .other (xmr_bind_child_inst0.xmr_bind_grandchild_inst0.y)
 );

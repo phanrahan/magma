@@ -31,13 +31,13 @@ module simple_compile_guard(
       .port_0 (I),
       .CLK    (CLK)
     );
-  `endif
+  `endif // COND1
   `ifndef COND2
     COND2_compile_guard COND2_compile_guard (
       .port_0 (I),
       .CLK    (CLK)
     );
-  `endif
+  `endif // not def COND2
   assign O = I;
 endmodule
 
