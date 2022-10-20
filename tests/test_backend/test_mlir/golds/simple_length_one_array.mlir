@@ -4,7 +4,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %1 = hw.array_create %2 : i8
         %3 = hw.array_concat %1, %I : !hw.array<1xi8>, !hw.array<1xi8>
         %4 = hw.constant 0 : i1
-        %0 = hw.array_get %3[%4] : !hw.array<2xi8>
+        %0 = hw.array_get %3[%4] : !hw.array<2xi8>, i1
         hw.output %0 : i8
     }
 }

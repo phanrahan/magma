@@ -1,14 +1,14 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @complex_aggregates_nested_array(%a: !hw.array<2x!hw.array<3xi4>>) -> (y: !hw.array<2x!hw.array<3xi4>>) {
         %1 = hw.constant 0 : i1
-        %0 = hw.array_get %a[%1] : !hw.array<2x!hw.array<3xi4>>
+        %0 = hw.array_get %a[%1] : !hw.array<2x!hw.array<3xi4>>, i1
         %3 = hw.constant 0 : i2
-        %2 = hw.array_get %0[%3] : !hw.array<3xi4>
+        %2 = hw.array_get %0[%3] : !hw.array<3xi4>, i2
         %4 = comb.extract %2 from 0 : (i4) -> i1
         %6 = hw.constant 1 : i1
-        %5 = hw.array_get %a[%6] : !hw.array<2x!hw.array<3xi4>>
+        %5 = hw.array_get %a[%6] : !hw.array<2x!hw.array<3xi4>>, i1
         %8 = hw.constant 2 : i2
-        %7 = hw.array_get %5[%8] : !hw.array<3xi4>
+        %7 = hw.array_get %5[%8] : !hw.array<3xi4>, i2
         %9 = comb.extract %7 from 3 : (i4) -> i1
         %10 = comb.or %4, %9 : i1
         %11 = comb.extract %2 from 1 : (i4) -> i1
@@ -22,9 +22,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %19 = comb.or %17, %18 : i1
         %20 = comb.concat %19, %16, %13, %10 : i1, i1, i1, i1
         %22 = hw.constant 1 : i2
-        %21 = hw.array_get %0[%22] : !hw.array<3xi4>
+        %21 = hw.array_get %0[%22] : !hw.array<3xi4>, i2
         %23 = comb.extract %21 from 0 : (i4) -> i1
-        %24 = hw.array_get %5[%22] : !hw.array<3xi4>
+        %24 = hw.array_get %5[%22] : !hw.array<3xi4>, i2
         %25 = comb.extract %24 from 3 : (i4) -> i1
         %26 = comb.or %23, %25 : i1
         %27 = comb.extract %21 from 1 : (i4) -> i1
@@ -37,9 +37,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %34 = comb.extract %24 from 0 : (i4) -> i1
         %35 = comb.or %33, %34 : i1
         %36 = comb.concat %35, %32, %29, %26 : i1, i1, i1, i1
-        %37 = hw.array_get %0[%8] : !hw.array<3xi4>
+        %37 = hw.array_get %0[%8] : !hw.array<3xi4>, i2
         %38 = comb.extract %37 from 0 : (i4) -> i1
-        %39 = hw.array_get %5[%3] : !hw.array<3xi4>
+        %39 = hw.array_get %5[%3] : !hw.array<3xi4>, i2
         %40 = comb.extract %39 from 3 : (i4) -> i1
         %41 = comb.or %38, %40 : i1
         %42 = comb.extract %37 from 1 : (i4) -> i1

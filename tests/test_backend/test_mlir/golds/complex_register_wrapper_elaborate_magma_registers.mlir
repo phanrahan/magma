@@ -11,7 +11,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %10 = comb.extract %0 from 8 : (i9) -> i1
         %11 = hw.struct_create (%9, %10) : !hw.struct<x: i8, y: i1>
         %13 = hw.array_create %I, %11 : !hw.struct<x: i8, y: i1>
-        %12 = hw.array_get %13[%CE] : !hw.array<2x!hw.struct<x: i8, y: i1>>
+        %12 = hw.array_get %13[%CE] : !hw.array<2x!hw.struct<x: i8, y: i1>>, i1
         %14 = hw.struct_extract %12["x"] : !hw.struct<x: i8, y: i1>
         %15 = comb.extract %14 from 0 : (i8) -> i1
         %16 = comb.extract %14 from 1 : (i8) -> i1
@@ -41,7 +41,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     }
     hw.module @Register_unq1(%I: !hw.array<6xi16>, %CLK: i1) -> (O: !hw.array<6xi16>) {
         %1 = hw.constant 0 : i3
-        %0 = hw.array_get %I[%1] : !hw.array<6xi16>
+        %0 = hw.array_get %I[%1] : !hw.array<6xi16>, i3
         %2 = comb.extract %0 from 0 : (i16) -> i1
         %3 = comb.extract %0 from 1 : (i16) -> i1
         %4 = comb.extract %0 from 2 : (i16) -> i1
@@ -59,7 +59,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %16 = comb.extract %0 from 14 : (i16) -> i1
         %17 = comb.extract %0 from 15 : (i16) -> i1
         %19 = hw.constant 1 : i3
-        %18 = hw.array_get %I[%19] : !hw.array<6xi16>
+        %18 = hw.array_get %I[%19] : !hw.array<6xi16>, i3
         %20 = comb.extract %18 from 0 : (i16) -> i1
         %21 = comb.extract %18 from 1 : (i16) -> i1
         %22 = comb.extract %18 from 2 : (i16) -> i1
@@ -77,7 +77,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %34 = comb.extract %18 from 14 : (i16) -> i1
         %35 = comb.extract %18 from 15 : (i16) -> i1
         %37 = hw.constant 2 : i3
-        %36 = hw.array_get %I[%37] : !hw.array<6xi16>
+        %36 = hw.array_get %I[%37] : !hw.array<6xi16>, i3
         %38 = comb.extract %36 from 0 : (i16) -> i1
         %39 = comb.extract %36 from 1 : (i16) -> i1
         %40 = comb.extract %36 from 2 : (i16) -> i1
@@ -95,7 +95,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %52 = comb.extract %36 from 14 : (i16) -> i1
         %53 = comb.extract %36 from 15 : (i16) -> i1
         %55 = hw.constant 3 : i3
-        %54 = hw.array_get %I[%55] : !hw.array<6xi16>
+        %54 = hw.array_get %I[%55] : !hw.array<6xi16>, i3
         %56 = comb.extract %54 from 0 : (i16) -> i1
         %57 = comb.extract %54 from 1 : (i16) -> i1
         %58 = comb.extract %54 from 2 : (i16) -> i1
@@ -113,7 +113,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %70 = comb.extract %54 from 14 : (i16) -> i1
         %71 = comb.extract %54 from 15 : (i16) -> i1
         %73 = hw.constant 4 : i3
-        %72 = hw.array_get %I[%73] : !hw.array<6xi16>
+        %72 = hw.array_get %I[%73] : !hw.array<6xi16>, i3
         %74 = comb.extract %72 from 0 : (i16) -> i1
         %75 = comb.extract %72 from 1 : (i16) -> i1
         %76 = comb.extract %72 from 2 : (i16) -> i1
@@ -131,7 +131,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %88 = comb.extract %72 from 14 : (i16) -> i1
         %89 = comb.extract %72 from 15 : (i16) -> i1
         %91 = hw.constant 5 : i3
-        %90 = hw.array_get %I[%91] : !hw.array<6xi16>
+        %90 = hw.array_get %I[%91] : !hw.array<6xi16>, i3
         %92 = comb.extract %90 from 0 : (i16) -> i1
         %93 = comb.extract %90 from 1 : (i16) -> i1
         %94 = comb.extract %90 from 2 : (i16) -> i1
@@ -265,7 +265,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     }
     hw.module @Register_unq2(%I: i8, %CE: i1, %CLK: i1) -> (O: i8) {
         %2 = hw.array_create %I, %0 : i8
-        %1 = hw.array_get %2[%CE] : !hw.array<2xi8>
+        %1 = hw.array_get %2[%CE] : !hw.array<2xi8>, i1
         %3 = sv.reg {name = "reg_P8_inst0"} : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %3, %1 : i8
