@@ -17,6 +17,8 @@ def _set_module_attrs(mlir_module: builtin.ModuleOp, opts: CompileToMlirOpts):
     ]
     if opts.explicit_bitcast:
         lowering_options.append("explicitBitcast")
+    if opts.disallow_expression_inlining_in_ports:
+        lowering_options.append("disallowExpressionInliningInPorts")
     if lowering_options:
         mlir_module.attr_dict["circt.loweringOptions"] = (
             f"\"{','.join(lowering_options)}\""
