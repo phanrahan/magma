@@ -23,7 +23,7 @@ class MlirToVerilogError(MlirCompilerError):
 
 @dataclasses.dataclass
 class MlirToVerilogOpts:
-    location_info_style: str = "plain"
+    location_info_style: str = "none"
     explicit_bitcast: bool = False
 
 
