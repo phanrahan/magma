@@ -79,16 +79,46 @@ class _GrouperBase(abc.ABC):
         for elt in port:
             yield from self._run_on_input(elt)
 
+    def _is_external_drivee(self, value):
+        is_external = self._is_external(value)
+        if is_external is not None:
+            return is_external
+        results = [
+            self._is_external_drivee(drivee)
+            for drivee in value.driving()
+        ]
+        if not results:
+            return None
+        # NOTE(leonardt): For now, we only support anon values that are driving
+        # values with the same status: either all must be external or
+        # internal. We also assume that more drivees will not be added after the
+        # fact. We still do not support unwired anon values, nor do we support
+        # anon values that have wirings that change after the compile_guard
+        # (e.g. an internal value is then wired to an external value after the
+        # compile guard).
+        # In the future, we could improve support by:
+        # (1) staging the resolution of externality until the end of definition
+        # (2) copying anon values that drive mixed values (one copy for
+        #     external, one for internal)
+        # (3) doing final wiring for internal/external copies with the proper
+        #     values
+        if len(results) > 1 and not all(x == results[0] for x in results):
+            raise NotImplementedError(
+                "Found value with mixed drivees (only all internal or "
+                "external drivees is supported)"
+            )
+        return results[0]
+
     def _run_on_output(self, port: Type) -> Iterable[Connection]:
         for driver, drivee in _get_driving(port):
-            is_external = self._is_external(drivee)
+            is_external = self._is_external_drivee(drivee)
             if is_external is not None:
                 if is_external:
                     yield (driver, drivee)
                 continue
             raise NotImplementedError(
-                f"{port}: driving annonymous value from compile guard not "
-                f"supported"
+                f"{port}: driving annonymous value from compile guard that is "
+                f"unwired is not supported"
             )
 
     def _run_on_port(self, port: Type):
