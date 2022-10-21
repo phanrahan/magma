@@ -231,35 +231,9 @@ def test_drive_outputs():
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
 
-        with m.compile_guard("COND"):
-            io.O @= m.Register(m.Bit)()(io.I ^ 1)
-
-    m.compile("build/test_compile_guard_drive_output", _Top)
-    assert m.testing.check_files_equal(
-        __file__, f"build/test_compile_guard_drive_output.json",
-        f"gold/test_compile_guard_drive_output.json")
-
-
-def test_drive_complex_outputs():
-
-    class _Top(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
-
-        with m.compile_guard("COND"):
-            T = m.AnonProduct[{"x": m.Bits[4], "y": m.Bits[4]}]
-            reg = m.Register(T)()
-            reg.I.x @= io.I[:4]
-            reg.I.y @= io.I[4:]
-            io.O[:4] @= reg.O.x
-            io.O[4:] @= reg.O.y
-
-    return
-
-    basename = "test_compile_guard_drive_complex_outputs"
-    m.compile(f"build/{basename}", _Top)
-    assert m.testing.check_files_equal(
-        __file__, f"build/{basename}.json", f"gold/{basename}.json"
-    )
+        with pytest.raises(TypeError):
+            with m.compile_guard("COND"):
+                io.O @= m.Register(m.Bit)()(io.I ^ 1)
 
 
 def test_anon_drivee():
@@ -324,3 +298,34 @@ def test_contained_inline_verilog():
     m.compile(f"build/{basename}", Top)
     assert m.testing.check_files_equal(
         __file__, f"build/{basename}.v", f"gold/{basename}.v")
+
+
+def test_compile_guard_anon_driven_internal():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+
+        with m.compile_guard("COND", defn_name="COND_compile_guard"):
+            x = m.Bit(name="x")
+            x.undriven()  # x is driven internally
+            out = m.Register(m.Bit)()(x)
+
+        io.O @= io.I
+
+    basename = "test_compile_guard_anon_driven_internal"
+    m.compile(f"build/{basename}", _Top, output="mlir")
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.mlir", f"gold/{basename}.mlir"
+    )
+
+
+def test_compile_guard_anon_driving_external():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+        x = m.Bit(name="x")
+        io.O @= x  # x drives an external value
+
+        with pytest.raises(TypeError):
+            with m.compile_guard("COND", defn_name="COND_compile_guard"):
+                x @= m.Register(m.Bit)()(io.I)
