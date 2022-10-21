@@ -69,7 +69,7 @@ class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
     def __xor__(self, other: 'SmartExpr') -> 'SmartBinaryOp':
         if not isinstance(other, SmartExpr):
             return NotImplemented
-        return SmartBinaryOp(operator.xor_, self, other)
+        return SmartBinaryOp(operator.xor, self, other)
 
     # Comparison operators.
     def __eq__(self, other: 'SmartExpr') -> 'SmartComparisonOp':
