@@ -276,6 +276,16 @@ def concat(*args) -> SmartExpr:
     return SmartConcatOp(*args)
 
 
+def repeat(value, num) -> SmartExpr:
+    """Repeats @value @num number of times flat. Note that for single bit values
+    (e.g. x[0]) this is the same as m.repeat, but for bits this function retruns
+    a flattened type, whereas m.repeat constructs a higher-dimensional
+    array. This function is equivalent to m.smart.concat(*(value for _ in
+    range(num))).
+    """
+    return concat(*(value for _ in range(num)))
+
+
 def mux(values, select) -> SmartExpr:
     if not all(isinstance(value, SmartExpr) for value in values):
         types = ", ".join(str(type(value)) for value in values)
