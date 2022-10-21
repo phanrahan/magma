@@ -35,10 +35,21 @@ def _run_compilation_test(func=None, *, skip_check=False):
     return _wrapper
 
 
+@pytest.mark.parametrize(
+    "op",
+    (
+        operator.add,
+        operator.sub,
+        operator.mul,
+        operator.floordiv,
+        operator.mod,
+        operator.and_,
+        operator.or_,
+        operator.xor,
+    )
+)
 @_run_repr_test
-def test_binop():
-    # Ops can be add, sub, mul, div, mod, and, or, xor.
-    op = operator.add
+def test_binop(op):
 
     class _Test(m.Circuit):
         name = "test_binop"
