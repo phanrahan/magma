@@ -5,8 +5,8 @@
       "COND_compile_guard":{
         "type":["Record",[
           ["port_0","BitIn"],
-          ["CLK",["Named","coreir.clkIn"]],
-          ["port_1","BitIn"]
+          ["port_1",["Named","coreir.clkIn"]],
+          ["port_2","BitIn"]
         ]],
         "instances":{
           "Register_inst0":{
@@ -17,10 +17,10 @@
           }
         },
         "connections":[
-          ["self.CLK","Register_inst0.CLK"],
+          ["self.port_1","Register_inst0.CLK"],
           ["self.port_0","Register_inst0.I"],
-          ["self.CLK","Register_inst1.CLK"],
-          ["self.port_1","Register_inst1.I"]
+          ["self.port_1","Register_inst1.CLK"],
+          ["self.port_2","Register_inst1.I"]
         ]
       },
       "Register":{
@@ -55,9 +55,9 @@
           }
         },
         "connections":[
-          ["self.CLK","COND_compile_guard.CLK"],
           ["self.I.1.x","COND_compile_guard.port_0"],
-          ["self.I.0.y","COND_compile_guard.port_1"],
+          ["self.CLK","COND_compile_guard.port_1"],
+          ["self.I.0.y","COND_compile_guard.port_2"],
           ["self.O","self.I.0.x"]
         ]
       }
