@@ -210,6 +210,38 @@ def test_concat():
 
 
 @_run_repr_test
+def test_repeat():
+
+    class _Test(m.Circuit):
+        name = "test_repeat"
+        io = m.IO(
+            I0=m.In(m.smart.SmartBits[8]),
+            I1=m.In(m.smart.SmartBits[4]),
+            O1=m.Out(m.smart.SmartBits[24]),
+            O2=m.Out(m.smart.SmartBits[6]),
+        )
+        io.O1 @= m.smart.repeat(io.I0, 3)
+        io.O2 @= m.smart.repeat(io.I1[0], 6)
+
+    class _Gold(m.Circuit):
+        name = "test_repeat"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            I1=m.In(m.UInt[4]),
+            O1=m.Out(m.UInt[24]),
+            O2=m.Out(m.UInt[6]),
+        )
+        O1 = m.UInt[24]()  # force elaboration for repr test
+        O1 @= m.as_bits(m.repeat(io.I0, 3))
+        O2 = m.UInt[6]()  # force elaboration for repr test
+        O2 @= m.repeat(io.I1[0], 6)
+        io.O1 @= O1
+        io.O2 @= O2
+
+    return _Test, _Gold
+
+
+@_run_repr_test
 def test_unary():
     # Ops can be invert, neg.
     op = operator.invert
