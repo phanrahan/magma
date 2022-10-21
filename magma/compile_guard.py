@@ -36,10 +36,9 @@ class _Grouper(GrouperBase):
         external @= driver
 
     def _visit_output_connection(self, driver: Type, drivee: Type):
-        new_port = self._builder.add_port(Out(type(driver)))
-        new_port @= driver
-        external = getattr(self._builder, new_port.name.name)
-        drivee.rewire(external)
+        # If we would like to support this, we should insert a
+        # compile_guard_select
+        raise NotImplementedError("Driving values external to compile guard")
 
     def _visit_undriven_port(self, port: Type):
         # For undriven clock types, we simply lift the port *but do not connect
