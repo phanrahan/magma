@@ -163,7 +163,7 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.simple_shifts,
         examples.simple_wire,
         examples.complex_wire,
-        examples.simple_wrap_cast,
+        examples.simple_clock_cast,
         examples.simple_redefinition,
         examples.simple_lut,
         examples.complex_lut,

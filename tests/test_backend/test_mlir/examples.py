@@ -301,12 +301,9 @@ m.backend.coreir.insert_coreir_wires.insert_coreir_wires(simple_wire)
 m.backend.coreir.insert_coreir_wires.insert_coreir_wires(complex_wire)
 
 
-class simple_wrap_cast(m.Circuit):
+class simple_clock_cast(m.Circuit):
     io = m.IO(I=m.In(m.Clock), O=m.Out(m.Bit))
     io.O @= m.Bit(io.I)
-
-
-m.backend.coreir.insert_wrap_casts.insert_wrap_casts(simple_wrap_cast)
 
 
 class simple_redefinition_module0(m.Circuit):
