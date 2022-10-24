@@ -141,16 +141,25 @@ class _BlockBase(contextlib.AbstractContextManager):
         # We need to copy the conditional wires list first since we might update
         # the member variable list.
         conditional_wires = list(self._conditional_wires)
-        for wire in list(self._conditional_wires):
+        for wire in conditional_wires:
             inst = get_ref_inst(wire.drivee.name)
-            if inst is None:
-                continue
-            if not isinstance(type(inst), _register_type()):
+            if (
+                    inst is None
+                    or not isinstance(type(inst), _register_type())
+            ):
                 continue
             ce_port = getattr(inst, inst.ce_name, None)
-            if ce_port is None:
+            if (
+                    ce_port is None
+                    # Explicitly wired in this block, skip.
+                    or self.get_conditional_wires_for_drivee(ce_port)
+                    or (
+                        ce_port.driven()
+                        and not ce_port.driven_implicitly_by_when
+                    )
+            ):
                 continue
-            ce_port @= 1
+            ce_port.wire(1, driven_implicitly_by_when=True)
 
     @abc.abstractmethod
     def _get_exit_block(self):
