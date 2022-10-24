@@ -43,7 +43,6 @@ class MlirCompiler(Compiler):
             elaborate_tuples(self.main)
 
         insert_coreir_wires(self.main)
-        insert_wrap_casts(self.main)
         wire_clocks(self.main)
         # NOTE(leonardt): finalizing whens must happen after any
         # passes that modify the circuit.  This is because passes
