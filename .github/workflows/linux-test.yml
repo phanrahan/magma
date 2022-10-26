@@ -26,6 +26,10 @@ jobs:
         sudo apt-get update
         sudo apt install -y verilator libgmp-dev libmpfr-dev libmpc-dev
         python -m pip install --upgrade pip
+        # BEGIN: Temp fix, see
+        # https://github.com/henry0312/pytest-pycodestyle/issues/97
+        pip install py
+        # END: Temp fix
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
         pip install kratos  # test optional dependency
         python setup.py install
