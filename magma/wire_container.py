@@ -12,6 +12,15 @@ from magma.when import (
 )
 
 
+class TraceRecursionError(RecursionError):
+    def __init__(self, value):
+        msg = f"""\
+RecursionError when calling trace on {value}, do you have a\
+combinational loop?\
+"""
+        super().__init__(msg)
+
+
 config._register(
     rewire_log_level=EnvConfig("MAGMA_REWIRE_LOG_LEVEL", "WARNING")
 )
@@ -201,7 +210,10 @@ class Wireable:
 
     # return the input or output Bit connected to this Bit
     def trace(self, skip_self=True):
-        return self._wire.trace(skip_self)
+        try:
+            return self._wire.trace(skip_self)
+        except RecursionError:
+            raise TraceRecursionError(self)
 
     # return the output Bit connected to this input Bit
     def value(self):
