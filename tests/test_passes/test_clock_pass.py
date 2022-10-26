@@ -1,7 +1,7 @@
 import logging
 
 import magma as m
-from magma.passes.clock import drive_undriven_clock_types_in_inst
+from magma.passes.clock import drive_undriven_clock_types_in_inst, wire_clocks
 from magma.testing.utils import has_debug, has_warning
 
 
@@ -67,3 +67,29 @@ def test_drive_undriven_clock_types_combinational_logging(caplog):
 
     msg = f"Found no clocks in {Foo.name}; skipping auto-wiring {m.Clock}"
     assert not has_warning(caplog, msg)
+
+
+def test_clock_pass_tuple():
+    class T(m.Product):
+        x = m.In(m.Clock)
+        y = m.In(m.Reset)
+
+    class U(m.Product):
+        x = m.Out(m.Bit)
+        y = m.Out(m.Bits[8])
+
+    class Foo(m.Circuit):
+        io = m.IO(I=T, O=U)
+
+    class Bar(m.Circuit):
+        io = m.IO(I=T, O=U)
+        foo = Foo()
+        io.O @= foo.O
+
+    wire_clocks(Bar)
+    assert Bar.foo.I.driven()
+    assert Bar.foo.I.value() is Bar.io.I
+
+    msg = "Clock logic should not elaborate these children"
+    assert not Bar.io.O.has_elaborated_children(), msg
+    assert not Bar.foo.O.has_elaborated_children(), msg
