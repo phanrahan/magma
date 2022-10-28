@@ -92,3 +92,13 @@ def test_no_cache():
     my_gen_other = _MyGen()
     assert my_gen is not my_gen_other
     assert repr(my_gen) == repr(my_gen_other)
+
+
+def test_subclass_generator_instance():
+    Base = m.Register(m.Bit)
+
+    class MyRegister(Base):
+        io = Base.io
+        verilog = "Foo"
+
+    assert isinstance(MyRegister, m.Register)
