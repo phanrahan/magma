@@ -89,12 +89,24 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         return type(self).undirected_t._declare_binary_op("and")()(self, other)
 
     @bit_cast
+    def __rand__(self, other):
+        return type(self).undirected_t._declare_binary_op("and")()(other, self)
+
+    @bit_cast
     def __or__(self, other):
         return type(self).undirected_t._declare_binary_op("or")()(self, other)
 
     @bit_cast
+    def __ror__(self, other):
+        return type(self).undirected_t._declare_binary_op("or")()(other, self)
+
+    @bit_cast
     def __xor__(self, other):
         return type(self).undirected_t._declare_binary_op("xor")()(self, other)
+
+    @bit_cast
+    def __rxor__(self, other):
+        return type(self).undirected_t._declare_binary_op("xor")()(other, self)
 
     def ite(self, t_branch, f_branch):
         if isinstance(t_branch, list) and isinstance(f_branch, list):

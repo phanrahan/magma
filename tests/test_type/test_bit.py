@@ -380,3 +380,20 @@ EndCircuit()\
 def test_errors(op):
     with pytest.raises(ValueError):
         op(m.Bit(name="b"))
+
+
+@pytest.mark.parametrize("op", ["and_", "or_", "xor"])
+def test_bit_rhs(op):
+    class TestBinary(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O @= getattr(operator, op)(True, io.I)
+
+    clean_op = op.replace("_", "")
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I", In(Bit), "O", Out(Bit))
+magma_Bit_{clean_op}_inst0 = magma_Bit_{clean_op}()
+wire(VCC, magma_Bit_{clean_op}_inst0.in0)
+wire(TestBinary.I, magma_Bit_{clean_op}_inst0.in1)
+wire(magma_Bit_{clean_op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
