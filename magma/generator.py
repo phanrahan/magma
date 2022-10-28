@@ -98,13 +98,23 @@ class _Generator2Meta(type):
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
-        if cls is Generator2:
-            try:
-                name, bases, dct = args
-            except ValueError:
-                raise Exception("Can not initialize base Generator class")
-            assert not kwargs
-            return type.__new__(cls, name, bases, dct)
+        # NOTE(leonardt): This is a hacky way to determine that this is a
+        # type(...) call, i.e. it is invoked in the class creation pipeline. In
+        # that case, there are exactly 3 arguments of the form name, bases, dct.
+        # In theory, it would be possible for a Generator subclass to have the
+        # same argument number and types, but having the "__module__" member of
+        # the dct would be highly unlikely, furthmore they should be using a
+        # hashable dict, so it shouldn't satisfy that check. Note that this is
+        # why we use "type is" instead of isinstance.
+        is_base_cls = (
+            len(args) == 3
+            and type(args[0]) is str
+            and type(args[1]) is tuple
+            and type(args[2]) is dict
+            and "__module__" in args[2]
+        )
+        if is_base_cls:
+            return type.__new__(cls, *args)
         if not getattr(cls, "_cache_", True):
             return _make_type(cls, *args, **kwargs)
         key = _make_key(cls, *args, **kwargs)
