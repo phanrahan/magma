@@ -1,7 +1,6 @@
-import abc
 import functools
 import itertools
-from typing import Dict, Iterable, Optional, Set, Tuple, Union
+from typing import Dict, Optional, Union, Set
 
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
@@ -12,7 +11,6 @@ from magma.primitives.register import Register
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
-    get_all_blocks as get_all_when_blocks,
     no_when,
     find_inferred_latches,
 )
@@ -55,15 +53,19 @@ def _is_memory_port(value: Type) -> bool:
     return True
 
 
-def _add_default_drivers_to_memory_ports(builder: 'WhenBuilder'):
+def _add_default_drivers_to_memory_ports(builder: 'WhenBuilder',
+                                         latches: Set[Type]):
     for drivee in builder.output_to_index:
         if drivee in builder.default_drivers:
             continue
         if not _is_memory_port(drivee):
             continue
+        if drivee not in latches:
+            continue
         T = type(drivee).undirected_t
         zero = from_bits(T, Bits[T.flat_length()](0))
         builder.block.add_default_driver(drivee, zero)
+        latches.remove(drivee)
 
 
 def _get_corresponding_register_default(value: Type) -> Optional[Type]:
@@ -91,7 +93,8 @@ def _get_corresponding_register_default(value: Type) -> Optional[Type]:
     return sel.select(value_inst.O)
 
 
-def _add_default_drivers_to_register_inputs(builder: 'WhenBuilder'):
+def _add_default_drivers_to_register_inputs(builder: 'WhenBuilder',
+                                            latches: Set[Type]):
     """
     Adds default drivers to register inputs (reg.O is the default value
     for inputs, False is the default for enables).
@@ -106,12 +109,13 @@ def _add_default_drivers_to_register_inputs(builder: 'WhenBuilder'):
     the user provide an API for setting up default values.
     """
     for drivee in builder.output_to_index:
-        if drivee in builder.default_drivers:
+        if drivee not in latches:
             continue
         O = _get_corresponding_register_default(drivee)
         if O is None:
             continue
         builder.block.add_default_driver(drivee, O)
+        latches.remove(drivee)
 
 
 class WhenBuilder(CircuitBuilder):
@@ -203,16 +207,22 @@ class WhenBuilder(CircuitBuilder):
         self._default_drivers[drivee] = driver
 
     def _finalize(self):
+        # Detect latches which would be inferred from the context of the when
+        # block.
+        latches = find_inferred_latches(self.block)
+
         # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
         # builder's finalization, although it is a bit "hacky". Ideally, this
         # builder should be completely agnostic of anything it is connected to,
         # and a global (post-processing) pass should be used instead.
-        _add_default_drivers_to_memory_ports(self)
-        _add_default_drivers_to_register_inputs(self)
-        # Detect latches which would be inferred from the context of the when
-        # block.
-        latches = find_inferred_latches(self.block)
+        # NOTE(leonardt): we only add default drivers if a value is inferred to
+        # be a latch, otherwise we skip this implicit logic so the output is
+        # cleaner (e.g. if a register is assigned in every case, we don't need
+        # the default value)
+        _add_default_drivers_to_memory_ports(self, latches)
+        _add_default_drivers_to_register_inputs(self, latches)
+
         if latches:
             raise InferredLatchError(latches)
 

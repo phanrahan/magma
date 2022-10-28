@@ -34,63 +34,59 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %8 = hw.constant 127 : i7
         %9 = hw.constant 0 : i5
         %10 = hw.constant 0 : i1
-        %11 = hw.constant 0 : i7
-        %12 = hw.constant 0 : i1
-        %13 = hw.constant 0 : i5
-        %14 = hw.constant 0 : i7
-        %21 = sv.reg : !hw.inout<i5>
-        %2 = sv.read_inout %21 : !hw.inout<i5>
+        %11 = hw.constant 0 : i5
+        %12 = hw.constant 0 : i7
+        %19 = sv.reg : !hw.inout<i5>
+        %2 = sv.read_inout %19 : !hw.inout<i5>
+        %20 = sv.reg : !hw.inout<i1>
+        %13 = sv.read_inout %20 : !hw.inout<i1>
+        %21 = sv.reg : !hw.inout<i7>
+        %14 = sv.read_inout %21 : !hw.inout<i7>
         %22 = sv.reg : !hw.inout<i1>
-        %15 = sv.read_inout %22 : !hw.inout<i1>
-        %23 = sv.reg : !hw.inout<i7>
-        %16 = sv.read_inout %23 : !hw.inout<i7>
+        %5 = sv.read_inout %22 : !hw.inout<i1>
+        %23 = sv.reg : !hw.inout<i5>
+        %1 = sv.read_inout %23 : !hw.inout<i5>
         %24 = sv.reg : !hw.inout<i1>
-        %5 = sv.read_inout %24 : !hw.inout<i1>
-        %25 = sv.reg : !hw.inout<i5>
-        %1 = sv.read_inout %25 : !hw.inout<i5>
+        %15 = sv.read_inout %24 : !hw.inout<i1>
+        %25 = sv.reg : !hw.inout<i7>
+        %16 = sv.read_inout %25 : !hw.inout<i7>
         %26 = sv.reg : !hw.inout<i1>
         %17 = sv.read_inout %26 : !hw.inout<i1>
         %27 = sv.reg : !hw.inout<i7>
         %18 = sv.read_inout %27 : !hw.inout<i7>
         %28 = sv.reg : !hw.inout<i1>
-        %19 = sv.read_inout %28 : !hw.inout<i1>
+        %3 = sv.read_inout %28 : !hw.inout<i1>
         %29 = sv.reg : !hw.inout<i7>
-        %20 = sv.read_inout %29 : !hw.inout<i7>
-        %30 = sv.reg : !hw.inout<i1>
-        %3 = sv.read_inout %30 : !hw.inout<i1>
-        %31 = sv.reg : !hw.inout<i7>
-        %4 = sv.read_inout %31 : !hw.inout<i7>
+        %4 = sv.read_inout %29 : !hw.inout<i7>
         sv.alwayscomb {
-            sv.bpassign %21, %9 : i5
-            sv.bpassign %30, %12 : i1
-            sv.bpassign %31, %11 : i7
-            sv.bpassign %24, %12 : i1
-            sv.bpassign %25, %13 : i5
-            sv.bpassign %30, %12 : i1
-            sv.bpassign %31, %14 : i7
+            sv.bpassign %19, %9 : i5
+            sv.bpassign %22, %10 : i1
+            sv.bpassign %23, %11 : i5
+            sv.bpassign %28, %10 : i1
+            sv.bpassign %29, %12 : i7
             sv.if %en0 {
-                sv.bpassign %21, %addr0 : i5
-                sv.bpassign %24, %0 : i1
-                sv.bpassign %25, %addr1 : i5
-                sv.bpassign %28, %6 : i1
-                sv.bpassign %29, %7 : i7
-                sv.bpassign %30, %data0_x : i1
-                sv.bpassign %31, %data0_y : i7
+                sv.bpassign %19, %addr0 : i5
+                sv.bpassign %22, %0 : i1
+                sv.bpassign %23, %addr1 : i5
+                sv.bpassign %26, %6 : i1
+                sv.bpassign %27, %7 : i7
+                sv.bpassign %28, %data0_x : i1
+                sv.bpassign %29, %data0_y : i7
             } else {
                 sv.if %en1 {
-                    sv.bpassign %21, %addr1 : i5
-                    sv.bpassign %24, %0 : i1
-                    sv.bpassign %25, %addr0 : i5
-                    sv.bpassign %28, %6 : i1
-                    sv.bpassign %29, %7 : i7
-                    sv.bpassign %30, %data1_x : i1
-                    sv.bpassign %31, %data1_y : i7
+                    sv.bpassign %19, %addr1 : i5
+                    sv.bpassign %22, %0 : i1
+                    sv.bpassign %23, %addr0 : i5
+                    sv.bpassign %26, %6 : i1
+                    sv.bpassign %27, %7 : i7
+                    sv.bpassign %28, %data1_x : i1
+                    sv.bpassign %29, %data1_y : i7
                 } else {
-                    sv.bpassign %28, %0 : i1
-                    sv.bpassign %29, %8 : i7
+                    sv.bpassign %26, %0 : i1
+                    sv.bpassign %27, %8 : i7
                 }
             }
         }
-        hw.output %19, %20 : i1, i7
+        hw.output %17, %18 : i1, i7
     }
 }

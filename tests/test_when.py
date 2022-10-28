@@ -346,7 +346,7 @@ def test_when_memory(T, bits_to_fault_value):
     if check_gold(__file__, f"test_when_memory_{T_str}.mlir"):
         return
 
-    tester = f.SynchronousTester(test_when_memory)
+    tester = f.SynchronousTester(test_when_memory, clock=test_when_memory.CLK)
     tester.advance_cycle()
     tester.expect(test_when_memory.out, bits_to_fault_value(m.Bits[8](0xFF)))
 
@@ -521,6 +521,26 @@ def test_when_register_default():
         io.O @= reg.O
 
     basename = "test_when_register_default"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_when_register_no_default():
+
+    class _Test(m.Circuit):
+        name = "test_register_no_default"
+        io = m.IO(I=m.In(m.Bit), E=m.In(m.Bit), O=m.Out(m.Bit))
+
+        reg = m.Register(m.Bit)()
+
+        with m.when(io.E):
+            reg.I @= io.I
+        with m.otherwise():
+            reg.I @= ~io.I
+
+        io.O @= reg.O
+
+    basename = "test_when_register_no_default"
     m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
 
