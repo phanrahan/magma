@@ -4,7 +4,6 @@ from magma.testing import check_files_equal
 
 def test_debug_generator_basic():
     class Foo(m.Generator2):
-        @m.debug
         def __init__(self, n):
             self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bit))
             x = m.Bits[n]()

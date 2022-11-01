@@ -48,11 +48,17 @@ def debug(fn):
     wrapper = cst.metadata.MetadataWrapper(tree)
     tree = wrapper.visit(Transformer(filename))
     code = "import magma as m\n" + tree.code
-    print(code)
 
     namespace = {}
     exec(code, namespace)
-    return namespace[fn.__name__]
+    debug_fn = namespace[fn.__name__]
+
+    def wrapper(*args, **kwargs):
+        try:
+            return debug_fn(*args, **kwargs)
+        except Exception:
+            return fn(*args, **kwargs)
+    return wrapper
 
 
 def set_debug_info(value, name, filename, lineno, col_offset):
