@@ -62,8 +62,6 @@ class Mux(Generator2):
         self.height = height
         self.T = T
 
-        self.elaborate()
-
     def elaborate(self):
         N = magma_type(self.T).flat_length()
         mux = CoreIRCommonLibMuxN(self.height, N)()
