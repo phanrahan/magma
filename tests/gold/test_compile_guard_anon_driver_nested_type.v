@@ -164,7 +164,7 @@ module A (
     input port_97,
     input port_98,
     input port_99,
-    input CLK
+    input port_100
 );
 wire [9:0] Register_inst0_O_0_x;
 wire [9:0] Register_inst0_O_1_x;
@@ -197,7 +197,7 @@ assign Register_inst0_I_8_x = {port_89,port_88,port_87,port_86,port_85,port_84,p
 wire [9:0] Register_inst0_I_9_x;
 assign Register_inst0_I_9_x = {port_99,port_98,port_97,port_96,port_95,port_94,port_93,port_92,port_91,port_90};
 Register Register_inst0 (
-    .CLK(CLK),
+    .CLK(port_100),
     .I_0_x(Register_inst0_I_0_x),
     .I_1_x(Register_inst0_I_1_x),
     .I_2_x(Register_inst0_I_2_x),
@@ -327,7 +327,7 @@ A A (
     .port_97(I),
     .port_98(I),
     .port_99(I),
-    .CLK(CLK)
+    .port_100(CLK)
 );
 `endif
 endmodule

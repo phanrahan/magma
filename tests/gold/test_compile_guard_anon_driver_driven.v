@@ -36,13 +36,13 @@ endmodule
 
 module A (
     input port_0,
-    input CLK
+    input port_1
 );
 wire Register_inst0_O;
 Register Register_inst0 (
     .I(port_0),
     .O(Register_inst0_O),
-    .CLK(CLK)
+    .CLK(port_1)
 );
 endmodule
 
@@ -53,7 +53,7 @@ module _Top (
 `ifdef COND
 A A (
     .port_0(I),
-    .CLK(CLK)
+    .port_1(CLK)
 );
 `endif
 endmodule

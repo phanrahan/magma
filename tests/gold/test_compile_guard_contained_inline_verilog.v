@@ -56,16 +56,16 @@ assign O = reg_P1_inst0_out[0];
 endmodule
 
 module DebugModule (
-    input CLK,
     input port_0,
-    input port_1
+    input port_1,
+    input port_2
 );
 wire _magma_inline_wire0_out;
 wire _magma_inline_wire1_out;
 wire magma_Bit_or_inst0_out;
 wire reg_O;
 corebit_wire _magma_inline_wire0 (
-    .in(port_1),
+    .in(port_2),
     .out(_magma_inline_wire0_out)
 );
 corebit_wire _magma_inline_wire1 (
@@ -74,13 +74,13 @@ corebit_wire _magma_inline_wire1 (
 );
 corebit_or magma_Bit_or_inst0 (
     .in0(\reg _O),
-    .in1(port_0),
+    .in1(port_1),
     .out(magma_Bit_or_inst0_out)
 );
 Register reg (
     .I(magma_Bit_or_inst0_out),
     .O(reg_O),
-    .CLK(CLK)
+    .CLK(port_0)
 );
 assert _magma_inline_wire0_out;
 assert ~_magma_inline_wire1_out;
@@ -93,9 +93,9 @@ module Top (
 );
 `ifdef DEBUG
 DebugModule DebugModule (
-    .CLK(CLK),
-    .port_0(I),
-    .port_1(I)
+    .port_0(CLK),
+    .port_1(I),
+    .port_2(I)
 );
 `endif
 assign O = I;
