@@ -30,6 +30,17 @@ def _get_output_clocks_in_array(
         yield from get_output_clocks_in_value(elem, clock_type)
 
 
+def _get_output_clocks_in_tuple(
+        value: Tuple, clock_type: Kind
+) -> Iterable[Type]:
+    """
+    Gets all output values of type @clock_type recursively contained in @value.
+    """
+    for key, type_ in type(value).field_dict.items():
+        if is_clock_or_nested_clock(type_, (clock_type, )):
+            yield from get_output_clocks_in_value(value[key], clock_type)
+
+
 def get_output_clocks_in_value(value: Type, clock_type: Kind) -> Iterable[Type]:
     """
     Gets all output values of type @clock_type recursively contained in @value.
@@ -40,8 +51,7 @@ def get_output_clocks_in_value(value: Type, clock_type: Kind) -> Iterable[Type]:
     if isinstance(value, clock_type):
         yield value
     if isinstance(value, Tuple):
-        for elem in value:
-            yield from get_output_clocks_in_value(elem, clock_type)
+        yield from _get_output_clocks_in_tuple(value, clock_type)
     if isinstance(value, Array):
         yield from _get_output_clocks_in_array(value, clock_type)
 
