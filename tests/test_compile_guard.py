@@ -329,3 +329,26 @@ def test_compile_guard_anon_driving_external():
         with pytest.raises(TypeError):
             with m.compile_guard("COND", defn_name="COND_compile_guard"):
                 x @= m.Register(m.Bit)()(io.I)
+
+
+def test_compile_guard_inline_verilog_reset():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io += m.ClockIO(has_async_resetn=True)
+        io.O @= io.I
+
+        with m.compile_guard("COND", defn_name="COND_compile_guard"):
+            m.inline_verilog(
+                """
+assert property (@(posedge {clk}) disable iff {rst} {x} |-> ##1 {x};
+                """,
+                x=io.I,
+                rst=m.AsyncResetN(),
+                clk=m.Clock()
+            )
+
+    basename = "test_compile_guard_inline_verilog_reset"
+    m.compile(f"build/{basename}", _Top, output="mlir")
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.mlir", f"gold/{basename}.mlir")

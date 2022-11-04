@@ -2,9 +2,9 @@
 "namespaces":{
   "global":{
     "modules":{
-      "COND_compile_guard":{
+      "CompileGuardCircuit_1":{
         "type":["Record",[
-          ["port_0","BitIn"],
+          ["port_0","Bit"],
           ["port_1",["Named","coreir.clkIn"]],
           ["port_2","BitIn"]
         ]],
@@ -12,15 +12,20 @@
           "Register_inst0":{
             "modref":"global.Register"
           },
-          "Register_inst1":{
-            "modref":"global.Register"
+          "bit_const_1_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
+          },
+          "magma_Bit_xor_inst0":{
+            "modref":"corebit.xor"
           }
         },
         "connections":[
           ["self.port_1","Register_inst0.CLK"],
-          ["self.port_0","Register_inst0.I"],
-          ["self.port_1","Register_inst1.CLK"],
-          ["self.port_2","Register_inst1.I"]
+          ["magma_Bit_xor_inst0.out","Register_inst0.I"],
+          ["self.port_0","Register_inst0.O"],
+          ["magma_Bit_xor_inst0.in1","bit_const_1_None.out"],
+          ["self.port_2","magma_Bit_xor_inst0.in0"]
         ]
       },
       "Register":{
@@ -44,21 +49,20 @@
       },
       "_Top":{
         "type":["Record",[
-          ["I",["Array",2,"BitIn"]],
+          ["I","BitIn"],
           ["O","Bit"],
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "COND_compile_guard":{
-            "modref":"global.COND_compile_guard",
+          "CompileGuardCircuit_1":{
+            "modref":"global.CompileGuardCircuit_1",
             "metadata":{"compile_guard":{"condition_str":"COND","type":"defined"}}
           }
         },
         "connections":[
-          ["self.I.1","COND_compile_guard.port_0"],
-          ["self.CLK","COND_compile_guard.port_1"],
-          ["self.I.0","COND_compile_guard.port_2"],
-          ["self.O","self.I.1"]
+          ["self.O","CompileGuardCircuit_1.port_0"],
+          ["self.CLK","CompileGuardCircuit_1.port_1"],
+          ["self.I","CompileGuardCircuit_1.port_2"]
         ]
       }
     }

@@ -5,8 +5,8 @@
       "ASSERT_ON_compile_guard":{
         "type":["Record",[
           ["port_0","BitIn"],
-          ["CLK",["Named","coreir.clkIn"]],
-          ["port_1",["Array",4,"BitIn"]]
+          ["port_1",["Named","coreir.clkIn"]],
+          ["port_2",["Array",4,"BitIn"]]
         ]],
         "instances":{
           "ASSERT_ON_compile_guard_inline_verilog_inst_0":{
@@ -55,7 +55,7 @@
         "connections":[
           ["_FAULT_ASSERT_WIRE_0.out","ASSERT_ON_compile_guard_inline_verilog_inst_0.__magma_inline_value_0"],
           ["self.port_0","Register_inst0.CE"],
-          ["self.CLK","Register_inst0.CLK"],
+          ["self.port_1","Register_inst0.CLK"],
           ["magma_UInt_2_add_inst0.out","Register_inst0.I"],
           ["magma_UInt_2_add_inst0.in0","Register_inst0.O"],
           ["magma_UInt_2_eq_inst0.in0","Register_inst0.O"],
@@ -66,7 +66,7 @@
           ["magma_UInt_2_eq_inst0.out","magma_Bit_not_inst0.in"],
           ["magma_Bit_or_inst0.in0","magma_Bit_not_inst0.out"],
           ["magma_Bits_4_eq_inst0.out","magma_Bit_or_inst0.in1"],
-          ["self.port_1","magma_Bits_4_eq_inst0.in0"]
+          ["self.port_2","magma_Bits_4_eq_inst0.in0"]
         ]
       },
       "ASSERT_ON_compile_guard_inline_verilog_0":{
@@ -164,9 +164,9 @@
           }
         },
         "connections":[
-          ["self.CLK","ASSERT_ON_compile_guard.CLK"],
           ["self.I.valid","ASSERT_ON_compile_guard.port_0"],
-          ["Register_inst0.O","ASSERT_ON_compile_guard.port_1"],
+          ["self.CLK","ASSERT_ON_compile_guard.port_1"],
+          ["Register_inst0.O","ASSERT_ON_compile_guard.port_2"],
           ["self.CLK","Register_inst0.CLK"],
           ["self.I.data","Register_inst0.I"],
           ["self.O","Register_inst0.O"]
