@@ -212,7 +212,6 @@ class WhenBuilder(CircuitBuilder):
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)
-
         # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
         # builder's finalization, although it is a bit "hacky". Ideally, this
