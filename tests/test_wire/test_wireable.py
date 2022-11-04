@@ -24,19 +24,18 @@ Cannot wire Main2.a (Out(SInt[16])) to Main2.b (In(UInt[16]))\
 
 
 def test_trace_infinite_loop():
-    class Foo(m.Circuit):
-        x = m.Bits[8](name="x")
-        y = m.Bits[8](name="y")
-        z = m.Bits[8](name="z")
+    x = m.Bits[8](name="x")
+    y = m.Bits[8](name="y")
+    z = m.Bits[8](name="z")
 
-        # Combinational loop
-        x @= y
-        z @= x
-        y @= z
-        with pytest.raises(RecursionError) as e:
-            y.trace()
+    # Combinational loop
+    x @= y
+    z @= x
+    y @= z
+    with pytest.raises(RecursionError) as e:
+        y.trace()
 
-        assert str(e.value) == """\
+    assert str(e.value) == """\
 RecursionError when calling trace on y, do you have a\
 combinational loop?\
 """
