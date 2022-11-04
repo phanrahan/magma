@@ -94,8 +94,9 @@ def _get_corresponding_register_default(value: Type) -> Optional[Type]:
     return sel.select(value_inst.O)
 
 
-def _add_default_drivers_to_register_inputs(builder: 'WhenBuilder',
-                                            latches: Set[Type]):
+def _add_default_drivers_to_register_inputs(
+    builder: 'WhenBuilder', latches: Set[Type]
+):
     """
     Adds default drivers to register inputs (reg.O is the default value
     for inputs, False is the default for enables).
