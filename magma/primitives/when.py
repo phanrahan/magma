@@ -217,10 +217,10 @@ class WhenBuilder(CircuitBuilder):
         # builder's finalization, although it is a bit "hacky". Ideally, this
         # builder should be completely agnostic of anything it is connected to,
         # and a global (post-processing) pass should be used instead.
-        # NOTE(leonardt): we only add default drivers if a value is inferred to
+        # NOTE(leonardt): We only add default drivers if a value is inferred to
         # be a latch, otherwise we skip this implicit logic so the output is
         # cleaner (e.g. if a register is assigned in every case, we don't need
-        # the default value)
+        # the default value).
         _add_default_drivers_to_memory_ports(self, latches)
         _add_default_drivers_to_register_inputs(self, latches)
 
