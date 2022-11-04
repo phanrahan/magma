@@ -31,7 +31,8 @@ def _get_output_clocks_in_array(
 
 
 def _get_output_clocks_in_tuple(
-        value: Tuple, clock_type: Kind) -> Iterable[Type]:
+        value: Tuple, clock_type: Kind
+) -> Iterable[Type]:
     """
     Gets all output values of type @clock_type recursively contained in @value.
     """
