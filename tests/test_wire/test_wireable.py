@@ -36,6 +36,6 @@ def test_trace_infinite_loop():
         y.trace()
 
     assert str(e.value) == """\
-RecursionError when calling trace on y, do you have a\
+RecursionError when calling trace on y, do you have a \
 combinational loop?\
 """

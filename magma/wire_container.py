@@ -15,7 +15,8 @@ from magma.when import (
 class TraceRecursionError(RecursionError):
     def __init__(self, value):
         msg = (
-            f"RecursionError when calling trace on {value}, do you have combinational loop?"
+            f"RecursionError when calling trace on {value}, do you have a "
+            " combinational loop?"
         )
         super().__init__(msg)
 
