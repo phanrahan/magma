@@ -5,6 +5,7 @@ import fault
 import hwtypes as ht
 import magma as m
 from magma.testing import check_files_equal, SimpleMagmaProtocol
+from magma.testing.utils import check_gold, update_gold
 
 
 def test_basic_mux():
@@ -350,3 +351,31 @@ def test_mux_operator_const_select(n, use_bit):
         vec = [T() for _ in range(n)]
         sel = T_sel(0) if sel_bits == 1 else T_sel(0)
         m.mux(vec, sel)
+
+
+def test_mux_list_lookup_default_none():
+    class test_mux_list_lookup_default_none(m.Circuit):
+        io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
+
+        list_ = [ht.BitVector[5](0), ht.BitVector[5](1), ht.BitVector[5](2)]
+        io.O @= m.list_lookup(list_, io.S)
+
+    m.compile("build/test_mux_list_lookup_default_none",
+              test_mux_list_lookup_default_none,
+              output="mlir")
+    if check_gold(__file__, "test_mux_list_lookup_default_none.mlir"):
+        return
+
+    tester = fault.Tester(test_mux_list_lookup_default_none)
+    for i in range(4):
+        tester.circuit.S = i
+        tester.eval()
+        if i < 3:
+            tester.circuit.O.expect(i)
+        else:
+            tester.circuit.O.expect(2)
+
+    tester.compile_and_run("verilator", magma_output="mlir-verilog",
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+    update_gold(__file__, "test_mux_list_lookup_default_none.mlir")

@@ -185,15 +185,20 @@ def dict_lookup(dict_, select, default=0):
     return output
 
 
-def list_lookup(list_, select, default=0):
+def list_lookup(list_, select, default=None):
     """
     Use `select` as an index into `list` (similar to a case statement)
 
     `default` is used when `select` does not match any of the indices (e.g.
-    when the select width is longer than the list) and has a default value of
-    0.
+    when the select width is longer than the list).  If it is `None`, the last
+    element of the list will be used.
     """
     output = default
-    for i, elem in enumerate(list_):
-        output = mux([output, elem], i == select)
+    if default is None:
+        output = list_[-1]
+        list_ = list_[:-1]
+    # We chain the muxes in reverse order so that the emitted Verilog is in
+    # forward order.
+    for i in range(len(list_) - 1, -1, -1):
+        output = mux([output, list_[i]], i == select)
     return output
