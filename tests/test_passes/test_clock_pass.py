@@ -70,6 +70,7 @@ def test_drive_undriven_clock_types_combinational_logging(caplog):
 
 
 def test_clock_pass_tuple():
+
     class T(m.Product):
         x = m.In(m.Clock)
         y = m.In(m.Reset)
