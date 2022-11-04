@@ -53,8 +53,9 @@ def _is_memory_port(value: Type) -> bool:
     return True
 
 
-def _add_default_drivers_to_memory_ports(builder: 'WhenBuilder',
-                                         latches: Set[Type]):
+def _add_default_drivers_to_memory_ports(
+    builder: 'WhenBuilder', latches: Set[Type]
+):
     for drivee in builder.output_to_index:
         if drivee in builder.default_drivers:
             continue
