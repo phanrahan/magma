@@ -867,3 +867,33 @@ def test_when_reg_ce_multiple():
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_latch_zext():
+    # Should not raise a LatchError
+    class _Test(m.Circuit):
+        name = "test_when_latch_nested_multiple"
+        io = m.IO(op=m.In(m.Bits[32]), O=m.Out(m.Bits[32]))
+
+        pc = m.Register(m.Bits[32])()
+        rc = m.Bits[32](name="rc")
+        ra = m.Bits[32](0)
+        rb = m.Bits[32](0)
+        rai = m.Bits[8](0)
+        rbi = m.Bits[8](0)
+        rci = m.Bits[8](0)
+
+        rc @= m.Bits[32](0)
+        io.O @= rc
+        with m.when(io.op[0]):
+            pc.I @= pc.O
+        with m.elsewhen(io.op[1]):
+            pc.I @= 0
+        with m.otherwise():
+            with m.when(io.op == 0):
+                rc @= ra + rb
+            with m.elsewhen(io.op == 1):
+                rc @= m.zext((rai << 8) | rbi, 24)
+            with m.when(rci == 255):
+                io.O @= 0xDE
+            pc.I @= pc.O + 1
