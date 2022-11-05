@@ -1,3 +1,4 @@
+import pytest
 import magma as m
 
 
@@ -20,3 +21,21 @@ Cannot wire Main.a (Out(UInt[16])) to Main.b (In(SInt[16]))\
 Cannot wire Main2.a (Out(SInt[16])) to Main2.b (In(UInt[16]))\
 """
     assert caplog.messages[1][-len(expected):] == expected
+
+
+def test_trace_infinite_loop():
+    x = m.Bits[8](name="x")
+    y = m.Bits[8](name="y")
+    z = m.Bits[8](name="z")
+
+    # Combinational loop
+    x @= y
+    z @= x
+    y @= z
+    with pytest.raises(RecursionError) as e:
+        y.trace()
+
+    assert str(e.value) == """\
+RecursionError when calling trace on y, do you have a \
+combinational loop?\
+"""
