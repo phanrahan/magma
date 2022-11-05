@@ -12,7 +12,7 @@ from magma.config import config, EnvConfig
 from magma.logging import root_logger
 
 
-config._register(circt_home=EnvConfig("CIRCT_HOME", "./circt"))
+config._register(circt_home=EnvConfig("CIRCT_HOME", None))
 
 _logger = root_logger().getChild("mlir_backend")
 
@@ -26,12 +26,22 @@ class MlirToVerilogOpts:
     pass
 
 
-def _circt_home() -> pathlib.Path:
+def _circt_home() -> Optional[pathlib.Path]:
+    """Returns the CIRCT_HOME config if it is not None. Otherwise returns None.
+    """
+    if config.circt_home is None:
+        return None
     return pathlib.Path(config.circt_home).resolve()
 
 
-def _circt_opt_binary(circt_home: pathlib.Path) -> pathlib.Path:
-    return circt_home / "build/bin/circt-opt"
+def _circt_opt_binary(circt_home: Optional[pathlib.Path]) -> str:
+    """Returns the absolute path to the circt-opt binary if @circt_home is not
+    None. Otherwise, returns just the binary name (i.e. looks for the binary in
+    PATH).
+    """
+    if circt_home is not None:
+        return str(circt_home / "build/bin/circt-opt")
+    return "circt-opt"
 
 
 def _circt_opt_cmd(
