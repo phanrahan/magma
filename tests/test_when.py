@@ -869,7 +869,7 @@ def test_when_reg_ce_multiple():
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_latch_zext():
+def test_when_latch_nested_multiple():
     # Should not raise a LatchError
     class _Test(m.Circuit):
         name = "test_when_latch_nested_multiple"
