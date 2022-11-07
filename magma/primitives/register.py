@@ -8,7 +8,7 @@ from magma.bit import Bit
 from magma.clock import Enable
 from magma.common import ParamDict
 from magma.bits import Bits, UInt, SInt
-from magma.circuit import coreir_port_mapping
+from magma.circuit import coreir_port_mapping, Circuit
 from magma.conversions import as_bits, from_bits, bit
 from magma.interface import IO
 from magma.generator import Generator2
@@ -137,7 +137,7 @@ class AbstractRegister(Generator2):
     types should implement this interface.
     """
 
-    def get_enable(self, inst):
+    def get_enable(self, inst: Circuit) -> Enable:
         raise NotImplementedError()
 
 
