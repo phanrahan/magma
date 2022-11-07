@@ -167,19 +167,12 @@ class _BlockBase(contextlib.AbstractContextManager):
                     or self.get_conditional_wires_for_drivee(ce_port)
                     or (
                         ce_port.driven()
-                        and not getattr(
-                            ce_port, "driven_implicitly_by_when", False
-                        )
+                        and not ce_port.driven_implicitly_by_when
                     )
                     or ce_port in seen
             ):
                 continue
-            # NOTE(rsetaluri): If ce_port is an Enable type, then we need to
-            # notify wire() that it is being driven implicitly within by when.
-            kwargs = {}
-            if isinstance(ce_port, _enable_type()):
-                kwargs["driven_implicitly_by_when"] = True
-            ce_port.wire(1, **kwargs)
+            ce_port.wire(1, driven_implicitly_by_when=True)
             seen.add(ce_port)
 
     @abc.abstractmethod

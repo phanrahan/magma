@@ -961,8 +961,6 @@ def test_reg_ce_explicit_wire_twice():
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-
-
 def test_user_reg():
 
     class Register(m.AbstractRegister):
@@ -996,7 +994,8 @@ def test_user_reg_bit_enable():
 
     class Register(m.AbstractRegister):
         def __init__(self, T):
-            self.io = m.IO(I=m.In(T), O=m.Out(T), CE=m.In(m.Bit)) + m.ClockIO()
+            self.io = m.IO(I=m.In(T), O=m.Out(T), CE=m.In(m.Enable))
+            self.io += m.ClockIO()
             self.verilog = """\
     reg [7:0] x;
     always @(posedge CLK)
