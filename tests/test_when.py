@@ -990,7 +990,7 @@ assign O = x;
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_user_reg_bit_enable():
+def test_user_reg_enable():
 
     class Register(m.AbstractRegister):
         def __init__(self, T):
@@ -1008,7 +1008,7 @@ def test_user_reg_bit_enable():
             return inst.CE
 
     class _Test(m.Circuit):
-        name = "test_when_user_reg_bit_enable"
+        name = "test_when_user_reg_enable"
         io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]), x=m.In(m.Bits[2]))
 
         x = Register(m.Bits[8])()
