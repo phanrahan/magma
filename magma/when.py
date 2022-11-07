@@ -106,12 +106,21 @@ class _BlockBase(contextlib.AbstractContextManager):
         yield from self._conditional_wires
 
     def default_drivers(self) -> Iterable[ConditionalWire]:
+        if self.root is not self:
+            raise RuntimeError("Can only get default drivers from root")
         return (
             ConditionalWire(k, v)
             for k, v in self._default_drivers.items()
         )
 
+    def get_default_drivers_dict(self) -> Iterable[ConditionalWire]:
+        if self.root is not self:
+            raise RuntimeError("Can only get default drivers from root")
+        return self._default_drivers
+
     def get_default_driver(self, drivee) -> Any:
+        if self.root is not self:
+            raise RuntimeError("Can only get default driver from root")
         return self._default_drivers[drivee]
 
     def add_default_driver(self, drivee, driver):
