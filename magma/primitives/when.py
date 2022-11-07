@@ -2,12 +2,12 @@ import functools
 import itertools
 from typing import Dict, Optional, Union, Set
 
+from magma.bit import Bit
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
-from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
-from magma.primitives.register import Register
+from magma.primitives.register import AbstractRegister
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -70,8 +70,7 @@ def _add_default_drivers_to_memory_ports(
 
 
 def _get_corresponding_register_default(value: Type) -> Optional[Type]:
-    """
-    Used to get the corresponding default for `value` if it is a
+    """Used to get the corresponding default for `value` if it is a
     reference to a register input value.
 
     `value` should either be reg.I or reg.CE:
@@ -79,17 +78,17 @@ def _get_corresponding_register_default(value: Type) -> Optional[Type]:
           current value).
         * For reg.CE, the default will be False (default to no update).
 
-    CE is assumed to be of type `Enable`.
     """
     root_ref = value.name.root()
     try:
         value_inst = root_ref.inst
     except AttributeError:
         return None
-    if not isinstance(type(value_inst), Register):
+    value_inst_T = type(value_inst)
+    if not isinstance(value_inst_T, AbstractRegister):
         return None
-    if isinstance(value, Enable):
-        return Enable(False)
+    if value is value_inst_T.get_enable(value_inst):
+        return type(value)(False)
     sel = make_selector(value)
     return sel.select(value_inst.O)
 
@@ -97,18 +96,16 @@ def _get_corresponding_register_default(value: Type) -> Optional[Type]:
 def _add_default_drivers_to_register_inputs(
     builder: 'WhenBuilder', latches: Set[Type]
 ):
-    """
-    Adds default drivers to register inputs (reg.O is the default value
-    for inputs, False is the default for enables).
+    """Adds default drivers to register inputs (reg.O is the default value for
+    inputs, False is the default for enables).
 
-    The current implementation assumes the magma internally defined
-    register primitive is used, which always has only one input and an
-    optional enable port.  If we encounter a subclass of m.Register, we
-    will drive all inputs with reg.O and all enables with reg.I (if they
-    have multiple).
+    The current implementation assumes the magma internally defined register
+    primitive is used, which always has only one input and an optional enable
+    port. If we encounter a AbstractRegister, we will drive all inputs with
+    reg.O and all enables with reg.I (if they have multiple).
 
-    If we wanted to make this interface more extensible, we could have
-    the user provide an API for setting up default values.
+    If we wanted to make this interface more extensible, we could have the user
+    provide an API for setting up default values.
     """
     for drivee in builder.output_to_index:
         if drivee not in latches:
