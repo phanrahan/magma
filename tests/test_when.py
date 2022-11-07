@@ -27,7 +27,7 @@ def _expects_error(error_type, process_error=None):
     return _decorator
 
 
-def test_when_with_default():
+def test_with_default():
     class test_when_with_default(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -59,7 +59,7 @@ def test_when_with_default():
     update_gold(__file__, "test_when_with_default.mlir")
 
 
-def test_when_nested_with_default():
+def test_nested_with_default():
     class test_when_nested_with_default(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
@@ -99,7 +99,7 @@ def test_when_nested_with_default():
     update_gold(__file__, "test_when_nested_with_default.mlir")
 
 
-def test_when_override(caplog):
+def test_override(caplog):
     class test_when_override(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -135,7 +135,7 @@ def test_when_override(caplog):
     update_gold(__file__, "test_when_override.mlir")
 
 
-def test_when_else():
+def test_else():
     class test_when_else(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -168,7 +168,7 @@ def test_when_else():
     update_gold(__file__, "test_when_else.mlir")
 
 
-def test_when_elsewhen():
+def test_elsewhen():
     class test_when_elsewhen(m.Circuit):
         io = m.IO(I=m.In(m.Bits[3]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
@@ -219,7 +219,7 @@ def _check_err(value, name):
 @pytest.mark.parametrize('fn,name', [
     (lambda x: m.elsewhen(x), 'elsewhen'),
     (lambda x: m.otherwise(), 'otherwise')])
-def test_when_bad_syntax(fn, name):
+def test_bad_syntax(fn, name):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bits[3]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
@@ -246,7 +246,7 @@ def test_when_bad_syntax(fn, name):
 @pytest.mark.parametrize('fn,name', [
     (lambda x: m.elsewhen(x), 'elsewhen'),
     (lambda x: m.otherwise(), 'otherwise')])
-def test_when_bad_otherwise(fn, name):
+def test_bad_otherwise(fn, name):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bits[3]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
@@ -264,7 +264,7 @@ def test_when_bad_otherwise(fn, name):
         _check_err(e.value, name)
 
 
-def test_when_multiple_drivers():
+def test_multiple_drivers():
     class test_when_multiple_drivers(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]),
                   O0=m.Out(m.Bit), O1=m.Out(m.Bit))
@@ -319,7 +319,7 @@ def test_when_multiple_drivers():
         lambda x: (bool(x[7]), int(x[:7])),
     )
 ])
-def test_when_memory(T, bits_to_fault_value):
+def test_memory(T, bits_to_fault_value):
     T_str = type_to_sanitized_string(T)
 
     class test_when_memory(m.Circuit):
@@ -391,7 +391,7 @@ def test_when_memory(T, bits_to_fault_value):
          [(0b10, 0b1), (0b01, 0b0)])
     ]
 )
-def test_when_nested(T, x):
+def test_nested(T, x):
     T_str = type_to_sanitized_string(T)
 
     class test_when_nested(m.Circuit):
@@ -507,7 +507,7 @@ def test_internal_instantiation_complex():
     assert check_gold(__file__, f"{basename}.mlir")
 
 
-def test_when_register_default():
+def test_register_default():
 
     class _Test(m.Circuit):
         name = "test_register_default"
@@ -525,7 +525,7 @@ def test_when_register_default():
     assert check_gold(__file__, f"{basename}.mlir")
 
 
-def test_when_register_no_default():
+def test_register_no_default():
 
     class _Test(m.Circuit):
         name = "test_register_no_default"
@@ -615,7 +615,7 @@ def test_latch_no_error_nested2():
     m.compile("build/_Test", _Test, output="mlir")
 
 
-def test_when_double_elsewhen():
+def test_double_elsewhen():
 
     class _Test(m.Circuit):
         name = "test_when_double_elsewhen"
@@ -635,7 +635,7 @@ def test_when_double_elsewhen():
     assert check_gold(__file__, f"{basename}.mlir")
 
 
-def test_when_nested_otherwise():
+def test_nested_otherwise():
     class test_when_nested_otherwise(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]),
                   O=m.Out(m.Bits[2]))
@@ -655,7 +655,8 @@ def test_when_nested_otherwise():
     assert check_gold(__file__, "test_when_nested_otherwise.mlir")
 
 
-def test_when_lazy_array_resolve(caplog):
+def test_lazy_array_resolve(caplog):
+
     class _Test(m.Circuit):
         name = "test_when_lazy_array_resolve"
         io = m.IO(I=m.In(m.SInt[2]), S=m.In(m.Bit), O=m.Out(m.SInt[2]))
@@ -668,7 +669,7 @@ def test_when_lazy_array_resolve(caplog):
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_lazy_array(caplog):
+def test_lazy_array(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array"
@@ -690,7 +691,7 @@ def test_when_lazy_array(caplog):
     assert check_gold(__file__, f"{basename}.mlir")
 
 
-def test_when_lazy_array_slice(caplog):
+def test_lazy_array_slice(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array_slice"
@@ -711,7 +712,7 @@ def test_when_lazy_array_slice(caplog):
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_lazy_array_nested(caplog):
+def test_lazy_array_nested(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array_nested"
@@ -736,7 +737,7 @@ def test_when_lazy_array_nested(caplog):
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_lazy_array_protocol(caplog):
+def test_lazy_array_protocol(caplog):
 
     T = SimpleMagmaProtocol[m.Bit]
 
@@ -759,7 +760,7 @@ def test_when_lazy_array_protocol(caplog):
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_lazy_array_slice_driving_resolve(caplog):
+def test_lazy_array_slice_driving_resolve(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array_slice_driving_resolve"
@@ -780,7 +781,7 @@ def test_when_lazy_array_slice_driving_resolve(caplog):
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_lazy_array_slice_driving_resolve_2(caplog):
+def test_lazy_array_slice_driving_resolve_2(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array_slice_driving_resolve_2"
@@ -801,7 +802,7 @@ def test_when_lazy_array_slice_driving_resolve_2(caplog):
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_lazy_array_slice_overlap(caplog):
+def test_lazy_array_slice_overlap(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array_slice_overlap"
@@ -817,7 +818,7 @@ def test_when_lazy_array_slice_overlap(caplog):
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_lazy_array_multiple_whens(caplog):
+def test_lazy_array_multiple_whens(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array_multiple_whens"
@@ -836,7 +837,8 @@ def test_when_lazy_array_multiple_whens(caplog):
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_reg_ce():
+def test_reg_ce():
+
     class _Test(m.Circuit):
         name = "test_when_reg_ce"
         io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
@@ -851,7 +853,8 @@ def test_when_reg_ce():
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_reg_ce_multiple():
+def test_reg_ce_multiple():
+
     class _Test(m.Circuit):
         name = "test_when_reg_ce_multiple"
         io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
@@ -897,3 +900,92 @@ def test_when_latch_nested_multiple():
             with m.when(rci == 255):
                 io.O @= 0xDE
             pc.I @= pc.O + 1
+
+
+def test_reg_ce_already_wired():
+
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce_already_wired"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  x=m.In(m.Bit), y=m.In(m.Bit))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        x.CE @= io.x
+        with m.when(io.y):
+            x.I @= io.I
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_reg_ce_explicit_wire():
+
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce_explicit_wire"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  x=m.In(m.Bit), y=m.In(m.Bit))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        with m.when(io.y):
+            x.I @= io.I
+            x.CE @= io.x
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_reg_ce_explicit_wire_with_default():
+
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce_explicit_wire_with_default"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  x=m.In(m.Bit), y=m.In(m.Bit))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        x.CE @= 1
+        with m.when(io.y):
+            x.I @= io.I
+            x.CE @= io.x
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_reg_ce_implicit_wire_twice():
+
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce_implicit_wire_twice"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  x=m.In(m.Bit), y=m.In(m.Bit))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        with m.when(io.y):
+            x.I @= io.I
+        with m.when(io.x):
+            x.I @= ~io.I
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_reg_ce_explicit_wire_twice():
+
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce_explicit_wire_twice"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  x=m.In(m.Bit), y=m.In(m.Bit))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        x.CE @= ~io.y
+        with m.when(io.y):
+            x.I @= io.I
+        with m.when(io.x):
+            x.I @= ~io.I
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")

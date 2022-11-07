@@ -4,6 +4,7 @@ from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from magma.bit import Bit
 from magma.array import Array
+from magma.debug import get_debug_mode, get_callee_frame_info
 from magma.tuple import Tuple
 
 
@@ -79,7 +80,23 @@ AsyncResetNOut = AsyncResetN[Direction.Out]
 # Preset
 # Clear
 class Enable(Bit):
-    pass
+    def __init__(self, value=None, name=None):
+        super().__init__(value, name)
+        # We use this flag to track whether an enable as been driven implictly
+        # inside a when context. This allows the user to override the implicit
+        # behavior by wiring a value directly. The when logic will only add
+        # implicit wiring behavior if an enable has not been explicitly wired.
+        self._driven_implicitly_by_when = False
+
+    @property
+    def driven_implicitly_by_when(self):
+        return self._driven_implicitly_by_when
+
+    def wire(self, o, debug_info=None, driven_implicitly_by_when=False):
+        if get_debug_mode() and debug_info is None:
+            debug_info = get_callee_frame_info()
+        super().wire(o, debug_info)
+        self._driven_implicitly_by_when = driven_implicitly_by_when
 
 
 EnableIn = Enable[Direction.In]
