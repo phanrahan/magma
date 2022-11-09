@@ -1,12 +1,6 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @simple_bind_asserts(%I: i1, %O: i1, %CLK: i1) -> () {
-        %1 = sv.wire sym @simple_bind_asserts._magma_inline_wire0 {name="_magma_inline_wire0"} : !hw.inout<i1>
-        sv.assign %1, %O : i1
-        %0 = sv.read_inout %1 : !hw.inout<i1>
-        %3 = sv.wire sym @simple_bind_asserts._magma_inline_wire1 {name="_magma_inline_wire1"} : !hw.inout<i1>
-        sv.assign %3, %I : i1
-        %2 = sv.read_inout %3 : !hw.inout<i1>
-        sv.verbatim "assert property (@(posedge CLK) {{1}} |-> ##1 {{0}});" (%0, %2) : i1, i1
+        sv.verbatim "assert property (@(posedge CLK) {{1}} |-> ##1 {{0}});" (%O, %I) : i1, i1
     }
     hw.module @simple_bind(%I: i1, %CLK: i1) -> (O: i1) {
         %1 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>

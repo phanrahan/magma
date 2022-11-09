@@ -4,49 +4,24 @@ module complex_inline_verilog(
   input         CLK,
   output [11:0] O);
 
-  reg  [11:0] Register_inst0;
+  reg [11:0] Register_inst0;
   always_ff @(posedge CLK)
     Register_inst0 <= I;
   initial
     Register_inst0 = 12'h0;
-  wire        _magma_inline_wire0 = I[0];
-  wire        _magma_inline_wire1 = Register_inst0[0];
-  wire        _magma_inline_wire2 = I[1];
-  wire        _magma_inline_wire3 = Register_inst0[1];
-  wire        _magma_inline_wire4 = I[2];
-  wire        _magma_inline_wire5 = Register_inst0[2];
-  wire        _magma_inline_wire6 = I[3];
-  wire        _magma_inline_wire7 = Register_inst0[3];
-  wire        _magma_inline_wire8 = I[4];
-  wire        _magma_inline_wire9 = Register_inst0[4];
-  wire        _magma_inline_wire10 = I[5];
-  wire        _magma_inline_wire11 = Register_inst0[5];
-  wire        _magma_inline_wire12 = I[6];
-  wire        _magma_inline_wire13 = Register_inst0[6];
-  wire        _magma_inline_wire14 = I[7];
-  wire        _magma_inline_wire15 = Register_inst0[7];
-  wire        _magma_inline_wire16 = I[8];
-  wire        _magma_inline_wire17 = Register_inst0[8];
-  wire        _magma_inline_wire18 = I[9];
-  wire        _magma_inline_wire19 = Register_inst0[9];
-  wire        _magma_inline_wire20 = I[10];
-  wire        _magma_inline_wire21 = Register_inst0[10];
-  wire        _magma_inline_wire22 = I[11];
-  wire        _magma_inline_wire23 = Register_inst0[11];
-  assert property (@(posedge CLK) _magma_inline_wire0 |-> ##1 _magma_inline_wire1);
-  assert property (@(posedge CLK) _magma_inline_wire2 |-> ##1 _magma_inline_wire3);
-  assert property (@(posedge CLK) _magma_inline_wire4 |-> ##1 _magma_inline_wire5);
-  assert property (@(posedge CLK) _magma_inline_wire6 |-> ##1 _magma_inline_wire7);
-  assert property (@(posedge CLK) _magma_inline_wire8 |-> ##1 _magma_inline_wire9);
-  assert property (@(posedge CLK) _magma_inline_wire10 |-> ##1 _magma_inline_wire11);
-  assert property (@(posedge CLK) _magma_inline_wire12 |-> ##1 _magma_inline_wire13);
-  assert property (@(posedge CLK) _magma_inline_wire14 |-> ##1 _magma_inline_wire15);
-  assert property (@(posedge CLK) _magma_inline_wire16 |-> ##1 _magma_inline_wire17);
-  assert property (@(posedge CLK) _magma_inline_wire18 |-> ##1 _magma_inline_wire19);
-  assert property (@(posedge CLK) _magma_inline_wire20 |-> ##1 _magma_inline_wire21);
-  assert property (@(posedge CLK) _magma_inline_wire22 |-> ##1 _magma_inline_wire23);
-  wire [11:0] _magma_inline_wire24 = I;
-  // A fun{k}y comment with _magma_inline_wire24
+  assert property (@(posedge CLK) I[0] |-> ##1 Register_inst0[0]);
+  assert property (@(posedge CLK) I[1] |-> ##1 Register_inst0[1]);
+  assert property (@(posedge CLK) I[2] |-> ##1 Register_inst0[2]);
+  assert property (@(posedge CLK) I[3] |-> ##1 Register_inst0[3]);
+  assert property (@(posedge CLK) I[4] |-> ##1 Register_inst0[4]);
+  assert property (@(posedge CLK) I[5] |-> ##1 Register_inst0[5]);
+  assert property (@(posedge CLK) I[6] |-> ##1 Register_inst0[6]);
+  assert property (@(posedge CLK) I[7] |-> ##1 Register_inst0[7]);
+  assert property (@(posedge CLK) I[8] |-> ##1 Register_inst0[8]);
+  assert property (@(posedge CLK) I[9] |-> ##1 Register_inst0[9]);
+  assert property (@(posedge CLK) I[10] |-> ##1 Register_inst0[10]);
+  assert property (@(posedge CLK) I[11] |-> ##1 Register_inst0[11]);
+  // A fun{k}y comment with I
   assign O = Register_inst0;
 endmodule
 
