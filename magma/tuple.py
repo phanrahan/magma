@@ -205,6 +205,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 self._ts[i] = t
                 if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
+            self._resolved = True
 
         self._keys_list = list(self.keys())
 
@@ -282,7 +283,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             raise KeyError(key)
         if key not in self._ts:
             self._ts[key] = self._make_t(key)
-            self._resolve_bulk_wire()
+            self._ts[key].parent = self
         return self._ts[key]
 
     @property
@@ -329,9 +330,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 debug_info=debug_info
             )
             return
-        if (self.is_mixed() or
-                self.has_elaborated_children() or
-                o.has_elaborated_children()):
+        if self.is_mixed() or self._resolved or o._resolved:
             for self_elem, o_elem in zip(self, o):
                 self_elem = magma_value(self_elem)
                 o_elem = magma_value(o_elem)

@@ -71,6 +71,14 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         # To access underlying magma value.
         raise NotImplementedError()
 
+    @property
+    def parent(self):
+        return self._get_magma_value_().parent
+
+    @parent.setter
+    def parent(self, value):
+        self._get_magma_value_().parent = value
+
     @classmethod
     def is_clock(cls):
         return cls._to_magma_().is_clock()

@@ -197,6 +197,15 @@ class Wireable:
         self._wire = Wire(self)
         self._enclosing_when_context = get_curr_when_block()
         self._wired_when_contexts = []
+        self._parent = None
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, value):
+        self._parent = value
 
     def set_enclosing_when_context(self, ctx):
         self._enclosing_when_context = ctx
@@ -206,10 +215,17 @@ class Wireable:
         return self._enclosing_when_context
 
     def wired(self):
+        if self._parent and not self._parent._resolved:
+            return self._parent.wired()
         return self._wire.wired()
 
     # return the input or output Bit connected to this Bit
     def trace(self, skip_self=True):
+        if self._parent and not self._parent._resolved:
+            result = self._parent.trace(skip_self)
+            if result is not None:
+                return result[self.name.index]
+            return None
         try:
             return self._wire.trace(skip_self)
         except RecursionError:
@@ -217,12 +233,21 @@ class Wireable:
 
     # return the output Bit connected to this input Bit
     def value(self):
+        if self._parent and not self._parent._resolved:
+            result = self._parent.value()
+            if result is not None:
+                return result[self.name.index]
+            return None
         return self._wire.value()
 
     def driven(self):
+        if self._parent and not self._parent._resolved:
+            return self._parent.driven()
         return self._wire.driven()
 
     def driving(self):
+        if self._parent and not self._parent._resolved:
+            return self._parent.driving()
         return self._wire.driving()
 
     def _remove_from_wired_when_contexts(self):
@@ -232,6 +257,8 @@ class Wireable:
 
     @debug_unwire
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
+        if self._parent and not self._parent._resolved:
+            self._parent._resolve_bulk_wire()
         if o is not None:
             o = o._wire
         self._wire.unwire(o, debug_info)
@@ -244,6 +271,10 @@ class Wireable:
         o.debug_info = debug_info
 
     def wire(self, o, debug_info):
+        if self._parent and not self._parent._resolved:
+            self._parent._resolve_bulk_wire()
+        if o._parent and not o._parent._resolved:
+            o._parent._resolve_bulk_wire()
         curr_when_block = get_curr_when_block()
         is_conditional = (
             curr_when_block is not None
@@ -268,6 +299,7 @@ class AggregateWireable(Wireable):
         # resolved, and therefor it doesn't need to repeat the
         # resolution logic that is being done in the calling code
         self._should_resolve = True
+        self._resolved = False
 
     @abc.abstractmethod
     def has_elaborated_children(self):
@@ -342,6 +374,8 @@ class AggregateWireable(Wireable):
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
+        if self._parent and not self._parent._resolved:
+            self._parent._resolve_bulk_wire()
         if not self._should_resolve:
             return
         # Trace as far back as possible to know where to start
@@ -349,6 +383,7 @@ class AggregateWireable(Wireable):
         if source is None:
             source = self
         source._should_resolve = False
+        source._resolved = True
 
         # Process values one at a time so that we avoid recursion
         # error for large wire chains
@@ -356,6 +391,7 @@ class AggregateWireable(Wireable):
         while to_process:
             next = to_process.pop()
             next._should_resolve = False
+            next._resolved = True
             next._resolve_driven_bulk_wire()
             to_process.extend(next._wire.driving())
 
@@ -364,7 +400,7 @@ def aggregate_wireable_method(fn):
 
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
-        if self.has_elaborated_children():
+        if self._resolved:
             return fn(self, *args, **kwargs)
         wireable_fn = getattr(AggregateWireable, fn.__name__)
         return wireable_fn(self, *args, **kwargs)
