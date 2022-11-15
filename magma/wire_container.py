@@ -247,7 +247,10 @@ class Wireable:
 
     def driving(self):
         if self._parent and not self._parent._resolved:
-            return self._parent.driving()
+            result = self._parent.driving()
+            if result:
+                return [x[self.name.index] for x in result]
+            return result
         return self._wire.driving()
 
     def _remove_from_wired_when_contexts(self):
