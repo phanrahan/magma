@@ -29,7 +29,7 @@ def _wire_value_or_driver(param, arg):
 
 def _wire_bind_arg(param, arg):
     if isinstance(arg, PortView):
-        defn = arg.parent.inst.defn
+        defn = arg.view_parent.inst.defn
         with defn.open():
             xmr_sink = XMRSink(arg)()
             _wire_value_or_driver(xmr_sink.I, arg.port)
