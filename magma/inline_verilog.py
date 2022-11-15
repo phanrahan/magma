@@ -31,7 +31,7 @@ class InlineVerilogError(RuntimeError):
 def _get_view_inst_parent(view):
     while not isinstance(view, InstView):
         assert isinstance(view, PortView), type(view)
-        return _get_view_inst_parent(view.parent)
+        return _get_view_inst_parent(view.view_parent)
     return view
 
 
@@ -125,7 +125,7 @@ def _insert_temporary_wires(
         if value not in wire_map:
             # get first instance parent, then the parent of that will
             # be the container where we insert a wire
-            parent = _get_view_inst_parent(value).parent
+            parent = _get_view_inst_parent(value).view_parent
             if isinstance(parent, InstView):
                 defn = parent.circuit
             else:
