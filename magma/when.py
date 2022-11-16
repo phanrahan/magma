@@ -68,6 +68,8 @@ class _BlockBase(contextlib.AbstractContextManager):
         self._conditional_wires = list(
             filter(lambda x: x.drivee is not i, self._conditional_wires)
         )
+        if self.root._default_drivers.pop(i, None) is not None:
+            self.root.builder.remove_default_driver(i)
 
     def add_conditional_wire(self, i, o):
         self._conditional_wires.append(ConditionalWire(i, o))

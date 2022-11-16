@@ -206,6 +206,9 @@ class WhenBuilder(CircuitBuilder):
         self.add_drivee(drivee)
         self._default_drivers[drivee] = driver
 
+    def remove_default_driver(self, drivee: Type):
+        del self._default_drivers[drivee]
+
     def _update_resolved_refs(self):
         """When a value driven by a when is resolved, its children are added as
         outputs.  The user may have referenced the unresolved when output using
