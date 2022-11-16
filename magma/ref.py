@@ -196,8 +196,9 @@ class LazyDefnRef(DefnRef):
 
 
 class DerivedRef(Ref):
-    def __init__(self, parent):
+    def __init__(self, parent, index):
         self._parent = parent
+        self.index = index
 
     def __str__(self):
         return self.qualifiedname()
@@ -217,9 +218,8 @@ class DerivedRef(Ref):
 
 class ArrayRef(DerivedRef):
     def __init__(self, array, index):
-        super().__init__(array)
+        super().__init__(array, index)
         self.array = array
-        self.index = index
 
     def qualifiedname(self, sep="."):
         return f"{self.parent().qualifiedname(sep=sep)}[{self.index}]"
@@ -227,9 +227,8 @@ class ArrayRef(DerivedRef):
 
 class TupleRef(DerivedRef):
     def __init__(self, tuple, index):
-        super().__init__(tuple)
+        super().__init__(tuple, index)
         self.tuple = tuple
-        self.index = index
 
     def qualifiedname(self, sep="."):
         try:

@@ -8,6 +8,7 @@ from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
+from magma.ref import DerivedRef
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -205,7 +206,25 @@ class WhenBuilder(CircuitBuilder):
         self.add_drivee(drivee)
         self._default_drivers[drivee] = driver
 
+    def _update_resolved_refs(self):
+        """
+        When a value driven by a when is resolved, it's children are added as
+        outputs.  The user may have referenced the unresolved when output using
+        .value(), so at this point, we update all the references by checking if
+        any resolved outputs are being used to drive values.
+        """
+        for value, name in self._output_to_name.items():
+            if not isinstance(value.name, DerivedRef):
+                continue
+            if value.name._parent not in self._output_to_name:
+                continue
+            # Found resolved port, rewire to child output
+            port = getattr(self, self._output_to_name[value.name._parent])
+            for drivee in port[value.name.index].driving():
+                drivee.rewire(getattr(self, name))
+
     def _finalize(self):
+        self._update_resolved_refs()
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)
