@@ -1052,3 +1052,48 @@ def test_user_reg_enable():
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_output_resolve():
+
+    class _Test(m.Circuit):
+        name = "test_when_output_resolve"
+        io = m.IO(I=m.In(m.Bits[8]),
+                  x=m.In(m.Bit),
+                  O0=m.Out(m.Bits[8]),
+                  O1=m.Out(m.Bits[2]))
+
+        x = m.Bits[8](name="x")
+        x @= io.I
+
+        with m.when(io.x):
+            io.O0 @= x
+        with m.otherwise():
+            io.O0 @= ~x
+
+        io.O1[1] @= io.O0.value()[0]  # direct reference to when builder output
+        io.O1[0] @= io.O0.value()[1]  # direct reference to when builder output
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_output_resolve2():
+
+    class _Test(m.Circuit):
+        name = "test_when_output_resolve2"
+        io = m.IO(I=m.In(m.Bits[8]),
+                  x=m.In(m.Bit),
+                  O0=m.Out(m.Bits[8]),
+                  O1=m.Out(m.Bits[8]))
+
+        with m.when(io.x):
+            io.O0 @= io.I
+        with m.otherwise():
+            io.O0 @= ~io.I
+
+        io.O1 @= io.O0.value()  # direct reference to when builder output
+        io.O1[0]  # force resolve
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
