@@ -198,7 +198,7 @@ class LazyDefnRef(DefnRef):
 class DerivedRef(Ref):
     def __init__(self, parent, index):
         self._parent = parent
-        self.index = index
+        self._index = index
 
     def __str__(self):
         return self.qualifiedname()
@@ -214,6 +214,10 @@ class DerivedRef(Ref):
 
     def parent(self):
         return self._parent.name
+
+    @property
+    def index(self):
+        return self._index
 
 
 class ArrayRef(DerivedRef):
