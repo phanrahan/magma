@@ -319,7 +319,7 @@ class PyverilogNetlistImporter(PyverilogImporter):
                 instance_module = modules[pyverilog_inst.module]
                 mod = True
                 with magma_defn.open():
-                    magma_inst = instance_module()
+                    magma_inst = instance_module(name=pyverilog_inst.name)
                     stash += _process_port_connections(
                         pyverilog_inst,
                         magma_inst,
