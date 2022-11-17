@@ -1,6 +1,7 @@
 // From https://github.com/Kuree/kratos/blob/master/python/kratos_python.cc
 #include <filesystem>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
 
@@ -46,9 +47,9 @@ py::dict get_frame_local(uint32_t num_frame_back) {
     return py::dict();
 }
 
-PYBIND11_MODULE(_magma_debug, m) {
+PYBIND11_MODULE(magma_debug, m) {
     m.doc() = R"pbdoc(
-        .. currentmodule:: _magma_debug
+        .. currentmodule:: magma_debug
     )pbdoc";
 
     m.def("get_fn_ln", []() {
