@@ -16,7 +16,7 @@ from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
 from .wire import *
 from .config import get_debug_mode, set_debug_mode
-from .debug import get_callee_frame_info, debug_info
+from .debug import get_debug_info, debug_info
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
@@ -264,9 +264,8 @@ class CircuitKind(type):
         return cls
 
     def __call__(cls, *largs, **kwargs):
-        if get_debug_mode():
-            debug_info = get_callee_frame_info()
-            kwargs["debug_info"] = debug_info
+        debug_info = get_debug_info(3)
+        kwargs["debug_info"] = debug_info
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
         if hasattr(cls, 'IO'):
             interface = cls.IO(inst=self, renamed_ports=cls.renamed_ports)
@@ -460,9 +459,7 @@ class AnonymousCircuitType(object):
         return f"{defn_str}.{self.name}"
 
     def __call__(input, *outputs, **kw):
-        debug_info = None
-        if get_debug_mode():
-            debug_info = get_callee_frame_info()
+        debug_info = get_debug_info(3)
 
         no = len(outputs)
         if len(outputs) == 1:
@@ -576,9 +573,7 @@ class CircuitType(AnonymousCircuitType):
     msg="DeclareCircuit factory method is deprecated, subclass Circuit instead")
 def DeclareCircuit(name, *decl, **args):
     """DeclareCircuit Factory"""
-    debug_info = None
-    if get_debug_mode():
-        debug_info = get_callee_frame_info()
+    debug_info = get_debug_info(3)
     metacls = CircuitKind
     bases = (CircuitType,)
     dct = metacls.__prepare__(name, bases)
@@ -700,9 +695,7 @@ class Circuit(CircuitType):
     msg="DefineCircuit factory method is deprecated, subclass Circuit instead")
 def DefineCircuit(name, *decl, **args):
     """DefineCircuit Factory"""
-    debug_info = None
-    if get_debug_mode():
-        debug_info = get_callee_frame_info()
+    debug_info = get_debug_info(3)
     metacls = DefineCircuitKind
     bases = (Circuit,)
     dct = metacls.__prepare__(name, bases)
@@ -735,7 +728,7 @@ def EndDefine():
         raise Exception("EndDefine not matched to DefineCircuit")
     placer = context.placer
     find_and_log_unconnected_ports(placer._defn)
-    debug_info = get_callee_frame_info()
+    debug_info = get_debug_info(3)
     placer._defn.end_circuit_filename = debug_info[0]
     placer._defn.end_circuit_lineno = debug_info[1]
     pop_definition_context()
