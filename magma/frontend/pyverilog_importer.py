@@ -60,10 +60,13 @@ def _evaluate_node(node, params):
     raise PyverilogImportError(f"Unsupported expression: {type(node)}")
 
 
-def _get_width(width, param_map):
+def _get_width(width, param_map, metadata=None):
     """Evaluates width.msb, width.lsb and returns their difference"""
     msb = _evaluate_node(width.msb, param_map)
     lsb = _evaluate_node(width.lsb, param_map)
+    if metadata is not None:
+        metadata["msb"] = msb
+        metadata["lsb"] = lsb
     return msb - lsb + 1
 
 
@@ -242,20 +245,30 @@ def _wire_directed_to_undirected(directed, undirected):
     raise Exception()
 
 
-def _evaluate_arg(node, values):
+def _get_offset(name, metadata):
+    try:
+        msb, lsb = metadata[name].values()
+    except KeyError:
+        return 0
+    return lsb
+
+
+def _evaluate_arg(node, values, metadata={}):
     if isinstance(node, pyverilog.vparser.parser.IntConst):
         return _evaluate_node(node, {})
     if isinstance(node, pyverilog.vparser.parser.Identifier):
         return values[node.name]
     if isinstance(node, pyverilog.vparser.parser.Pointer):
+        offset = _get_offset(node.var.name, metadata)
         value = _evaluate_arg(node.var, values)
         index = _evaluate_node(node.ptr, {})
-        return value[index]
+        return value[index - offset]
     if isinstance(node, pyverilog.vparser.parser.Partselect):
+        offset = _get_offset(node.var.name, metadata)
         value = _evaluate_arg(node.var, values)
         msb = _evaluate_node(node.msb, {})
         lsb =  _evaluate_node(node.lsb, {})
-        return value[lsb : msb + 1]
+        return value[lsb - offset : msb + 1 - offset]
     if isinstance(node, pyverilog.vparser.parser.Concat):
         return concat(*(_evaluate_arg(n, values) for n in reversed(node.list)))
     raise Exception()
@@ -266,6 +279,7 @@ def _process_port_connections(
         magma_inst,
         containing_magma_defn,
         wires,
+        metadata,
 ):
     stash = []
     magma_values = {}
@@ -275,7 +289,7 @@ def _process_port_connections(
         if not isinstance(child, pyverilog.vparser.parser.PortArg):
             continue
         magma_port = getattr(magma_inst, child.portname)
-        magma_arg = _evaluate_arg(child.argname, magma_values)
+        magma_arg = _evaluate_arg(child.argname, magma_values, metadata)
         wired = _wire_directed_to_undirected(magma_port, magma_arg)
         if not wired:
             stash.append((magma_port, magma_arg))
@@ -303,6 +317,7 @@ class PyverilogNetlistImporter(PyverilogImporter):
         for magma_defn, pyverilog_defn in (
                 self._magma_defn_to_pyverilog_defn.items()
         ):
+            metadata = {}
             mod = False
             wires = {}
             for wire in _get_wires(pyverilog_defn):
@@ -313,7 +328,7 @@ class PyverilogNetlistImporter(PyverilogImporter):
                 )
                 T = Bit
                 if wire.width is not None:
-                    width = _get_width(wire.width, {})
+                    width = _get_width(wire.width, {}, metadata.setdefault(wire.name, {}))
                     T = Bits[width]
                 mod = True
                 assert wire.name not in wires
@@ -329,6 +344,7 @@ class PyverilogNetlistImporter(PyverilogImporter):
                         magma_inst,
                         magma_defn,
                         wires,
+                        metadata,
                     )
                     stubify(magma_inst.interface)
             for inst_port, driver in stash:
