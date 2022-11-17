@@ -573,7 +573,7 @@ class CircuitType(AnonymousCircuitType):
     msg="DeclareCircuit factory method is deprecated, subclass Circuit instead")
 def DeclareCircuit(name, *decl, **args):
     """DeclareCircuit Factory"""
-    debug_info = get_debug_info(3)
+    debug_info = get_debug_info(4)
     metacls = CircuitKind
     bases = (CircuitType,)
     dct = metacls.__prepare__(name, bases)
@@ -695,7 +695,7 @@ class Circuit(CircuitType):
     msg="DefineCircuit factory method is deprecated, subclass Circuit instead")
 def DefineCircuit(name, *decl, **args):
     """DefineCircuit Factory"""
-    debug_info = get_debug_info(3)
+    debug_info = get_debug_info(4)
     metacls = DefineCircuitKind
     bases = (Circuit,)
     dct = metacls.__prepare__(name, bases)
