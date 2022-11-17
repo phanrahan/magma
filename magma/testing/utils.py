@@ -68,9 +68,9 @@ def has_log(caplog, level=None, msg=None):
     if level and not msg:
         gen = (log.levelname == level for log in caplog.records)
     elif msg and not level:
-        gen = (_str_log(log.msg) == str(msg) for log in caplog.records)
+        gen = (_str_log(log.msg) == _str_log(msg) for log in caplog.records)
     else:
-        gen = (log.levelname == level and _str_log(log.msg) == str(msg)
+        gen = (log.levelname == level and _str_log(log.msg) == _str_log(msg)
                for log in caplog.records)
     return any(gen)
 
