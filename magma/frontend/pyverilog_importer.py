@@ -18,6 +18,7 @@ from .verilog_utils import int_const_str_to_int
 from magma.bitutils import clog2
 from magma.conversions import concat
 from magma.stubify import stubify
+from magma.wire import wire
 
 
 class PyverilogImportError(VerilogImportError):
@@ -234,6 +235,9 @@ def _wire_directed_to_undirected(directed, undirected):
         return True
     if directed.is_output():
         undirected @= directed
+        return True
+    if directed.is_inout():
+        wire(directed, undirected)
         return True
     raise Exception()
 
