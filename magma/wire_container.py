@@ -280,6 +280,7 @@ class Wireable:
 
     @debug_unwire
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
+        self._check_resolve_parent()
         if o is not None:
             o = o._wire
         self._wire.unwire(o, debug_info)
