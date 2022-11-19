@@ -273,10 +273,13 @@ class Wireable:
             ctx.remove_conditional_wire(self)
         self._wired_when_contexts = []
 
-    @debug_unwire
-    def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
+    def _check_resolve_parent(self):
+        """Parent must be resolved before wire/unwire"""
         if self._parent and not self._parent._resolved:
             self._parent._resolve_bulk_wire()
+
+    @debug_unwire
+    def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if o is not None:
             o = o._wire
         self._wire.unwire(o, debug_info)
@@ -289,10 +292,8 @@ class Wireable:
         o.debug_info = debug_info
 
     def wire(self, o, debug_info):
-        if self._parent and not self._parent._resolved:
-            self._parent._resolve_bulk_wire()
-        if o._parent and not o._parent._resolved:
-            o._parent._resolve_bulk_wire()
+        self._check_resolve_parent()
+        o._check_resolve_parent()
         curr_when_block = get_curr_when_block()
         is_conditional = (
             curr_when_block is not None
@@ -313,10 +314,6 @@ class Wireable:
 class AggregateWireable(Wireable):
     def __init__(self):
         super().__init__()
-        # Flag used to mark a value that is currently being
-        # resolved, and therefor it doesn't need to repeat the
-        # resolution logic that is being done in the calling code
-        self._should_resolve = True
         self._resolved = False
 
     @abc.abstractmethod
@@ -394,13 +391,12 @@ class AggregateWireable(Wireable):
         """
         if self._parent and not self._parent._resolved:
             self._parent._resolve_bulk_wire()
-        if not self._should_resolve:
+        if self._resolved:
             return
         # Trace as far back as possible to know where to start
         source = self._wire.trace()
         if source is None:
             source = self
-        source._should_resolve = False
         source._resolved = True
 
         # Process values one at a time so that we avoid recursion
@@ -408,7 +404,6 @@ class AggregateWireable(Wireable):
         to_process = source._wire.driving()
         while to_process:
             next = to_process.pop()
-            next._should_resolve = False
             next._resolved = True
             next._resolve_driven_bulk_wire()
             to_process.extend(next._wire.driving())
