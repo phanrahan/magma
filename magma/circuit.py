@@ -270,7 +270,6 @@ class CircuitKind(type):
             cls._context_.place_instances(cls)
             _setup_interface(cls)
             cls._context_.finalize(cls)
-
             pop_definition_context(use_staged_logger=True)
 
         return cls
