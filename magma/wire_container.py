@@ -187,13 +187,12 @@ def lazy_resolve_wireable_method(fn, process_result=None):
 
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
-        wireable_fn = getattr(Wireable, fn.__name__)
         if self._parent and not self._parent._resolved:
-            result = wireable_fn(self._parent, *args, **kwargs)
+            result = getattr(self._parent, fn.__name__)(*args, **kwargs)
             if result is not None and process_result is not None:
                 result = process_result(self, result)
             return result
-        return wireable_fn(self._wire, *args, **kwargs)
+        return getattr(self._wire, fn.__name__)(*args, **kwargs)
 
     return wrapper
 
