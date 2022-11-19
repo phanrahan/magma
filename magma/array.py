@@ -987,7 +987,6 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
                 # If we try to iterate and we find value is a slice, this means
                 # it cannot be sliced in the backend (i.e. not an array of
                 # bits), so here we iterate element by element instead
-                # yield from ((t, t.trace()) for t in self)
                 yield from zip(self, self.trace())
             else:
                 yield from _yield_curr_slice_or_elem(curr_slice_or_elem)

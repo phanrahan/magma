@@ -75,7 +75,7 @@ Bind monitor interface does not match circuit interface
     for mon_arg, bind_arg in zip(extra_mon_args, args):
         if isinstance(bind_arg, PortView):
             T = type(bind_arg.port)
-            parent = _get_view_inst_parent(bind_arg).view_parent
+            parent = _get_view_inst_parent(bind_arg).parent_view
             if isinstance(parent, InstView):
                 defn = parent.circuit
             else:
@@ -95,7 +95,7 @@ Bind monitor interface does not match circuit interface
             _wire_temp(driver, temp)
             temp.unused()
         if isinstance(bind_arg, PortView):
-            temp = PortView[type(temp)](temp, bind_arg.view_parent.view_parent)
+            temp = PortView[type(temp)](temp, bind_arg.parent_view.parent_view)
         bind_arg = temp
         ports += _gen_bind_port(cls, mon_arg, bind_arg)
     ports_str = ",\n    ".join(ports)
