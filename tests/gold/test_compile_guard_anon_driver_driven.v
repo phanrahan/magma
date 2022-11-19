@@ -16,6 +16,13 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
+module corebit_wire (
+    input in,
+    output out
+);
+  assign out = in;
+endmodule
+
 module Register (
     input I,
     output O,
@@ -50,11 +57,16 @@ module _Top (
     input I,
     input CLK
 );
+wire x_out;
 `ifdef COND
 A A (
-    .port_0(I),
+    .port_0(x_out),
     .port_1(CLK)
 );
 `endif
+corebit_wire x (
+    .in(I),
+    .out(x_out)
+);
 endmodule
 

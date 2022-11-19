@@ -71,7 +71,7 @@ module test_memory_product_init (
     output [7:0] rdata_X,
     output [7:0] rdata_Y
 );
-Memory Memory_inst0 (
+Memory Mem4xT (
     .CLK(clk),
     .RADDR(raddr),
     .RDATA_X(rdata_X),

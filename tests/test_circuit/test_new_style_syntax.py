@@ -125,14 +125,14 @@ def test_inst_wiring_error(caplog):
 
     assert has_error(
         caplog,
-        "Cannot wire _Foo.I (Out(Bit)) to _Foo._Bar_inst0.I (In(Bits[1]))")
+        "Cannot wire _Foo.I (Out(Bit)) to _Foo.bar.I (In(Bits[1]))")
     assert has_error(
         caplog,
-        "Cannot wire _Foo._Bar_inst0.O (Out(Bits[1])) to _Foo.O (In(Bit))")
+        "Cannot wire _Foo.bar.O (Out(Bits[1])) to _Foo.O (In(Bit))")
     assert has_error(caplog, "_Foo.O not driven")
     assert has_error(caplog, "_Foo.O: Unconnected")
-    assert has_error(caplog, "_Foo._Bar_inst0.I not driven")
-    assert has_error(caplog, "_Foo._Bar_inst0.I: Unconnected")
+    assert has_error(caplog, "_Foo.bar.I not driven")
+    assert has_error(caplog, "_Foo.bar.I: Unconnected")
 
 
 def test_nested_definition():
@@ -149,9 +149,9 @@ def test_nested_definition():
         m.wire(bar.O, io.O)
 
     assert repr(_Foo) == """_Foo = DefineCircuit("_Foo", "I", In(Bit), "O", Out(Bit))
-_Bar_inst0 = _Bar()
-wire(_Foo.I, _Bar_inst0.I)
-wire(_Bar_inst0.O, _Foo.O)
+bar = _Bar()
+wire(_Foo.I, bar.I)
+wire(bar.O, _Foo.O)
 EndCircuit()"""
     assert repr(_Foo._Bar) == """_Bar = DefineCircuit("_Bar", "I", In(Bit), "O", Out(Bit))
 wire(_Bar.I, _Bar.O)

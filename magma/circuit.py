@@ -37,8 +37,8 @@ from magma.definition_context import (
 )
 from magma.find_unconnected_ports import find_and_log_unconnected_ports
 from magma.logging import root_logger, capture_logs
-from magma.ref import TempNamedRef
-from magma.t import In
+from magma.ref import TempNamedRef, AnonRef
+from magma.t import In, Type
 from magma.view import PortView
 from magma.wire_container import WiringLog, AggregateWireable
 
@@ -204,6 +204,16 @@ def _get_intermediate_values(value):
     return values
 
 
+def _infer_names(dct):
+    """Try to infer value/inst names from metaclass dct"""
+    for key, value in dct.items():
+        if isinstance(value, Type):
+            if isinstance(value.name, AnonRef):
+                value.name = TempNamedRef(key, value)
+        if isinstance(type(value), CircuitKind) and not value.name:
+            value.name = key
+
+
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         ctx = DefinitionContext(StagedPlacer(name))
@@ -256,9 +266,11 @@ class CircuitKind(type):
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
+            _infer_names(dct)  # do before place instances for default logic
             cls._context_.place_instances(cls)
             _setup_interface(cls)
             cls._context_.finalize(cls)
+
             pop_definition_context(use_staged_logger=True)
 
         return cls
@@ -392,12 +404,18 @@ class AnonymousCircuitType(object):
         self.debug_info = debug_info
 
     def __str__(self):
-        if self.name:
-            return f"{self.name}<{type(self)}>"
-        name = f"AnonymousCircuitInst{id(self)}"
-        interface = ", ".join(f"{name}: {type(value)}"
-                              for name, value in self.interface.ports.items())
-        return f"{name}<{interface}>"
+        name = self.name
+        if not name:
+            name = f"AnonymousCircuitInst{id(self)}"
+        if type(self) is AnonymousCircuitType:
+            interface = ", ".join(
+                f"{name}: {type(value)}"
+                for name, value in self.interface.ports.items()
+            )
+            name += f"<{interface}>"
+        else:
+            name += f"<{type(self)}>"
+        return name
 
     def __repr__(self):
         args = []

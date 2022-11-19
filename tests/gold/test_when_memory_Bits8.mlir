@@ -13,7 +13,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     }
     hw.module @test_when_memory_Bits8(%data0: i8, %addr0: i5, %en0: i1, %data1: i8, %addr1: i5, %en1: i1, %CLK: i1) -> (out: i8) {
         %0 = hw.constant 1 : i1
-        %5 = hw.instance "Memory_inst0" @Memory(RADDR: %1: i5, CLK: %CLK: i1, WADDR: %2: i5, WDATA: %3: i8, WE: %4: i1) -> (RDATA: i8)
+        %5 = hw.instance "mem" @Memory(RADDR: %1: i5, CLK: %CLK: i1, WADDR: %2: i5, WDATA: %3: i8, WE: %4: i1) -> (RDATA: i8)
         %6 = hw.constant 255 : i8
         %7 = hw.constant 0 : i5
         %8 = hw.constant 0 : i8

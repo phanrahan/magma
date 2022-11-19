@@ -43,12 +43,6 @@ wire _magma_inline_wire0;
 wire _magma_inline_wire1;
 wire _magma_inline_wire2_O;
 wire _magma_inline_wire3;
-FF FF_inst0 (
-    .I(I),
-    .O(O),
-    .CLK(CLK),
-    .CE(CE)
-);
 assign _magma_inline_wire0 = O;
 assign _magma_inline_wire1 = I;
 WireClock _magma_inline_wire2 (
@@ -56,6 +50,12 @@ WireClock _magma_inline_wire2 (
     .O(_magma_inline_wire2_O)
 );
 assign _magma_inline_wire3 = CE;
+FF ff (
+    .I(I),
+    .O(O),
+    .CLK(CLK),
+    .CE(CE)
+);
 
 `ifndef MAGMA_LOG_LEVEL
     `define MAGMA_LOG_LEVEL 1

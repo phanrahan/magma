@@ -84,9 +84,6 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "DelayUnit_inst0":{
-            "modref":"global.DelayUnit"
-          },
           "Main_inline_verilog_inst_0":{
             "modref":"global.Main_inline_verilog_0"
           },
@@ -110,34 +107,37 @@
           },
           "_magma_inline_wire3":{
             "modref":"corebit.wire"
+          },
+          "delay":{
+            "modref":"global.DelayUnit"
           }
         },
         "connections":[
-          ["Main_inline_verilog_inst_2.__magma_inline_value_0","DelayUnit_inst0;_magma_inline_wire4.out"],
-          ["Main_inline_verilog_inst_2.__magma_inline_value_1","DelayUnit_inst0;_magma_inline_wire5.out"],
-          ["Main_inline_verilog_inst_3.__magma_inline_value_0","DelayUnit_inst0;inner_delay;_magma_inline_wire6.out"],
-          ["Main_inline_verilog_inst_3.__magma_inline_value_1","DelayUnit_inst0;inner_delay;_magma_inline_wire7.out"],
-          ["self.CLK","DelayUnit_inst0.CLK"],
-          ["self.I.1.data","DelayUnit_inst0.INPUT.0.data"],
-          ["_magma_inline_wire3.in","DelayUnit_inst0.INPUT.0.ready"],
-          ["self.I.1.ready","DelayUnit_inst0.INPUT.0.ready"],
-          ["self.I.1.valid","DelayUnit_inst0.INPUT.0.valid"],
-          ["self.I.0.data","DelayUnit_inst0.INPUT.1.data"],
-          ["self.I.0.ready","DelayUnit_inst0.INPUT.1.ready"],
-          ["self.I.0.valid","DelayUnit_inst0.INPUT.1.valid"],
-          ["self.O.1.data","DelayUnit_inst0.OUTPUT.0.data"],
-          ["self.O.1.ready","DelayUnit_inst0.OUTPUT.0.ready"],
-          ["self.O.1.valid","DelayUnit_inst0.OUTPUT.0.valid"],
-          ["self.O.0.data","DelayUnit_inst0.OUTPUT.1.data"],
-          ["self.O.0.ready","DelayUnit_inst0.OUTPUT.1.ready"],
-          ["_magma_inline_wire2.in","DelayUnit_inst0.OUTPUT.1.valid"],
-          ["self.O.0.valid","DelayUnit_inst0.OUTPUT.1.valid"],
           ["_magma_inline_wire0.out","Main_inline_verilog_inst_0.__magma_inline_value_0"],
           ["_magma_inline_wire1.out","Main_inline_verilog_inst_0.__magma_inline_value_1"],
           ["_magma_inline_wire2.out","Main_inline_verilog_inst_1.__magma_inline_value_0"],
           ["_magma_inline_wire3.out","Main_inline_verilog_inst_1.__magma_inline_value_1"],
+          ["delay;_magma_inline_wire4.out","Main_inline_verilog_inst_2.__magma_inline_value_0"],
+          ["delay;_magma_inline_wire5.out","Main_inline_verilog_inst_2.__magma_inline_value_1"],
+          ["delay;inner_delay;_magma_inline_wire6.out","Main_inline_verilog_inst_3.__magma_inline_value_0"],
+          ["delay;inner_delay;_magma_inline_wire7.out","Main_inline_verilog_inst_3.__magma_inline_value_1"],
           ["self.I.0.valid","_magma_inline_wire0.in"],
-          ["self.O.1.ready","_magma_inline_wire1.in"]
+          ["self.O.1.ready","_magma_inline_wire1.in"],
+          ["delay.OUTPUT.1.valid","_magma_inline_wire2.in"],
+          ["delay.INPUT.0.ready","_magma_inline_wire3.in"],
+          ["self.CLK","delay.CLK"],
+          ["self.I.1.data","delay.INPUT.0.data"],
+          ["self.I.1.ready","delay.INPUT.0.ready"],
+          ["self.I.1.valid","delay.INPUT.0.valid"],
+          ["self.I.0.data","delay.INPUT.1.data"],
+          ["self.I.0.ready","delay.INPUT.1.ready"],
+          ["self.I.0.valid","delay.INPUT.1.valid"],
+          ["self.O.1.data","delay.OUTPUT.0.data"],
+          ["self.O.1.ready","delay.OUTPUT.0.ready"],
+          ["self.O.1.valid","delay.OUTPUT.0.valid"],
+          ["self.O.0.data","delay.OUTPUT.1.data"],
+          ["self.O.0.ready","delay.OUTPUT.1.ready"],
+          ["self.O.0.valid","delay.OUTPUT.1.valid"]
         ]
       },
       "Main_inline_verilog_0":{

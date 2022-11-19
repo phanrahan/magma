@@ -167,16 +167,16 @@ module test_memory_read_latency_True (
     input wen,
     input ren
 );
-wire [4:0] Memory_inst0_RDATA;
-Memory Memory_inst0 (
+wire [4:0] Mem4x5_RDATA;
+Memory Mem4x5 (
     .RADDR(raddr),
-    .RDATA(Memory_inst0_RDATA),
+    .RDATA(Mem4x5_RDATA),
     .CLK(clk),
     .RE(ren),
     .WADDR(waddr),
     .WDATA(wdata),
     .WE(wen)
 );
-assign rdata = Memory_inst0_RDATA;
+assign rdata = Mem4x5_RDATA;
 endmodule
 

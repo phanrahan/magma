@@ -27,7 +27,7 @@
             "modref":"global.And2",
             "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"61"}
           },
-          "and2_3":{
+          "and2_prev":{
             "modref":"global.And2",
             "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"61"}
           }
@@ -39,9 +39,9 @@
           ["self.I.1","and2_1.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"67"}],
           ["and2_2.I0","and2_1.O",{"filename":"tests/test_circuit/test_define.py","lineno":"66"}],
           ["self.I.1","and2_2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"67"}],
-          ["and2_3.I0","and2_2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"66"}],
-          ["self.I.1","and2_3.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"67"}],
-          ["self.O","and2_3.O",{"filename":"tests/test_circuit/test_define.py","lineno":"70"}]
+          ["and2_prev.I0","and2_2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"66"}],
+          ["self.I.1","and2_prev.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"67"}],
+          ["self.O","and2_prev.O",{"filename":"tests/test_circuit/test_define.py","lineno":"70"}]
         ],
         "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"56"}
       }

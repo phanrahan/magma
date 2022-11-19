@@ -20,14 +20,14 @@
           "foo_inst0":{
             "modref":"global.foo"
           },
-          "foo_inst1":{
+          "inst":{
             "modref":"global.foo"
           }
         },
         "connections":[
           ["self.I","foo_inst0.I"],
-          ["foo_inst1.I","foo_inst0.O"],
-          ["self.O","foo_inst1.O"]
+          ["inst.I","foo_inst0.O"],
+          ["self.O","inst.O"]
         ]
       }
     }

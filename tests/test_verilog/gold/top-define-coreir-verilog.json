@@ -20,24 +20,24 @@
           ["ASYNCRESET",["Named","coreir.arstIn"]]
         ]],
         "instances":{
-          "FF_inst0":{
+          "ff0":{
             "modref":"global.FF",
             "modargs":{"init":["Int",0]}
           },
-          "FF_inst1":{
+          "ff1":{
             "modref":"global.FF",
             "modargs":{"init":["Int",1]}
           }
         },
         "connections":[
-          ["self.CLK","FF_inst0.clk"],
-          ["self.I.0","FF_inst0.d"],
-          ["self.O.0","FF_inst0.q"],
-          ["self.ASYNCRESET","FF_inst0.rst"],
-          ["self.CLK","FF_inst1.clk"],
-          ["self.I.1","FF_inst1.d"],
-          ["self.O.1","FF_inst1.q"],
-          ["self.ASYNCRESET","FF_inst1.rst"]
+          ["self.CLK","ff0.clk"],
+          ["self.I.0","ff0.d"],
+          ["self.O.0","ff0.q"],
+          ["self.ASYNCRESET","ff0.rst"],
+          ["self.CLK","ff1.clk"],
+          ["self.I.1","ff1.d"],
+          ["self.O.1","ff1.q"],
+          ["self.ASYNCRESET","ff1.rst"]
         ]
       }
     }

@@ -3,13 +3,13 @@ module Main (
     input I,
     output O
 );
-wire Foo_inst0_O;
+wire foo_O;
 wire x;
-Foo Foo_inst0 (
+Foo foo (
     .I(I),
-    .O(Foo_inst0_O)
+    .O(foo_O)
 );
-assign x = Foo_inst0_O;
+assign x = foo_O;
 assign O = x;
 endmodule
 

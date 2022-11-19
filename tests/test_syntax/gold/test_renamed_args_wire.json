@@ -8,13 +8,13 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "invert_inst0":{
+          "inv":{
             "modref":"global.invert"
           }
         },
         "connections":[
-          ["self.O","invert_inst0.O"],
-          ["self.I","invert_inst0.a"]
+          ["self.O","inv.O"],
+          ["self.I","inv.a"]
         ]
       },
       "Not":{

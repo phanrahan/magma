@@ -44,7 +44,7 @@ wire [3:0] Register_inst1_O;
 wire [3:0] Register_inst2_O;
 wire [3:0] Register_inst3_O;
 wire [3:0] Register_inst4_O;
-wire [3:0] Register_inst5_O;
+wire [3:0] call_result_O;
 Register Register_inst0 (
     .I(I),
     .O(Register_inst0_O),
@@ -70,11 +70,11 @@ Register Register_inst4 (
     .O(Register_inst4_O),
     .CLK(CLK)
 );
-Register Register_inst5 (
+Register call_result (
     .I(Register_inst4_O),
-    .O(Register_inst5_O),
+    .O(call_result_O),
     .CLK(CLK)
 );
-assign O = Register_inst5_O;
+assign O = call_result_O;
 endmodule
 

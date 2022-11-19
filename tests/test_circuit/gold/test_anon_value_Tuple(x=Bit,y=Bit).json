@@ -16,14 +16,21 @@
           ["O",["Record",[["x","Bit"],["y","Bit"]]]]
         ]],
         "instances":{
-          "And2_inst0":{
+          "and2":{
             "modref":"global.And2"
+          },
+          "tmp":{
+            "genref":"coreir.wire",
+            "genargs":{"width":["Int",2]}
           }
         },
         "connections":[
-          ["self.I0","And2_inst0.I0"],
-          ["self.I1","And2_inst0.I1"],
-          ["self.O","And2_inst0.O"]
+          ["self.I0","and2.I0"],
+          ["self.I1","and2.I1"],
+          ["tmp.in.0","and2.O.x"],
+          ["tmp.in.1","and2.O.y"],
+          ["tmp.out.0","self.O.x"],
+          ["tmp.out.1","self.O.y"]
         ]
       }
     }

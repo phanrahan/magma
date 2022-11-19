@@ -2,7 +2,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @counter(%CLK: i1) -> (y: i16) {
         %0 = hw.constant 1 : i16
         %2 = comb.add %1, %0 : i16
-        %3 = sv.reg {name = "Register_inst0"} : !hw.inout<i16>
+        %3 = sv.reg {name = "reg"} : !hw.inout<i16>
         sv.alwaysff(posedge %CLK) {
             sv.passign %3, %2 : i16
         }

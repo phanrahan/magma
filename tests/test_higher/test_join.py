@@ -10,4 +10,4 @@ def test_join():
         and1 = And2(name='and1')
         a = m.join(and0, and1)
 
-    assert repr(_Top.a) == 'AnonymousCircuitType("I0", array([and0.I0, and1.I0]), "I1", array([and0.I1, and1.I1]), "O", array([and0.O, and1.O]))'
+    assert repr(_Top.a) == 'a = AnonymousCircuitType("I0", array([and0.I0, and1.I0]), "I1", array([and0.I1, and1.I1]), "O", array([and0.O, and1.O]))'

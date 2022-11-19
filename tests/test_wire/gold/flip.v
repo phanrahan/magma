@@ -1,6 +1,6 @@
 module main (output  O);
-wire  Buf_inst0_O;
-Buf Buf_inst0 (.I(1'b1), .O(Buf_inst0_O));
-assign O = Buf_inst0_O;
+wire  buf_O;
+Buf buf (.I(1'b1), .O(buf_O));
+assign O = buf_O;
 endmodule
 

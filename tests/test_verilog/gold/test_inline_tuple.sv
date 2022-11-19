@@ -95,7 +95,11 @@ wire _magma_inline_wire0;
 wire _magma_inline_wire1;
 wire _magma_inline_wire2;
 wire _magma_inline_wire3;
-DelayUnit DelayUnit_inst0 (
+assign _magma_inline_wire0 = I_0_valid;
+assign _magma_inline_wire1 = O_1_ready;
+assign _magma_inline_wire2 = O_0_valid;
+assign _magma_inline_wire3 = I_1_ready;
+DelayUnit delay (
     .CLK(CLK),
     .INPUT_0_data(I_1_data),
     .INPUT_0_ready(I_1_ready),
@@ -110,13 +114,9 @@ DelayUnit DelayUnit_inst0 (
     .OUTPUT_1_ready(O_0_ready),
     .OUTPUT_1_valid(O_0_valid)
 );
-assign _magma_inline_wire0 = I_0_valid;
-assign _magma_inline_wire1 = O_1_ready;
-assign _magma_inline_wire2 = O_0_valid;
-assign _magma_inline_wire3 = I_1_ready;
 assert property (@(posedge CLK) _magma_inline_wire0 |-> ##3 _magma_inline_wire1);
 assert property (@(posedge CLK) _magma_inline_wire2 |-> ##3 _magma_inline_wire3);
-assert property (@(posedge CLK) DelayUnit_inst0._magma_inline_wire4.out |-> ##3 DelayUnit_inst0._magma_inline_wire5.out);
-assert property (@(posedge CLK) DelayUnit_inst0.inner_delay._magma_inline_wire6.out |-> ##3 DelayUnit_inst0.inner_delay._magma_inline_wire7.out);
+assert property (@(posedge CLK) delay._magma_inline_wire4.out |-> ##3 delay._magma_inline_wire5.out);
+assert property (@(posedge CLK) delay.inner_delay._magma_inline_wire6.out |-> ##3 delay.inner_delay._magma_inline_wire7.out);
 endmodule
 

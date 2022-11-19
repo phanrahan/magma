@@ -5,24 +5,24 @@ module Top (
     input CLK,
     input ASYNCRESET
 );
-wire FF_inst0_q;
-wire FF_inst1_q;
+wire ff0_q;
+wire ff1_q;
 FF #(
     .init(0)
-) FF_inst0 (
+) ff0 (
     .clk(CLK),
     .rst(ASYNCRESET),
     .d(I[0]),
-    .q(FF_inst0_q)
+    .q(ff0_q)
 );
 FF #(
     .init(1)
-) FF_inst1 (
+) ff1 (
     .clk(CLK),
     .rst(ASYNCRESET),
     .d(I[1]),
-    .q(FF_inst1_q)
+    .q(ff1_q)
 );
-assign O = {FF_inst1_q,FF_inst0_q};
+assign O = {ff1_q,ff0_q};
 endmodule
 

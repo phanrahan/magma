@@ -46,15 +46,15 @@
           ["O",["Array",8,"Bit"]]
         ]],
         "instances":{
-          "Add8_cin_inst0":{
+          "adder":{
             "modref":"global.Add8_cin"
           }
         },
         "connections":[
-          ["self.CIN","Add8_cin_inst0.CIN"],
-          ["self.I0","Add8_cin_inst0.I0"],
-          ["self.I1","Add8_cin_inst0.I1"],
-          ["self.O","Add8_cin_inst0.O"]
+          ["self.CIN","adder.CIN"],
+          ["self.I0","adder.I0"],
+          ["self.I1","adder.I1"],
+          ["self.O","adder.O"]
         ]
       }
     }

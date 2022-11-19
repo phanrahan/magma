@@ -37,6 +37,6 @@ def test_compose():
 
     assert repr(lut1) == 'lut1 = Buf(name="lut1")'
     assert repr(lut2) == 'lut2 = Buf(name="lut2")'
-    assert repr(lut3) == 'AnonymousCircuitType("I", lut2.I, "O", lut1.O)'
+    assert repr(lut3) == 'lut3 = AnonymousCircuitType("I", lut2.I, "O", lut1.O)'
 
 

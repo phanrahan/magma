@@ -13,7 +13,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %5, %x : i1
             }
         }
-        %6 = sv.reg {name = "Register_inst0"} : !hw.inout<i8>
+        %6 = sv.reg {name = "x"} : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.if %3 {
                 sv.passign %6, %2 : i8

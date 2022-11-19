@@ -90,7 +90,7 @@ module test_memory_arr (
     input [4:0] wdata_1_Y,
     input wen
 );
-Memory Memory_inst0 (
+Memory Mem4xT (
     .CLK(clk),
     .RADDR(raddr),
     .RDATA_0_X(rdata_0_X),

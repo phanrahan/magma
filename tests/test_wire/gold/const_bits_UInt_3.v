@@ -11,11 +11,11 @@ endmodule
 module main (
     output [2:0] O
 );
-wire [2:0] Buf_inst0_O;
+wire [2:0] buf_O;
 wire [2:0] const_1_3_out;
-Buf Buf_inst0 (
+Buf buf (
     .I(const_1_3_out),
-    .O(Buf_inst0_O)
+    .O(buf_O)
 );
 coreir_const #(
     .value(3'h1),
@@ -23,6 +23,6 @@ coreir_const #(
 ) const_1_3 (
     .out(const_1_3_out)
 );
-assign O = Buf_inst0_O;
+assign O = \buf _O;
 endmodule
 
