@@ -398,6 +398,9 @@ class AggregateWireable(Wireable):
             next._resolve_driven_bulk_wire()
             to_process.extend(next._wire.driving())
 
+    def _should_wire_children(self, o):
+        return self._resolved or o._resolved or self.is_mixed()
+
 
 def aggregate_wireable_method(fn):
 

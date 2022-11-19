@@ -605,9 +605,6 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         for i, child in self._enumerate_children():
             child.wire(o[i], debug_info)
 
-    def _should_wire_children(self, o):
-        return self._resolved or o._resolved or self.T.is_mixed()
-
     @debug_wire
     def wire(self, o, debug_info):
         o = magma_value(o)
