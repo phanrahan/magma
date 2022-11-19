@@ -34,7 +34,8 @@ def value_to_verilog_name(value, disable_ndarray=False):
         prefix = ""
         if value.parent_view is not None:
             prefix = value_to_verilog_name(
-                value.parent_view, disable_ndarray) + "."
+                value.parent_view, disable_ndarray
+            ) + "."
         return prefix + value.inst.name
     return verilog_name(value.name, disable_ndarray=disable_ndarray)
 
@@ -45,7 +46,8 @@ def verilog_name(name, inst_sep="_", disable_ndarray=False):
         hierarchical_path = curr.inst.name + "."
         while isinstance(curr.parent_view, InstView):
             hierarchical_path = (
-                curr.parent_view.inst.name + "." + hierarchical_path)
+                curr.parent_view.inst.name + "." + hierarchical_path
+            )
             curr = curr.parent_view
         return hierarchical_path + verilog_name(
             name.view.port.name, disable_ndarray=disable_ndarray)

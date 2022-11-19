@@ -182,6 +182,26 @@ class Wire:
         return self._bit
 
 
+def lazy_resolve_wireable_method(fn, process_result=None):
+    """If parent is not resolved, invoke on parent, else invoke on ._wire"""
+
+    @functools.wraps(fn)
+    def wrapper(self, *args, **kwargs):
+        wireable_fn = getattr(Wireable, fn.__name__)
+        if self._parent and not self.parent._resolved:
+            result = wireable_fn(self._parent, *args, **kwargs)
+            if result is not None and process_result is not None:
+                result = process_result(self, result)
+            return result
+        return wireable_fn(self._wire, *args, **kwargs)
+
+    return wrapper
+
+
+def _get_index(self, result):
+    return result[self.name.index]
+
+
 class Wireable:
     def __init__(self):
         """
@@ -214,13 +234,14 @@ class Wireable:
     def enclosing_when_context(self):
         return self._enclosing_when_context
 
+    @lazy_resolve_wireable_method
     def wired(self):
-        if self._parent and not self._parent._resolved:
-            return self._parent.wired()
-        return self._wire.wired()
+        pass
 
     # return the input or output Bit connected to this Bit
     def trace(self, skip_self=True):
+        # We don't use the decorator here since we want the special exception
+        # handler.
         if self._parent and not self._parent._resolved:
             result = self._parent.trace(skip_self)
             if result is not None:
@@ -232,26 +253,20 @@ class Wireable:
             raise TraceRecursionError(self)
 
     # return the output Bit connected to this input Bit
+    @functools.partial(lazy_resolve_wireable_method, process_result=_get_index)
     def value(self):
-        if self._parent and not self._parent._resolved:
-            result = self._parent.value()
-            if result is not None:
-                return result[self.name.index]
-            return None
-        return self._wire.value()
+        pass
 
+    @lazy_resolve_wireable_method
     def driven(self):
-        if self._parent and not self._parent._resolved:
-            return self._parent.driven()
-        return self._wire.driven()
+        pass
 
+    @functools.partial(
+        lazy_resolve_wireable_method,
+        process_result=lambda self, result: [x[self.name.index] for x in result]
+    )
     def driving(self):
-        if self._parent and not self._parent._resolved:
-            result = self._parent.driving()
-            if result:
-                return [x[self.name.index] for x in result]
-            return result
-        return self._wire.driving()
+        pass
 
     def _remove_from_wired_when_contexts(self):
         for ctx in self._wired_when_contexts:
