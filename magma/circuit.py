@@ -37,6 +37,7 @@ from magma.definition_context import (
 )
 from magma.find_unconnected_ports import find_and_log_unconnected_ports
 from magma.logging import root_logger, capture_logs
+from magma.protocol_type import MagmaProtocol
 from magma.ref import TempNamedRef, AnonRef
 from magma.t import In, Type
 from magma.view import PortView
@@ -207,10 +208,13 @@ def _get_intermediate_values(value):
 def _infer_names(dct):
     """Try to infer value/inst names from metaclass dct"""
     for key, value in dct.items():
+        if isinstance(value, MagmaProtocol):
+            print(key, value)
+            value = value._get_magma_value_()
         if isinstance(value, Type):
             if isinstance(value.name, AnonRef):
                 value.name = TempNamedRef(key, value)
-        if isinstance(type(value), CircuitKind) and not value.name:
+        elif isinstance(type(value), CircuitKind) and not value.name:
             value.name = key
 
 

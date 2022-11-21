@@ -19,6 +19,22 @@ class SmartExprMeta(MagmaProtocolMeta):
 class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
     __hash__ = object.__hash__
 
+    def __init__(self):
+        self._magma_value = None
+
+    def _get_magma_value_(self):
+        if not self._magma_value:
+            raise Exception("Must evaluate  SmartExpr to get magma value")
+        return self._magma_value
+
+    @property
+    def magma_value(self):
+        return self._magma_value
+
+    @magma_value.setter
+    def magma_value(self, x):
+        self._magma_value = x
+
     @property
     @abc.abstractmethod
     def args(self):
@@ -143,6 +159,7 @@ class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
 
 class SmartOp(SmartExpr, metaclass=SmartExprMeta):
     def __init__(self, op, *args):
+        super().__init__()
         self._op = op
         self._args = args
 

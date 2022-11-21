@@ -404,4 +404,6 @@ def evaluate_assignment(lhs: SmartBits, rhs: SmartExpr) -> SmartBits:
     root = _insert_signednesses(root, widths, signednesses)
     root = _push_down_extensions(root, widths, signednesses)
     result = SmartBits.from_bits(_evaluate(root))
-    return _force_width(result, len(lhs))
+    result = _force_width(result, len(lhs))
+    rhs.magma_value = result
+    return result
