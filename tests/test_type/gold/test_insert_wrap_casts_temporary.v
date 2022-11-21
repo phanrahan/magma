@@ -49,29 +49,44 @@ wire _magma_inline_wire0_O;
 wire _magma_inline_wire1_out;
 wire coreir_wrapInClock_inst0_out;
 wire coreir_wrapOutClock_inst0_out;
+wire temp0_O;
 wire temp1_out;
-Foo Foo_inst0 (
-    .CLK(coreir_wrapOutClock_inst0_out)
-);
+wire temp2_O;
+wire temp3_out;
 WireClock _magma_inline_wire0 (
-    .I(CLK),
+    .I(temp2_O),
     .O(_magma_inline_wire0_O)
 );
 corebit_wire _magma_inline_wire1 (
-    .in(RESETN),
+    .in(temp3_out),
     .out(_magma_inline_wire1_out)
 );
 coreir_wrap coreir_wrapInClock_inst0 (
-    .in(CLK),
+    .in(temp0_O),
     .out(coreir_wrapInClock_inst0_out)
 );
 coreir_wrap coreir_wrapOutClock_inst0 (
     .in(temp1_out),
     .out(coreir_wrapOutClock_inst0_out)
 );
+Foo foo0 (
+    .CLK(coreir_wrapOutClock_inst0_out)
+);
+WireClock temp0 (
+    .I(CLK),
+    .O(temp0_O)
+);
 corebit_wire temp1 (
     .in(coreir_wrapInClock_inst0_out),
     .out(temp1_out)
+);
+WireClock temp2 (
+    .I(CLK),
+    .O(temp2_O)
+);
+corebit_wire temp3 (
+    .in(RESETN),
+    .out(temp3_out)
 );
 always @(posedge _magma_inline_wire0_O) disable iff (! _magma_inline_wire1_out) $display("Hello");
 endmodule

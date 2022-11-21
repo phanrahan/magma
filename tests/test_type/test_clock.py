@@ -490,4 +490,4 @@ def test_implicit_clock_mixed(caplog):
 
 
     m.compile("build/Bar", Bar)
-    assert caplog.messages[0] == "Foo_inst0.y.clk not driven, will attempt to automatically wire"
+    assert caplog.messages[0] == "foo.y.clk not driven, will attempt to automatically wire"

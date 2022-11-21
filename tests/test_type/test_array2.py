@@ -485,14 +485,16 @@ def test_array2_2d_tuple():
 
     expected = """\
 Foo = DefineCircuit("Foo", "I", Tuple(c=Array[(2, X)]), "O", Tuple(c=Array[(2, X)]))
-wire(Foo.I.c[1].a[3], Foo.O.c[0].a[0])
-wire(Foo.I.c[1].a[2], Foo.O.c[0].a[1])
-wire(Foo.I.c[1].a[1], Foo.O.c[0].a[2])
-wire(Foo.I.c[1].a[0], Foo.O.c[0].a[3])
-wire(Foo.I.c[0].a[3], Foo.O.c[1].a[0])
-wire(Foo.I.c[0].a[2], Foo.O.c[1].a[1])
-wire(Foo.I.c[0].a[1], Foo.O.c[1].a[2])
-wire(Foo.I.c[0].a[0], Foo.O.c[1].a[3])
+temp = Tuple(c=Array[(2, X)])(name="temp")
+wire(temp, Foo.O)
+wire(Foo.I.c[1].a[3], temp.c[0].a[0])
+wire(Foo.I.c[1].a[2], temp.c[0].a[1])
+wire(Foo.I.c[1].a[1], temp.c[0].a[2])
+wire(Foo.I.c[1].a[0], temp.c[0].a[3])
+wire(Foo.I.c[0].a[3], temp.c[1].a[0])
+wire(Foo.I.c[0].a[2], temp.c[1].a[1])
+wire(Foo.I.c[0].a[1], temp.c[1].a[2])
+wire(Foo.I.c[0].a[0], temp.c[1].a[3])
 EndCircuit()\
 """
     assert repr(Foo) == expected, repr(Foo)
