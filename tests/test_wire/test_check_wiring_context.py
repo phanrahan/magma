@@ -87,7 +87,7 @@ def test_bad_portview(caplog):
 
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Foo", Biz)
-    assert str(e.value) == ("Cannot wire Bar.foo.y to Biz.y because they "
+    assert str(e.value) == ("Cannot wire bar.foo.y to Biz.y because they "
                             "are not from the same definition context")
 
 

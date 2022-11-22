@@ -21,6 +21,7 @@ def check_wiring_context(i, o):
     """
     Ensures that i and o come from the same definition context
     """
+    orig_i, orig_o = i, o
     if isinstance(o, Slice):
         o = o.value
     if isinstance(i, Slice):
@@ -53,5 +54,5 @@ def check_wiring_context(i, o):
             o_inst.defn is i_inst.defn):
         return
     raise MagmaCompileException(
-        f"Cannot wire {o.debug_name} to {i.debug_name} because they are"
-        " not from the same definition context")
+        f"Cannot wire {orig_o.debug_name} to {orig_i.debug_name} because they "
+        "are not from the same definition context")

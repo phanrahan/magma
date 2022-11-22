@@ -3,7 +3,9 @@ import enum
 from functools import lru_cache
 from magma.common import deprecated
 from magma.compatibility import IntegerTypes, StringTypes
-from magma.ref import AnonRef, NamedRef, TempNamedRef, DefnRef, InstRef
+from magma.ref import (
+    AnonRef, NamedRef, TempNamedRef, DefnRef, InstRef, PortViewRef
+)
 from magma.protocol_type import magma_value
 from magma.wire import wire
 
@@ -98,6 +100,8 @@ class Type(object):
         elif isinstance(self.name, InstRef):
             inst_str = str(self.name.inst.name) + "."
             defn_str = str(self.name.inst.defn.name) + "."
+        elif isinstance(self.name, PortViewRef):
+            return ".".join(self.name.view.path())
         return f"{defn_str}{inst_str}{str(self)}"
 
     def __le__(self, other):
