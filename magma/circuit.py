@@ -209,7 +209,6 @@ def _infer_names(dct):
     """Try to infer value/inst names from metaclass dct"""
     for key, value in dct.items():
         if isinstance(value, MagmaProtocol):
-            print(key, value)
             value = value._get_magma_value_()
         if isinstance(value, Type):
             if isinstance(value.name, AnonRef):
