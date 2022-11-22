@@ -16,13 +16,6 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
-module corebit_wire (
-    input in,
-    output out
-);
-  assign out = in;
-endmodule
-
 module corebit_term (
     input in
 );
@@ -60,18 +53,8 @@ module DebugModule (
     input port_1,
     input port_2
 );
-wire _magma_inline_wire0_out;
-wire _magma_inline_wire1_out;
 wire magma_Bit_or_inst0_out;
 wire reg_O;
-corebit_wire _magma_inline_wire0 (
-    .in(port_2),
-    .out(_magma_inline_wire0_out)
-);
-corebit_wire _magma_inline_wire1 (
-    .in(\reg _O),
-    .out(_magma_inline_wire1_out)
-);
 corebit_or magma_Bit_or_inst0 (
     .in0(\reg _O),
     .in1(port_1),
@@ -82,8 +65,8 @@ Register reg (
     .O(reg_O),
     .CLK(port_0)
 );
-assert _magma_inline_wire0_out;
-assert ~_magma_inline_wire1_out;
+assert port_2;
+assert ~\reg _O;
 endmodule
 
 module Top (

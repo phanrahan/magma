@@ -1,10 +1,3 @@
-module corebit_wire (
-    input in,
-    output out
-);
-  assign out = in;
-endmodule
-
 module corebit_term (
     input in
 );
@@ -14,23 +7,13 @@ endmodule
 module Foo_unq1 (
     input I
 );
-wire _magma_inline_wire0_out;
-corebit_wire _magma_inline_wire0 (
-    .in(I),
-    .out(_magma_inline_wire0_out)
-);
-always @(*) $display("%x\n", _magma_inline_wire0_out);
+always @(*) $display("%x\n", I);
 endmodule
 
 module Foo (
     input I
 );
-wire _magma_inline_wire0_out;
-corebit_wire _magma_inline_wire0 (
-    .in(I),
-    .out(_magma_inline_wire0_out)
-);
-always @(*) $display("%d\n", _magma_inline_wire0_out);
+always @(*) $display("%d\n", I);
 endmodule
 
 module Top (
