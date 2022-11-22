@@ -18,7 +18,7 @@ from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
 from magma.t import Type, Direction, In
 from magma.tuple import Tuple
 from magma.view import PortView, InstView
-from magma.wire_utils import wire_value_or_driver
+from magma.wire_utils import wire_value_or_driver, WiringError
 
 
 ValueLike = Union[Type, PortView]
@@ -112,7 +112,12 @@ def _inline_verilog(
         inst.I @= 0
 
     for key, value in inline_value_map.items():
-        wire_value_or_driver(getattr(inst, key), value)
+        try:
+            wire_value_or_driver(getattr(inst, key), value)
+        except WiringError:
+            raise InlineVerilogError(
+                f"Found reference to undriven input port: {repr(value)}"
+            ) from None
 
 
 def _process_fstring_syntax(

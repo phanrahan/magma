@@ -8,10 +8,17 @@ from magma.primitives.xmr import XMRSink, XMRSource
 ValueOrPortView = Union[Type, PortView]
 
 
+class WiringError(Exception):
+    pass
+
+
 def wire_value_or_driver(drivee: Type, driver: Type):
     assert drivee.is_input()
     if driver.is_input():
-        drivee @= driver.value()
+        value = driver.value()
+        if value is None:
+            raise WiringError(drivee, driver)
+        drivee @= value
     elif driver.is_mixed():
         for drivee_i, driver_i in zip(drivee, driver):
             wire_value_or_driver(drivee_i, driver_i)
