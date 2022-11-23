@@ -50,7 +50,7 @@ def test_symbol_table_dff_list():
 
     symbol_table = _compile("build/DFFList", DFFList)
     for i in range(10):
-        inst_name = f"SB_DFF_inst{i}" if i < 9 else "dff"
+        inst_name = f"dff_{i}"
         name = symbol_table.get_instance_name("DFFList", inst_name)
         assert name == (SYMBOL_TABLE_EMPTY, inst_name)
         instance_type = symbol_table.get_instance_type(

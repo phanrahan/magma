@@ -3,7 +3,7 @@ import collections
 import functools
 import weakref
 from .circuit import (DefineCircuitKind, Circuit, DebugCircuit,
-                      DebugDefineCircuitKind)
+                      DebugDefineCircuitKind, NamerDict)
 from . import cache_definition
 from magma.common import ParamDict
 from hwtypes import BitVector
@@ -110,7 +110,7 @@ class _Generator2Meta(type):
             len(args) == 3
             and type(args[0]) is str
             and type(args[1]) is tuple
-            and type(args[2]) is dict
+            and (type(args[2]) is dict or type(args[2]) is NamerDict)
             and "__module__" in args[2]
         )
         if is_base_cls:

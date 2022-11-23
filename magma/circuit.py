@@ -6,7 +6,7 @@ import itertools
 from functools import wraps
 import functools
 import operator
-from collections import namedtuple
+from collections import namedtuple, Counter
 import os
 from typing import Callable, Dict, List
 
@@ -37,7 +37,7 @@ from magma.definition_context import (
 )
 from magma.find_unconnected_ports import find_and_log_unconnected_ports
 from magma.logging import root_logger, capture_logs
-from magma.protocol_type import MagmaProtocol
+from magma.protocol_type import magma_value
 from magma.ref import TempNamedRef, AnonRef
 from magma.t import In, Type
 from magma.view import PortView
@@ -205,23 +205,53 @@ def _get_intermediate_values(value):
     return values
 
 
-def _infer_names(dct):
-    """Try to infer value/inst names from metaclass dct"""
-    for key, value in dct.items():
-        if isinstance(value, MagmaProtocol):
-            value = value._get_magma_value_()
+class LazyNamedValue:
+    pass
+
+
+class NamerDict(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._inferred_name_counter = Counter()
+
+    def _set_name(self, key, value, force=False):
+        if isinstance(value, LazyNamedValue):
+            if not magma_value(value):
+                if not value.name or force:
+                    value.name = key
+            else:
+                value = magma_value(value)
         if isinstance(value, Type):
-            if isinstance(value.name, AnonRef):
+            if (
+                isinstance(value.name, AnonRef) or
+                isinstance(value.name, TempNamedRef) and force
+            ):
                 value.name = TempNamedRef(key, value)
-        elif isinstance(type(value), CircuitKind) and not value.name:
+        elif isinstance(type(value), CircuitKind) and (
+            not value.name or force
+        ):
             value.name = key
+
+    def __setitem__(self, key, value):
+        if key in self and self[key] is not value:
+            if self._inferred_name_counter[key] == 1:
+                self._set_name(f"{key}_0", self[key], True)
+            self._set_name(f"{key}_{self._inferred_name_counter[key]}", value)
+            self._inferred_name_counter[key] += 1
+        else:
+            self._set_name(key, value)
+            self._inferred_name_counter[key] += 1
+        super().__setitem__(key, value)
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
 
 
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         ctx = DefinitionContext(StagedPlacer(name))
         push_definition_context(ctx, use_staged_logger=True)
-        return type.__prepare__(name, bases, **kwargs)
+        return NamerDict()
 
     """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
@@ -269,7 +299,6 @@ class CircuitKind(type):
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
-            _infer_names(dct)  # do before place instances for default logic
             cls._context_.place_instances(cls)
             _setup_interface(cls)
             cls._context_.finalize(cls)

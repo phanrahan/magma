@@ -6,6 +6,7 @@ from typing import Callable, Union
 
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta, SInt, reduce as bits_reduce
+from magma.circuit import LazyNamedValue
 from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
@@ -16,24 +17,22 @@ class SmartExprMeta(MagmaProtocolMeta):
     pass
 
 
-class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
+class SmartExpr(MagmaProtocol, LazyNamedValue, metaclass=SmartExprMeta):
     __hash__ = object.__hash__
 
     def __init__(self):
-        self._magma_value = None
-
-    def _get_magma_value_(self):
-        if not self._magma_value:
-            raise Exception("Must evaluate  SmartExpr to get magma value")
-        return self._magma_value
+        self._name = None
 
     @property
-    def magma_value(self):
-        return self._magma_value
+    def name(self):
+        return self._name
 
-    @magma_value.setter
-    def magma_value(self, x):
-        self._magma_value = x
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    def _get_magma_value_(self):
+        return None
 
     @property
     @abc.abstractmethod
@@ -412,10 +411,10 @@ class SmartBitsMeta(SmartExprMeta):
 
 
 class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
-    def __init__(self, value=None):
+    def __init__(self, value=None, name=None):
         super().__init__(self)
         if value is None:
-            value = type(self)._to_magma_()()
+            value = type(self)._to_magma_()(name=name)
         self._value = value
 
     def __len__(self):
@@ -454,13 +453,13 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
         MagmaProtocol.wire(self, other, debug_info)
 
     @staticmethod
-    def from_bits(value):
+    def from_bits(value, name=None):
         if isinstance(value, Bit):
             value = bits(value)
         if not isinstance(value, Bits):
             raise TypeError(value)
         signed = isinstance(value, SInt)
-        return SmartBits[len(value), signed](value)
+        return SmartBits[len(value), signed](value, name=name)
 
     def __str__(self):
         signed = type(self)._signed_
@@ -468,6 +467,14 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
 
     def connection_iter(self):
         yield from zip(self, self.trace())
+
+    @property
+    def name(self):
+        return self._get_magma_value_().name
+
+    @name.setter
+    def name(self, value):
+        self._get_magma_value_().name = value
 
 
 SmartBit = SmartBits[1]
