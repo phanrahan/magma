@@ -31,9 +31,6 @@ class SmartExpr(MagmaProtocol, LazyNamedValue, metaclass=SmartExprMeta):
     def name(self, value):
         self._name = value
 
-    def _get_magma_value_(self):
-        return None
-
     @property
     @abc.abstractmethod
     def args(self):

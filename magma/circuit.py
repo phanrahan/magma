@@ -10,7 +10,6 @@ from collections import namedtuple, Counter
 import os
 from typing import Callable, Dict, List
 
-import six
 from . import cache_definition
 from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
@@ -212,36 +211,39 @@ class LazyNamedValue:
 class NamerDict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._inferred_name_counter = Counter()
+        self._inferred_names = {}
 
-    def _set_name(self, key, value, force=False):
-        if isinstance(value, LazyNamedValue):
-            if not magma_value(value):
-                if not value.name or force:
-                    value.name = key
-            else:
-                value = magma_value(value)
+    def _set_name(self, key, value):
         if isinstance(value, Type):
-            if (
-                isinstance(value.name, AnonRef) or
-                isinstance(value.name, TempNamedRef) and force
-            ):
-                value.name = TempNamedRef(key, value)
-        elif isinstance(type(value), CircuitKind) and (
-            not value.name or force
-        ):
-            value.name = key
+            key = TempNamedRef(key, value)
+        value.name = key
 
     def __setitem__(self, key, value):
-        if key in self and self[key] is not value:
-            if self._inferred_name_counter[key] == 1:
-                self._set_name(f"{key}_0", self[key], True)
-            self._set_name(f"{key}_{self._inferred_name_counter[key]}", value)
-            self._inferred_name_counter[key] += 1
-        else:
-            self._set_name(key, value)
-            self._inferred_name_counter[key] += 1
-        super().__setitem__(key, value)
+        orig_value = value
+        if isinstance(value, LazyNamedValue):
+            try:
+                value = magma_value(value)
+            except NotImplementedError:
+                # SmartExpr doesn't have a magma_value
+                # TODO: This probably shouldn't be a protocol type then
+                pass
+        if (
+            (isinstance(value, Type) and isinstance(value.name, AnonRef)) or
+            (isinstance(value, LazyNamedValue) and not value.name) or
+            (isinstance(type(value), CircuitKind) and not value.name)
+        ):
+            values = self._inferred_names.setdefault(key, [])
+            if len(values) == 0:
+                self._set_name(key, value)
+            else:
+                if len(values) == 1:
+                    self._set_name(f"{key}_0", values[0])
+                self._set_name(f"{key}_{len(values)}", value)
+            values.append(value)
+        # TODO: Should we handle name collisions between explicitly named values
+        # and inferred names?
+
+        super().__setitem__(key, orig_value)
 
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
@@ -255,6 +257,8 @@ class CircuitKind(type):
 
     """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
+        if isinstance(dct, NamerDict):
+            dct = dict(dct)  # resolve to dict, no longer need name logic
         # Override class name if supplied (and save class name).
         cls_name = dct.get("_cls_name_", name)
         name = dct.setdefault('name', name)
@@ -404,8 +408,7 @@ class CircuitKind(type):
             m_inline_verilog(inline_str, **kwargs)
 
 
-@six.add_metaclass(CircuitKind)
-class AnonymousCircuitType(object):
+class AnonymousCircuitType(object, metaclass=CircuitKind):
     """Abstract base class for circuits"""
 
     _circuit_base_ = True
@@ -740,8 +743,7 @@ class DefineCircuitKind(CircuitKind):
         cls.bind_modules[monitor] = (args, compile_guard)
 
 
-@six.add_metaclass(DefineCircuitKind)
-class Circuit(CircuitType):
+class Circuit(CircuitType, metaclass=DefineCircuitKind):
     _circuit_base_ = True
 
 
