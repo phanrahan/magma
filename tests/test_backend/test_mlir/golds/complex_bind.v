@@ -5,10 +5,7 @@ module complex_bind_asserts(
                                   CLK,
                                   I0);
 
-  wire _magma_inline_wire0 = O;
-  wire _magma_inline_wire1 = I.I;
-  wire _magma_inline_wire2 = I0;
-  assert property (@(posedge CLK) _magma_inline_wire1 |-> ##1 _magma_inline_wire0);assert property (_magma_inline_wire1 |-> _magma_inline_wire2;
+  assert property (@(posedge CLK) I.I |-> ##1 O);assert property (I.I |-> I0;
 endmodule
 
 module complex_bind(

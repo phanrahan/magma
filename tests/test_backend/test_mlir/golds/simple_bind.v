@@ -4,9 +4,7 @@ module simple_bind_asserts(
         O,
         CLK);
 
-  wire _magma_inline_wire0 = O;
-  wire _magma_inline_wire1 = I;
-  assert property (@(posedge CLK) _magma_inline_wire1 |-> ##1 _magma_inline_wire0);
+  assert property (@(posedge CLK) I |-> ##1 O);
 endmodule
 
 module simple_bind(

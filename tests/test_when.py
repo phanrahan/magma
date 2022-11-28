@@ -1097,3 +1097,43 @@ def test_when_output_resolve2():
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_spurious_assign():
+
+    class U(m.Product):
+        x = m.Bits[8]
+        y = m.Bit
+
+    class T(m.Product):
+        x = m.Bits[8]
+        y = U
+
+    class _Test(m.Circuit):
+        name = "test_when_spurious_assign"
+        io = m.IO(x=m.In(m.Bits[8]),
+                  y=m.In(m.Bit),
+                  z=m.In(m.Bits[2]),
+                  O=m.Out(T))
+        reg = m.Register(T, has_enable=True)()
+        io.O @= reg.O
+
+        with m.when(io.z[0]):
+            with m.when(io.z[1]):
+                reg.I.y.x @= io.x
+            with m.otherwise():
+                reg.I.y.x @= 1
+        with m.otherwise():
+            reg.I.y.x @= ~io.x
+
+        with m.when(io.z[1]):
+            reg.I.y.y @= io.y
+        with m.otherwise():
+            reg.I.y.y @= ~io.y
+
+        reg.I.x @= io.x
+        reg.CE.rewire(io.z[0])
+
+    m.compile(f"build/{_Test.name}", _Test,
+              output="mlir", flatten_all_tuples=True)
+    assert check_gold(__file__, f"{_Test.name}.mlir")

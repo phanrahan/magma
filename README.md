@@ -4,8 +4,6 @@
 [![codecov](https://codecov.io/gh/phanrahan/magma/branch/master/graph/badge.svg)](https://codecov.io/gh/phanrahan/magma)
 [![Join the chat at https://gitter.im/Magma-HDL/community](https://badges.gitter.im/Magma-HDL/community.svg)](https://gitter.im/Magma-HDL/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[CHANGELOG](https://github.com/phanrahan/magma/blob/master/CHANGELOG.md)
-
 [CHEAT SHEET](https://github.com/phanrahan/magma/blob/master/docs/cheat_sheet.md)
 
 Magma is a hardware design language embedded in python.

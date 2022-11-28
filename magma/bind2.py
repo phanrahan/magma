@@ -3,8 +3,8 @@ from typing import Dict, List, Optional, Union
 from magma.circuit import DefineCircuitKind, CircuitKind, CircuitType
 from magma.generator import Generator2Kind, Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
-from magma.primitives.xmr import XMRSink, XMRSource
 from magma.view import PortView
+from magma.wire_utils import wire_value_or_port_view
 from magma.t import Type, In
 
 
@@ -14,29 +14,6 @@ _BOUND_GENERATOR_INFO_KEY = "_bound_generator_info_"
 DutType = Union[DefineCircuitKind, Generator2Kind]
 BindModuleType = Union[CircuitKind, Generator2Kind]
 ArgumentType = Union[Type, PortView]
-
-
-def _wire_value_or_driver(param, arg):
-    assert param.is_input()
-    if arg.is_input():
-        param @= arg.value()
-    elif arg.is_mixed():
-        for param_i, arg_i in zip(param, arg):
-            _wire_value_or_driver(param_i, arg_i)
-    else:
-        param @= arg
-
-
-def _wire_bind_arg(param, arg):
-    if isinstance(arg, PortView):
-        defn = arg.parent_view.inst.defn
-        with defn.open():
-            xmr_sink = XMRSink(arg)()
-            _wire_value_or_driver(xmr_sink.I, arg.port)
-        xmr_source = XMRSource(arg)()
-        _wire_value_or_driver(param, xmr_source.O)
-        return
-    _wire_value_or_driver(param, arg)
 
 
 def set_bound_instance_info(inst: CircuitType, info: Dict):
@@ -96,7 +73,7 @@ def _bind_impl(
     with dut.open():
         inst = bind_module()
         for param, arg in zip(inst.interface.ports.values(), arguments):
-            _wire_bind_arg(param, arg)
+            wire_value_or_port_view(param, arg)
         info = {"args": args, "compile_guard": compile_guard}
         set_bound_instance_info(inst, info)
 
