@@ -33,7 +33,6 @@ class CMakeBuild(build_ext):
 
         cfg = 'Release'
         build_args = ['--config', cfg]
-        # env = os.environ.copy()
 
         cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
 
@@ -43,9 +42,6 @@ class CMakeBuild(build_ext):
         python_path = sys.executable
         cmake_args += ['-DPYTHON_EXECUTABLE:FILEPATH=' + python_path]
 
-        # env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(
-        #     env.get('CXXFLAGS', ''),
-        #     self.distribution.get_version())
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args,

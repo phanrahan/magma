@@ -1,0 +1,2 @@
+recursive-include debug-ext *
+prune debug-ext?/build
