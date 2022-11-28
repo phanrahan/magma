@@ -33,6 +33,10 @@ assert property (@(posedge CLK) {io.arr[0]} |-> ##1 {io.arr[1]});
                                        f"gold/test_inline_simple.sv")
 
 
+@pytest.mark.skip(
+    "inline_verilog is no longer supported for CoreIR backend. "
+    "TODO(rsetaluri): Migrate to use MLIR backend."
+)
 def test_inline_tuple():
 
     RVDATAIN = m.Array[2, m.AnonProduct[dict(data=m.In(m.Bits[5]),

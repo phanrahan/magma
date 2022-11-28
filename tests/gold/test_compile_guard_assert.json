@@ -12,9 +12,6 @@
           "ASSERT_ON_compile_guard_inline_verilog_inst_0":{
             "modref":"global.ASSERT_ON_compile_guard_inline_verilog_0"
           },
-          "_FAULT_ASSERT_WIRE_0":{
-            "modref":"corebit.wire"
-          },
           "const_1_2":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",2]},
@@ -53,8 +50,7 @@
           }
         },
         "connections":[
-          ["_FAULT_ASSERT_WIRE_0.out","ASSERT_ON_compile_guard_inline_verilog_inst_0.__magma_inline_value_0"],
-          ["magma_Bit_or_inst0.out","_FAULT_ASSERT_WIRE_0.in"],
+          ["magma_Bit_or_inst0.out","ASSERT_ON_compile_guard_inline_verilog_inst_0.__magma_inline_value_0"],
           ["magma_UInt_2_add_inst0.in1","const_1_2.out"],
           ["magma_UInt_2_eq_inst0.in1","const_3_2.out"],
           ["magma_Bits_4_eq_inst0.in1","const_3_4.out"],

@@ -18,7 +18,7 @@ from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
 from magma.t import Type, Direction, In
 from magma.tuple import Tuple
 from magma.view import PortView, InstView
-from magma.wire import wire
+from magma.wire_utils import wire_value_or_driver, WiringError
 
 
 ValueLike = Union[Type, PortView]
@@ -48,95 +48,6 @@ def _make_inline_value(
     key = f"__magma_inline_value_{len(inline_value_map)}"
     inline_value_map[key] = value
     return f"{{{key}}}"
-
-
-def _make_temporary(
-        defn,
-        value: Type,
-        idx: int,
-        inline_wire_prefix: str,
-        parent: Optional[InstView] = None) -> ValueLike:
-
-    def _insert_wire():
-        temp_name = f"{inline_wire_prefix}{idx}"
-        temp = Wire(type(value).undirected_t)(name=temp_name)
-        temp.I @= value
-        return temp
-
-    # Insert a wire so that the value can't be inlined. If @defn is not None
-    # then it needs to be `open()`'ed.
-    ctx = contextlib.nullcontext() if defn is None else defn.open()
-    with ctx:
-        temp = _insert_wire()
-    if parent is not None:
-        return PortView(temp.O, parent)
-    return temp.O
-
-
-def _insert_temporary_wires(
-        context: DefinitionContext,
-        value: ValueLike,
-        inline_wire_prefix: str):
-    """
-    Insert a temporary Wire instance so the signal isn't inlined out.
-
-    We have to do this for DefnRef because the coreir inline.cpp logic
-    sometimes inserts temporary wires for DefnRef that eventually get inlined.
-    """
-    wire_map = context.set_default_metadata("inline_verilog_wire_map", {})
-    if isinstance(value, Type):
-        if value.is_input():
-            orig_value = value
-            value = value.value()
-            if value is None:
-                raise InlineVerilogError(
-                    f"Found reference to undriven input port: "
-                    f"{repr(orig_value)}")
-
-        key = value
-        is_undriven_clock = (isinstance(value, ClockTypes) and value.is_input()
-                             and not value.driven())
-        if is_undriven_clock:
-            # Share wire for undriven clocks so we don't
-            # generate a separate wire for the eventual
-            # driver from the automatic clock wiring logic
-            key = type(value)
-        if key not in wire_map:
-            temp = _make_temporary(None, value,
-                                   len(wire_map),
-                                   inline_wire_prefix)
-            wire_map[key] = temp
-        value = wire_map[key]
-    else:
-        assert isinstance(value, PortView)
-        if value.port.is_input():
-            # For now we can't handle input port views, since this might return
-            # a connection to the interface (e.g. self.I), then we'd need to
-            # walk up to the parent instance and select the corresponding input
-            # port, then trace that, which may need to happen recursively until
-            # we find the driver in the current definition.
-            # We don't have any existing use case for this, and a work around
-            # exists which requires the user to effectively use the driver we
-            # would find, rather than selecting the hierarchical input port
-            # (this should work for simple cases, but might be annoying for
-            # deep hierarchies where the driver could come from a far away
-            # place, at which point we can add this feature)
-            raise NotImplementedError()
-        if value not in wire_map:
-            # get first instance parent, then the parent of that will
-            # be the container where we insert a wire
-            parent = _get_view_inst_parent(value).parent
-            if isinstance(parent, InstView):
-                defn = parent.circuit
-            else:
-                assert isinstance(parent, Circuit)
-                defn = type(parent)
-            temp = _make_temporary(defn, value.port,
-                                   len(wire_map),
-                                   inline_wire_prefix, parent)
-            wire_map[value] = temp
-        value = wire_map[value]
-    return value
 
 
 def _build_io(inline_value_map: Mapping[str, ValueLike]) -> IO:
@@ -201,8 +112,12 @@ def _inline_verilog(
         inst.I @= 0
 
     for key, value in inline_value_map.items():
-        value = _insert_temporary_wires(context, value, inline_wire_prefix)
-        wire(value, getattr(inst, key))
+        try:
+            wire_value_or_driver(getattr(inst, key), value)
+        except WiringError:
+            raise InlineVerilogError(
+                f"Found reference to undriven input port: {repr(value)}"
+            ) from None
 
 
 def _process_fstring_syntax(
