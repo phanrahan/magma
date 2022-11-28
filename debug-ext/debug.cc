@@ -27,26 +27,6 @@ std::optional<std::pair<std::string, uint32_t>> get_fn_ln(uint32_t num_frame_bac
     return std::nullopt;
 }
 
-py::dict get_frame_local(uint32_t num_frame_back) {
-    PyFrameObject *frame = PyThreadState_Get()->frame;
-    uint32_t i = 0;
-    while (frame->f_back && (++i) < num_frame_back) {
-        frame = frame->f_back;
-    }
-    if (frame) {
-        // implementation copied from
-        // https://github.com/python/cpython/blob/master/Python/ceval.c
-        // PyEval_GetLocals(void)
-        PyFrame_FastToLocals(frame);
-        auto local = frame->f_locals;
-        if (local) {
-            py::handle obj(local);
-            return obj.cast<py::dict>();
-        }
-    }
-    return py::dict();
-}
-
 PYBIND11_MODULE(magma_debug, m) {
     m.doc() = R"pbdoc(
         .. currentmodule:: magma_debug
@@ -58,8 +38,4 @@ PYBIND11_MODULE(magma_debug, m) {
     .def("get_fn_ln", [](uint32_t num_frame) {
         return get_fn_ln((num_frame));
     })
-    .def("get_frame_local", &get_frame_local)
-    .def("get_frame_local", []() {
-        return get_frame_local(2);
-    });
 }
