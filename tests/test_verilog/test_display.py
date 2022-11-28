@@ -1,9 +1,15 @@
+import os
+import pytest
+
+import fault
 import magma as m
 import magma.testing
-import os
-import fault
 
 
+@pytest.mark.skip(
+    "inline_verilog is no longer supported for CoreIR backend. "
+    "TODO(rsetaluri): Migrate to use MLIR backend."
+)
 def test_display(capsys):
     FF = m.define_from_verilog("""
 module FF(input I, output reg O, input CLK, input CE);
@@ -62,6 +68,10 @@ endmodule
 """ in out, out
 
 
+@pytest.mark.skip(
+    "inline_verilog is no longer supported for CoreIR backend. "
+    "TODO(rsetaluri): Migrate to use MLIR backend."
+)
 def test_fdisplay():
     FF = m.define_from_verilog("""
 module FF(input I, output reg O, input CLK, input CE);

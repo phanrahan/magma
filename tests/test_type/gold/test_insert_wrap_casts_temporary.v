@@ -45,22 +45,12 @@ module Bar (
     input CLK,
     input RESETN
 );
-wire _magma_inline_wire0_O;
-wire _magma_inline_wire1_out;
 wire coreir_wrapInClock_inst0_out;
 wire coreir_wrapOutClock_inst0_out;
 wire temp0_O;
 wire temp1_out;
 wire temp2_O;
 wire temp3_out;
-WireClock _magma_inline_wire0 (
-    .I(temp2_O),
-    .O(_magma_inline_wire0_O)
-);
-corebit_wire _magma_inline_wire1 (
-    .in(temp3_out),
-    .out(_magma_inline_wire1_out)
-);
 coreir_wrap coreir_wrapInClock_inst0 (
     .in(temp0_O),
     .out(coreir_wrapInClock_inst0_out)
@@ -88,6 +78,6 @@ corebit_wire temp3 (
     .in(RESETN),
     .out(temp3_out)
 );
-always @(posedge _magma_inline_wire0_O) disable iff (! _magma_inline_wire1_out) $display("Hello");
+always @(posedge temp2_O) disable iff (! temp3_out) $display("Hello");
 endmodule
 

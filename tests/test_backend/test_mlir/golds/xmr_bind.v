@@ -21,8 +21,7 @@ module xmr_bind_asserts(
                y,
                other);
 
-  wire [15:0] _magma_inline_wire0 = other;
-  assert property (_magma_inline_wire0 == 0);
+  assert property (other == 0);
 endmodule
 
 module xmr_bind(
