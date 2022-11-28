@@ -115,9 +115,6 @@ wire [4:0] magma_Bits_5_xor_inst0_out;
 wire [19:0] nested_other_circ_x_y [0:0];
 wire orr_5_inst0_O;
 wire temp3;
-bar_foo_SomeCircuit_unq1 SomeCircuit_inst0 (
-    .I(magma_Bits_5_xor_inst0_out)
-);
 assign _magma_bind_wire_0 = orr_5_inst0_O;
 assign _magma_bind_wire_1 = andr_5_inst0_O;
 assign _magma_bind_wire_2_0 = orr_5_inst0_O;
@@ -188,6 +185,9 @@ orr_5 orr_5_inst0 (
     .I(in1),
     .O(orr_5_inst0_O)
 );
+bar_foo_SomeCircuit_unq1 some_circ (
+    .I(magma_Bits_5_xor_inst0_out)
+);
 assign temp3 = andr_5_inst0_O;
 wire [5:0] term_inst0_in;
 assign term_inst0_in = {ndarr[2],ndarr[1],ndarr[0]};
@@ -243,9 +243,6 @@ wire [3:0] magma_Bits_4_xor_inst0_out;
 wire [19:0] nested_other_circ_x_y [0:0];
 wire orr_4_inst0_O;
 wire temp3;
-bar_foo_SomeCircuit SomeCircuit_inst0 (
-    .I(magma_Bits_4_xor_inst0_out)
-);
 assign _magma_bind_wire_0 = orr_4_inst0_O;
 assign _magma_bind_wire_1 = andr_4_inst0_O;
 assign _magma_bind_wire_2_0 = orr_4_inst0_O;
@@ -315,6 +312,9 @@ bar_foo_NestedOtherCircuit nested_other_circ (
 orr_4 orr_4_inst0 (
     .I(in1),
     .O(orr_4_inst0_O)
+);
+bar_foo_SomeCircuit some_circ (
+    .I(magma_Bits_4_xor_inst0_out)
 );
 assign temp3 = andr_4_inst0_O;
 wire [5:0] term_inst0_in;

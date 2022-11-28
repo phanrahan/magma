@@ -228,7 +228,8 @@ class NamerDict(dict):
                 # TODO: This probably shouldn't be a protocol type then
                 pass
         if (
-            (isinstance(value, Type) and isinstance(value.name, AnonRef)) or
+            (isinstance(value, Type) and hasattr(value, "name") and
+             isinstance(value.name, AnonRef)) or
             (isinstance(value, LazyNamedValue) and not value.name) or
             (isinstance(type(value), CircuitKind) and not value.name)
         ):

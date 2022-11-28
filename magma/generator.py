@@ -70,7 +70,9 @@ def _make_key(cls, *args, **kwargs):
 
 
 def _make_type(cls, *args, **kwargs):
-    dummy = type.__new__(cls, "", (), {})
+    dummy = type.__new__(cls, "", (), {
+        "_namer_dict": NamerDict()
+    })
     name = cls.__name__
     bases = (cls._base_cls_,)
     dct = cls._base_metacls_.__prepare__(name, bases)
@@ -140,6 +142,10 @@ class Generator2(metaclass=_Generator2Meta):
     @classmethod
     def bind(cls, monitor):
         cls.bind_generators.append(monitor)
+
+    def __setattr__(cls, key, value):
+        cls._namer_dict[key] = value
+        super().__setattr__(key, value)
 
 
 class _DebugGeneratorMeta(_Generator2Meta):
