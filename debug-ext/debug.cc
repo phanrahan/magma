@@ -37,5 +37,5 @@ PYBIND11_MODULE(magma_debug, m) {
     })
     .def("get_fn_ln", [](uint32_t num_frame) {
         return get_fn_ln((num_frame));
-    })
+    });
 }
