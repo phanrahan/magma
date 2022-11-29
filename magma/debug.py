@@ -7,7 +7,7 @@ debug_info = collections.namedtuple("debug_info",
 
 
 def get_debug_info(frames_to_skip):
-    filename, lineno = uinspect.get_location(frames_to_skip)
+    filename, lineno = uinspect.get_location(frames_to_skip + 1)
     return debug_info(filename, lineno, None)
 
 
