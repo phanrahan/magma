@@ -1,3 +1,0 @@
-[submodule "debug-ext/pybind11"]
-	path = debug-ext/pybind11
-	url = https://github.com/pybind/pybind11
