@@ -1,7 +1,5 @@
-import inspect
+import uinspect
 import collections
-from magma.config import get_debug_mode
-import magma_debug
 
 
 debug_info = collections.namedtuple("debug_info",
@@ -9,7 +7,7 @@ debug_info = collections.namedtuple("debug_info",
 
 
 def get_debug_info(frames_to_skip):
-    filename, lineno = magma_debug.get_fn_ln(frames_to_skip)
+    filename, lineno = uinspect.get_location(frames_to_skip)
     return debug_info(filename, lineno, None)
 
 
