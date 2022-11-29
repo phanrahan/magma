@@ -4,7 +4,7 @@ from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from magma.bit import Bit
 from magma.array import Array
-from magma.debug import get_debug_mode, get_debug_info
+from magma.debug import get_debug_info
 from magma.tuple import Tuple
 
 
