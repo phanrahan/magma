@@ -286,29 +286,44 @@ class ModuleVisitor:
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert defn.coreir_name == "mem"
+        assert defn.coreir_name in ["mem", "sync_read_mem"]
         # TODO(rsetaluri): Add support for initialization.
         if defn.coreir_genargs["has_init"]:
             raise NotImplementedError("coreir.mem init not supported")
         width = defn.coreir_genargs["width"]
         depth = defn.coreir_genargs["depth"]
-        raddr, waddr, wdata, clk, wen = module.operands
+        raddr, waddr, wdata, clk, wen = module.operands[:5]
+        ren = module.operands[-1]
         rdata = module.results[0]
         elt_type = hw.InOutType(builtin.IntegerType(width))
         reg_type = hw.InOutType(hw.ArrayType((depth,), elt_type.T))
         reg = self._ctx.new_value(reg_type)
         sv.RegOp(name=inst.name, results=[reg])
+
         # Register read logic.
         read = self._ctx.new_value(elt_type)
         sv.ArrayIndexInOutOp(operands=[reg, raddr], results=[read])
-        sv.ReadInOutOp(operands=[read], results=[rdata])
+        if defn.coreir_name == "mem":
+            sv.ReadInOutOp(operands=[read], results=[rdata])
+        else:
+            read_temp = self._ctx.new_value(elt_type.T)
+            sv.ReadInOutOp(operands=[read], results=[read_temp])
+            read_reg = self._ctx.new_value(elt_type)
+            sv.RegOp(name="read_reg", results=[read_reg])
+            sv.ReadInOutOp(operands=[read_reg], results=[rdata])
+
         # Register write logic.
         write = self._ctx.new_value(elt_type)
         sv.ArrayIndexInOutOp(operands=[reg, waddr], results=[write])
         always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
+
+        # Always logic.
         with push_block(always):
             with push_block(sv.IfOp(operands=[wen]).then_block):
                 sv.PAssignOp(operands=[write, wdata])
+            if defn.coreir_name == "sync_read_mem":
+                with push_block(sv.IfOp(operands=[ren]).then_block):
+                    sv.PAssignOp(operands=[read_reg, read_temp])
         return True
 
     @wrap_with_not_implemented_error
@@ -396,8 +411,8 @@ class ModuleVisitor:
     def visit_coreir_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert (defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit")
-        if defn.coreir_name == "mem":
+        assert defn.coreir_lib in ["coreir", "corebit", "memory"]
+        if defn.coreir_name in ["mem", "sync_read_mem"]:
             return self.visit_coreir_mem(module)
         if defn.coreir_name == "not":
             return self.visit_coreir_not(module)
@@ -440,6 +455,10 @@ class ModuleVisitor:
             op_name = "shrs"
         if op_name == "lshr":
             op_name = "shru"
+        if op_name == "udiv":
+            op_name = "divu"
+        if op_name == "sdiv":
+            op_name = "divs"
         comb.BaseOp(
             op_name=op_name,
             operands=module.operands,
@@ -646,7 +665,7 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert isprimitive(defn)
-        if defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit":
+        if defn.coreir_lib in ["coreir", "corebit", "memory"]:
             return self.visit_coreir_primitive(module)
         if defn.coreir_lib == "commonlib":
             return self.visit_commonlib_primitive(module)
