@@ -1,11 +1,11 @@
 import os
 
-import magma_debug
+from magma.debug import get_debug_info
 
 
 def test_magma_debug_ext():
     filedir = os.path.realpath(os.path.dirname(__file__))
-    assert magma_debug.get_fn_ln(0) == (
+    assert get_debug_info(0) == (
         f"{filedir}/test_debug_ext.py",
         8
     )
