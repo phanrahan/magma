@@ -45,6 +45,20 @@ class <name>(m.Enum):
     k0 = v0
     k1 = v1
     ...
+
+```
+
+Example
+```python
+class State(m.Enum):
+    IDLE = 0
+    CONFIG = 1
+    LOOP = 2
+    FLAG_RESET = 3
+
+class LoopState(m.Enum):
+    LOOP_READ = 0
+    LOOP_STIM = 1
 ```
 
 # Type qualifiers
