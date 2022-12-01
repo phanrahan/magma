@@ -294,3 +294,40 @@ def test_memory_read_only():
                            flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+@pytest.mark.parametrize('RE', [True, False])
+def test_multi_port_memory(RE):
+    class test_multi_port_memory(m.Circuit):
+        io = m.IO(
+            raddr_0=m.In(m.Bits[2]),
+            rdata_0=m.Out(m.UInt[5]),
+            raddr_1=m.In(m.Bits[2]),
+            rdata_1=m.Out(m.UInt[5]),
+            waddr_0=m.In(m.Bits[2]),
+            wdata_0=m.In(m.UInt[5]),
+            we_0=m.In(m.Enable),
+            waddr_1=m.In(m.Bits[2]),
+            wdata_1=m.In(m.UInt[5]),
+            we_1=m.In(m.Enable),
+            clk=m.In(m.Clock)
+        )
+        if RE:
+            for i in range(2):
+                io += m.IO(**{f"re_{i}": m.In(m.Enable)})
+
+        mem = m.MultiPortMemory(4, m.UInt[5], 2, 2, RE)()
+
+        for i in range(2):
+            m.wire(getattr(mem, f"RADDR_{i}"), getattr(io, f"raddr_{i}"))
+            m.wire(getattr(mem, f"RDATA_{i}"), getattr(io, f"rdata_{i}"))
+            if RE:
+                m.wire(getattr(mem, f"RE_{i}"), getattr(io, f"re_{i}"))
+            m.wire(getattr(mem, f"WADDR_{i}"), getattr(io, f"waddr_{i}"))
+            m.wire(getattr(mem, f"WDATA_{i}"), getattr(io, f"wdata_{i}"))
+            m.wire(getattr(mem, f"WE_{i}"), getattr(io, f"we_{i}"))
+
+    m.compile(f"build/test_multi_port_memory_{RE}", test_multi_port_memory,
+              output="mlir-verilog")
+
+    assert check_gold(__file__, f"test_multi_port_memory_{RE}.mlir")

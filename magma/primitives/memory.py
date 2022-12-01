@@ -193,3 +193,35 @@ class Memory(Generator2):
                 self.WADDR @= addr
                 self.WE @= when
             self.write = write
+
+
+class MultiPortMemory(Generator2):
+    def __init__(self, height, T: Kind, num_read_ports=1, num_write_ports=1,
+                 has_read_enable: bool = False):
+        if num_read_ports < 1 or num_write_ports < 0:
+            raise ValueError("Invalid number of ports")
+
+        self.num_read_ports = num_read_ports
+        self.has_read_enable = has_read_enable
+        self.num_write_ports = num_write_ports
+        self.T = T
+        self.height = height
+        addr_width = clog2(height)
+        data_width = T.flat_length()
+        self.io = ClockIO()
+        for i in range(num_read_ports):
+            ports = {
+                f"RADDR_{i}": In(Bits[addr_width]),
+                f"RDATA_{i}": Out(T)
+            }
+            if has_read_enable:
+                ports[f"RE_{i}"] = In(Enable)
+            self.io += IO(**ports)
+        for i in range(num_write_ports):
+            ports = {
+                f"WADDR_{i}": In(Bits[addr_width]),
+                f"WDATA_{i}": In(T),
+                f"WE_{i}": In(Enable)
+            }
+            self.io += IO(**ports)
+        self.primitive = True
