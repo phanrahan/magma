@@ -698,7 +698,7 @@ class ModuleVisitor:
                 sv.ReadInOutOp(operands=[read_reg], results=[read_ports_out[i]])
                 read_temp = self._ctx.new_value(elt_type.T)
                 sv.ReadInOutOp(operands=[read], results=[read_temp])
-                read_regs.append((read_reg, read_temp))
+                read_regs.append((read_reg, read_temp, port[1]))
             else:
                 sv.ReadInOutOp(operands=[read], results=[read_ports_out[i]])
 
@@ -716,7 +716,7 @@ class ModuleVisitor:
                 with push_block(sv.IfOp(operands=[wen]).then_block):
                     sv.PAssignOp(operands=[target, data])
             if len(read_regs):
-                for target, value in read_regs:
+                for target, value, ren in read_regs:
                     with push_block(sv.IfOp(operands=[ren]).then_block):
                         sv.PAssignOp(operands=[target, value])
         return True

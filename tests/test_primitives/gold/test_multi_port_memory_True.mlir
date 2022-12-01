@@ -18,7 +18,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.if %we_1 {
                 sv.passign %10, %wdata_1 : i5
             }
-            sv.if %re_1 {
+            sv.if %re_0 {
                 sv.passign %4, %5 : i5
             }
             sv.if %re_1 {
