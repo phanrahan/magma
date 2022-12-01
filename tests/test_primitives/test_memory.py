@@ -328,6 +328,6 @@ def test_multi_port_memory(RE):
             m.wire(getattr(mem, f"WE_{i}"), getattr(io, f"we_{i}"))
 
     m.compile(f"build/test_multi_port_memory_{RE}", test_multi_port_memory,
-              output="mlir-verilog")
+              output="mlir")
 
     assert check_gold(__file__, f"test_multi_port_memory_{RE}.mlir")
