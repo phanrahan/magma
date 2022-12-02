@@ -418,7 +418,8 @@ def sequential2(pre_passes=[], post_passes=[],
 
         def sequential_getattribute(self, key):
             """
-            Wrap lists so we can use the setattr interface with lists of registers
+            Wrap lists so we can use the setattr interface with lists of
+            registers
             """
             result = cls_getattribute(self, key)
             if isinstance(result, list):
@@ -427,23 +428,22 @@ def sequential2(pre_passes=[], post_passes=[],
                 return _SequentialRegisterWrapper[type(result())](result)
             return result
 
-
         def sequential_setattr(self, key, value):
-            # TODO: for now we assume this is a register, ideally we'd type check this,
-            # but we need to have a notion of a register primitive (e.g. right now the
-            # mantle reg wraps the coreir reg primitive, so technically the register is
-            # an arbitrary user-defined circuit)
+            # TODO: for now we assume this is a register, ideally we'd type
+            # check this,but we need to have a notion of a register primitive
+            # (e.g. right now the mantle reg wraps the coreir reg primitive,
+            # so technically the register is an arbitrary user-defined circuit)
             target = cls_getattribute(self, key)
             if isinstance(target, Circuit):
                 if isinstance(value, MagmaProtocol):
                     value = value._get_magma_value_()
 
                 if not isinstance(value, (Circuit, int, Type)):
-                    raise TypeError("Excepted setattr value to be a Circuit, Type, or int",
-                                    f"not {type(value)}")
+                    raise TypeError("Excepted setattr value to be a Circuit, "
+                                    f"Type, or int not {type(value)}")
 
-                # Simply use function call syntax for now (should automatically retrieve
-                # the output of value)
+                # Simply use function call syntax for now (should
+                # automatically retrieve the output of value)
                 target(value)
             else:
                 # fall back to the cls's original setattr
