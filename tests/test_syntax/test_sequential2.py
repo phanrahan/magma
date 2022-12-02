@@ -866,3 +866,74 @@ def test_named_outputs():
             return a.adc(b, c_in)
 
     assert Adder.interface.ports.keys() == {'a', 'b', 'c_in', 's', 'c_out', 'CLK'}
+
+def test_special_attr():
+    def _is_dunder(name: str) -> bool:
+        return (len(name) > 4
+                and name[:2] == name[-2:] == '__'
+                and name[2] != '_' and name[-3] != '_')
+
+    # a sentinel
+    _null = object()
+
+    # This is basically the PEak base class
+    class PeakPokeBase:
+        # enable a descriptor like protocol on instance attributes
+        def __getattribute__(self, attr):
+            val = super().__getattribute__(attr)
+
+            if _is_dunder(attr):
+                return val
+
+            try:
+                getter = val._peak_
+            except AttributeError:
+                return val
+
+            return getter()
+
+        def __setattr__(self, attr, value):
+            if _is_dunder(attr):
+                return super().__setattr__(attr, value)
+
+            try:
+                current = super().__getattribute__(attr)
+            except AttributeError:
+                return super().__setattr__(attr, value)
+
+            setter = getattr(current, '_poke_', _null)
+
+            if setter is _null:
+                return super().__setattr__(attr, value)
+            else:
+                return setter(value)
+
+    class PeakPokeRegister:
+        def __init__(self, T, init):
+            self.reg = m.Register(T, init,
+                has_enable=False,
+                reset_type=m.AsyncReset
+                )()
+
+        def _peak_(self):
+            return self.reg.O
+
+        def _poke_(self, value):
+            self.reg.I @= value
+
+    Data = m.UInt[8]
+    @m.sequential2()
+    class Counter(PeakPokeBase):
+        def __init__(self):
+            self.reg = PeakPokeRegister(Data, 0)
+
+        def __call__(self, en: m.Bit) -> Data:
+            val = self.reg
+            if en & (val < 7):
+                self.reg = val + 1
+            elif en:
+                self.reg = 0
+            else:
+                self.reg = val
+            return val
+
