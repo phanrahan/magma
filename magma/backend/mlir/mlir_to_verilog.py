@@ -101,7 +101,7 @@ def circt_opt_binary_exists() -> bool:
             stdin=io.BytesIO(),
             stdout=io.BytesIO(),
         )
-    except FileNotFoundError:
+    except (FileNotFoundError, PermissionError):
         return False
     return returncode == 0
 
