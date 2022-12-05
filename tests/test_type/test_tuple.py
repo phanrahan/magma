@@ -336,6 +336,7 @@ def test_key_error():
 
 
 def test_mixed_direction_lazy_resolve(caplog):
+
     class T(m.Product):
         x = m.In(m.Bit)
         y = m.Out(m.Bit)
