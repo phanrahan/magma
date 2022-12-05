@@ -96,8 +96,7 @@ class Enable(Bit):
         if get_debug_mode() and debug_info is None:
             debug_info = get_callee_frame_info()
         if self._driven_implicitly_by_when and not driven_implicitly_by_when:
-            # User is overriding the implicit when logic
-            self.unwire(debug_info)
+            self.unwire(debug_info)  # user is overriding the implicit when logic
         super().wire(o, debug_info)
         self._driven_implicitly_by_when = driven_implicitly_by_when
 
