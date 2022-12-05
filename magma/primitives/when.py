@@ -166,10 +166,13 @@ class WhenBuilder(CircuitBuilder):
         self._add_port(port_name, type_qualifier(type(value).undirected_t))
         with no_when():
             port = getattr(self, port_name)
-            wire_kwargs = {}
             if value.is_input() and isinstance(value, Enable):
-                wire_kwargs["driven_implicitly_by_when"] = value.driven_implicitly_by_when
-            value.wire(port, **wire_kwargs)
+                value.wire(
+                    port,
+                    driven_implicitly_by_when=value.driven_implicitly_by_when
+                )
+            else:
+                wire(port, value)
         value_to_name[value] = port_name
 
     def add_drivee(self, value: Type):
