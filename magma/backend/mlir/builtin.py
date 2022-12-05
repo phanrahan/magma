@@ -1,6 +1,7 @@
 import dataclasses
 
 from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
+from magma.backend.mlir.mlir import MlirLocation
 from magma.backend.mlir.mlir import MlirAttribute
 from magma.backend.mlir.mlir import MlirOp, MlirRegion, MlirBlock
 from magma.backend.mlir.mlir import MlirType
@@ -10,6 +11,11 @@ from magma.backend.mlir.printer_base import PrinterBase
 
 builtin = MlirDialect("builtin")
 begin_dialect(builtin)
+
+
+class UnknownLoc(MlirLocation):
+    def emit(self) -> str:
+        return "loc(unknown)"
 
 
 @dataclasses.dataclass(frozen=True)
