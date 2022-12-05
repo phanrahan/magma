@@ -329,10 +329,13 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 debug_info=debug_info
             )
             return
-        if (
-            self.is_mixed() or o.is_mixed() or
-            self.has_elaborated_children() or o.has_elaborated_children()
-        ):
+        should_elaborate = (
+            self.is_mixed()
+            or o.is_mixed()
+            or self.has_elaborated_children()
+            or o.has_elaborated_children()
+        )
+        if should_elaborate:
             for self_elem, o_elem in zip(self, o):
                 self_elem = magma_value(self_elem)
                 o_elem = magma_value(o_elem)
