@@ -6,7 +6,6 @@ import magma as m
 def gen_circuit(debug_mode, n=8):
     class Foo(m.Generator2):
         if debug_mode == 2:
-            @m.debug
             def __init__(self, n):
                 self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bit))
                 x = m.Bits[n]()
@@ -21,6 +20,8 @@ def gen_circuit(debug_mode, n=8):
                 self.io.O @= x.reduce_xor()
                 m.config.set_debug_mode(False)
         else:
+            _disable_debug_ = True
+
             def __init__(self, n):
                 self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bit))
                 x = m.Bits[n]()

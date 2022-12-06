@@ -77,7 +77,9 @@ def _make_type(cls, *args, **kwargs):
     name = cls.__name__
     bases = (cls._base_cls_,)
     dct = cls._base_metacls_.__prepare__(name, bases)
-    cls.__init__ = debug(cls.__init__)
+    if not getattr(cls, "_disable__debug_", False):
+        # TODO: temp flag for debug bench, do not need
+        cls.__init__ = debug(cls.__init__)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
     # NOTE(leonardt): We need to override the Generator2 classmethod bind with
