@@ -21,7 +21,6 @@ setup(
         "magma.passes",
         "magma.primitives",
         "magma.smart",
-        "magma.simulator",
         "magma.syntax",
         "magma.syntax.transforms",
         "magma.ssa",
