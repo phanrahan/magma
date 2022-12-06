@@ -56,8 +56,8 @@ def magma_debug_section():
     return _MagmaDebugSection()
 
 
-def _str_log(msg):
-    # Remove escaped formatting, e.g. bold in log
+def _unformat(msg):
+    # Remove escaped formatting, e.g. bold or color in stdout log.
     ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
     return ansi_escape.sub('', str(msg))
 
@@ -68,9 +68,9 @@ def has_log(caplog, level=None, msg=None):
     if level and not msg:
         gen = (log.levelname == level for log in caplog.records)
     elif msg and not level:
-        gen = (_str_log(log.msg) == _str_log(msg) for log in caplog.records)
+        gen = (_unformat(log.msg) == _unformat(msg) for log in caplog.records)
     else:
-        gen = (log.levelname == level and _str_log(log.msg) == _str_log(msg)
+        gen = (log.levelname == level and _unformat(log.msg) == _unformat(msg)
                for log in caplog.records)
     return any(gen)
 

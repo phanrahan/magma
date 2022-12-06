@@ -1,9 +1,25 @@
+<<<<<<< Updated upstream
 import uinspect
+=======
+import dataclasses
+import inspect
+>>>>>>> Stashed changes
 import collections
 
 
+<<<<<<< Updated upstream
 debug_info = collections.namedtuple("debug_info",
                                     ["filename", "lineno", "module"])
+=======
+@dataclasess
+class _DebugInfo:
+    filename: str
+    lineno: int
+    module: str
+
+
+debug_info = _DebugInfo
+>>>>>>> Stashed changes
 
 
 def get_debug_info(frames_to_skip):
