@@ -177,7 +177,10 @@ def compiledefinition(cls):
 
     args = ', '.join(vmoduleargs(cls.interface))
     s = ''
-    if get_codegen_debug_info() and cls.debug_info.filename and cls.debug_info.lineno:
+    if (
+        get_codegen_debug_info() and cls.debug_info and
+        cls.debug_info.filename and cls.debug_info.lineno
+    ):
         s += f'// Defined at {make_relative(cls.debug_info.filename)}:{cls.debug_info.lineno}\n'
     s += 'module %s (%s);\n' % (cls.verilog_name, args)
     if cls.verilog:
