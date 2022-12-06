@@ -1137,3 +1137,20 @@ def test_when_spurious_assign():
     m.compile(f"build/{_Test.name}", _Test,
               output="mlir", flatten_all_tuples=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_reg_ce_implicit_override():
+
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce_implicit_override"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  x=m.In(m.Bit), y=m.In(m.Bit))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        with m.when(io.y):
+            x.I @= io.I
+        x.CE @= io.x
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
