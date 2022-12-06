@@ -26,8 +26,7 @@ class Transformer(cst.CSTTransformer):
         value_str = cst.Module((cst.Expr(updated_node.value), )).code
         name = updated_node.targets[0].target.value
         tree = cst.parse_expression(
-            f"m.debug_rewriter.set_debug_info({value_str}, \"{name}\", "
-            f"\"{self.filename}\", {pos.line}, {pos.column})"
+            f"m.debug_rewriter.set_debug_info({value_str}, \"{name}\")"
         )
         return updated_node.with_changes(value=tree)
 
@@ -61,13 +60,10 @@ def debug(fn):
     return wrapper
 
 
-def set_debug_info(value, name, filename, lineno, col_offset):
+def set_debug_info(value, name):
     if not isinstance(value, Type):
         return
     if not isinstance(value.name, AnonRef):
         return
     value.name = NamedRef(name)
-    value.filename = filename
-    value.lineno = lineno
-    value.col_offset = col_offset
     return value
