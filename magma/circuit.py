@@ -264,13 +264,7 @@ class CircuitKind(type):
         return cls
 
     def __call__(cls, *largs, **kwargs):
-<<<<<<< Updated upstream
-        debug_info = get_debug_info(3)
-        kwargs["debug_info"] = debug_info
-=======
-        if get_debug_mode():
-            kwargs["debug_info"] = get_callee_frame_info()
->>>>>>> Stashed changes
+        kwargs["debug_info"] = get_debug_info(3)
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
         if hasattr(cls, 'IO'):
             interface = cls.IO(inst=self, renamed_ports=cls.renamed_ports)
