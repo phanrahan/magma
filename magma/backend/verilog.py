@@ -123,7 +123,8 @@ def compileinstance(self):
     debug_str = ""
     for k, v in self.interface.ports.items():
         if getattr(v, "debug_info", False) and get_codegen_debug_info():
-            filename, lineno, module = v.debug_info
+            filename, lineno, module = \
+                v.debug_info.filename, v.debug_info.lineno, v.debug_info.module
         #print('arg', k, v,)
         if v.is_input():
             # find the output connected to v

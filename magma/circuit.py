@@ -728,8 +728,8 @@ def EndDefine():
     placer = context.placer
     find_and_log_unconnected_ports(placer._defn)
     debug_info = get_debug_info(3)
-    placer._defn.end_circuit_filename = debug_info[0]
-    placer._defn.end_circuit_lineno = debug_info[1]
+    placer._defn.end_circuit_filename = debug_info.filename
+    placer._defn.end_circuit_lineno = debug_info.lineno
     pop_definition_context()
 
 
