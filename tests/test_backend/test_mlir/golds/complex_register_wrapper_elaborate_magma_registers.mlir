@@ -23,7 +23,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %22 = comb.extract %14 from 7 : (i8) -> i1
         %23 = hw.struct_extract %12["y"] : !hw.struct<x: i8, y: i1>
         %24 = comb.concat %23, %22, %21, %20, %19, %18, %17, %16, %15 : i1, i1, i1, i1, i1, i1, i1, i1, i1
-        %25 = sv.reg {name = "reg_PR9_inst0"} : !hw.inout<i9>
+        %25 = sv.reg {name = "reg"} : !hw.inout<i9>
         sv.alwaysff(posedge %CLK) {
             sv.passign %25, %24 : i9
         } (asyncreset : posedge %ASYNCRESET) {

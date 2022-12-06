@@ -12,8 +12,12 @@ class Transformer(cst.CSTTransformer):
     def leave_Assign(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.CSTNode:
-        assert len(updated_node.targets) == 1
-        assert isinstance(updated_node.targets[0], cst.AssignTarget)
+        if len(updated_node.targets) != 1:
+            # TODO: handle chained assigns
+            return updated_node
+        if not isinstance(updated_node.targets[0], cst.AssignTarget):
+            # TODO: Handle this case
+            return updated_node
         if not isinstance(updated_node.targets[0].target, cst.Name):
             return updated_node
 
