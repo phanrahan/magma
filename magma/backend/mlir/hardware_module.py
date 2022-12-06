@@ -91,6 +91,13 @@ def _make_compile_guard_block(compile_guard: Mapping) -> MlirBlock:
     return if_def.else_block
 
 
+def _maybe_set_location_info(op, debug_info):
+    if debug_info is None:
+        return
+    loc = builtin.FileLineColLoc(debug_info.filename, debug_info.lineno, 0)
+    op.location = loc
+
+
 @wrap_with_not_implemented_error
 def parse_reset_type(T: Kind) -> Tuple[str, str]:
     if T is Reset:
@@ -1178,7 +1185,13 @@ class HardwareModule:
 
     def compile(self):
         self._hw_module = self._compile()
+        if self._hw_module is None:
+            return
         self._add_module_parameters(self._hw_module)
+        _maybe_set_location_info(
+            self._hw_module,
+            self._magma_defn_or_decl.debug_info
+        )
 
     def _compile(self) -> hw.ModuleOpBase:
         if treat_as_primitive(self._magma_defn_or_decl, self):
@@ -1240,11 +1253,7 @@ class HardwareModule:
         bind_processor.postprocess()
         return op
 
-    def _add_module_parameters(
-            self, maybe_hw_module: Optional[hw.ModuleOpBase]):
-        if maybe_hw_module is None:
-            return
-        hw_module = maybe_hw_module
+    def _add_module_parameters(self, hw_module: hw.ModuleOpBase):
         defn_or_decl = self._magma_defn_or_decl
         try:
             param_types = defn_or_decl.coreir_config_param_types

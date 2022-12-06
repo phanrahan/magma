@@ -11,6 +11,6 @@ module attributes {circt.loweringOptions = "locationInfoStyle=plain"} {
         hw.output %3, %3 : i16, i16
         loc(unknown)
     }
-    loc(unknown)
+    loc("file.py":100:0)
 }
 loc(unknown)

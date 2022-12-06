@@ -19,6 +19,16 @@ class UnknownLoc(MlirLocation):
 
 
 @dataclasses.dataclass(frozen=True)
+class FileLineColLoc(MlirLocation):
+    file: str
+    line: int
+    col: int
+
+    def emit(self) -> str:
+        return f"loc(\"{self.file}\":{self.line}:{self.col})"
+
+
+@dataclasses.dataclass(frozen=True)
 class IntegerType(MlirType):
     n: int
 
