@@ -1,9 +1,9 @@
-import dataclasses
+from dataclasses import dataclass
 import uinspect
 import collections
 
 
-@dataclasess
+@dataclass
 class _DebugInfo:
     filename: str
     lineno: int
