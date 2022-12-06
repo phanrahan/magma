@@ -236,7 +236,7 @@ def compiledefinition(cls):
                         iname = vname(port)
                         oname = vname(output)
                         if getattr(port, "debug_info", False) and get_codegen_debug_info():
-                            s += f"// Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}\n"
+                            s += f"// Wired at {make_relative(port.debug_info.filename)}:{port.debug_info.lineno}\n"
                         s += 'assign %s = %s;\n' % (iname, oname)
                 else:
                     _logger.warning(f"{cls.__name__}.{port.name} is unwired")
