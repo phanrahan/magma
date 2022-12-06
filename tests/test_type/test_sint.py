@@ -1,10 +1,11 @@
-import magma as m
 import operator
 import pytest
-from magma.testing import check_files_equal
-from magma import *
-from magma.simulator import PythonSimulator
+
 from hwtypes import SIntVector
+
+import magma as m
+from magma import *
+from magma.testing import check_files_equal
 
 Array2 = Array[2, Bit]
 Array4 = Array[4, Bit]
@@ -109,15 +110,6 @@ def test_compare(n, op):
         io = IO(I0=In(SInt[n]), I1=In(SInt[n]), O=Out(Bit))
         io.O <= getattr(operator, op)(io.I0, io.I1)
 
-    sim = PythonSimulator(TestBinary)
-    for _ in range(2):
-        I0 = SIntVector.random(n)
-        I1 = SIntVector.random(n)
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
-
     op = {
         "eq": "eq",
         "le": "sle",
@@ -144,18 +136,6 @@ def test_binary(n, op):
     class TestBinary(Circuit):
         io = IO(I0=In(SInt[n]), I1=In(SInt[n]), O=Out(SInt[n]))
         io.O <= getattr(operator, op)(io.I0, io.I1)
-
-    sim = PythonSimulator(TestBinary)
-    for _ in range(2):
-        I0 = SIntVector.random(n)
-        I1 = SIntVector.random(n)
-        if op in ["floordiv", "mod"]:
-            while I1 == 0:
-                I1 = SIntVector.random(n)
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
 
     if op == "floordiv":
         op = "sdiv"
@@ -224,16 +204,6 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestSInt{n}adc.v",
                              f"gold/TestSInt{n}adc.v")
 
-    sim = PythonSimulator(TestBinary)
-    for _ in range(2):
-        I0 = SIntVector.random(n)
-        I1 = SIntVector.random(n)
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == I0 + I1
-        assert sim.get_value(TestBinary.COUT) == (I0.sext(1) + I1.sext(1))[-1]
-
 
 @pytest.mark.parametrize("n", [7, 3])
 def test_negate(n):
@@ -252,13 +222,6 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestSInt{n}neg.v",
                              f"gold/TestSInt{n}neg.v")
 
-    sim = PythonSimulator(TestNegate)
-    for _ in range(2):
-        I = SIntVector.random(n)
-        sim.set_value(TestNegate.I, I)
-        sim.evaluate()
-        assert sim.get_value(TestNegate.O) == -I
-
 
 @pytest.mark.parametrize("op", [operator.floordiv, operator.mod])
 def test_rops(op):
@@ -267,16 +230,6 @@ def test_rops(op):
     class Main(m.Circuit):
         io = m.IO(I=m.In(m.SInt[5]), O=m.Out(m.SInt[5]))
         io.O @= op(x, io.I)
-
-    sim = PythonSimulator(Main)
-    I = SIntVector.random(5)
-    while I == 0:
-        # Avoid divide by 0
-        I = SIntVector.random(5)
-
-    sim.set_value(Main.I, I)
-    sim.evaluate()
-    assert sim.get_value(Main.O) == op(x, I)
 
 
 @pytest.mark.parametrize("op, op_str", [

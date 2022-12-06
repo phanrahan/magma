@@ -1,11 +1,13 @@
 import itertools
+import operator
 import pytest
+
 import magma as m
 from magma import In, Out, Flip
-from magma.testing import check_files_equal
 from magma.bit import Bit, VCC, GND, Digital
-from magma.simulator import PythonSimulator
-import operator
+from magma.testing import check_files_equal
+
+
 BitIn = In(Bit)
 BitOut = Out(Bit)
 
@@ -255,12 +257,6 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBitInvert.v",
                              f"gold/TestBitInvert.v")
 
-    sim = PythonSimulator(TestInvert)
-    for I in [0, 1]:
-        sim.set_value(TestInvert.I, I)
-        sim.evaluate()
-        assert sim.get_value(TestInvert.O) == (0 if I else 1)
-
 
 @pytest.mark.parametrize("op", ["and_", "or_", "xor"])
 def test_binary(op):
@@ -281,13 +277,6 @@ EndCircuit()\
     m.compile(f"build/TestBit{clean_op}", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBit{clean_op}.v",
                              f"gold/TestBit{clean_op}.v")
-
-    sim = PythonSimulator(TestBinary)
-    for I0, I1 in zip([0, 1], [0, 1]):
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
 
 
 def test_eq():
@@ -311,13 +300,6 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBiteq.v",
                              f"gold/TestBiteq.v")
 
-    sim = PythonSimulator(TestBinary)
-    for I0, I1 in zip([0, 1], [0, 1]):
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == (I0 == I1)
-
 
 def test_ne():
     class TestBinary(m.Circuit):
@@ -337,13 +319,6 @@ EndCircuit()\
     m.compile(f"build/TestBitne", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBitne.v",
                              f"gold/TestBitne.v")
-
-    sim = PythonSimulator(TestBinary)
-    for I0, I1 in zip([0, 1], [0, 1]):
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == (I0 != I1)
 
 
 def test_ite():
@@ -366,14 +341,6 @@ EndCircuit()\
     m.compile(f"build/TestBitite", TestITE, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBitite.v",
                              f"gold/TestBitite.v")
-
-    sim = PythonSimulator(TestITE)
-    for I0, I1, S in zip([0, 1], [0, 1], [0, 1]):
-        sim.set_value(TestITE.I0, I0)
-        sim.set_value(TestITE.I1, I1)
-        sim.set_value(TestITE.S, S)
-        sim.evaluate()
-        assert sim.get_value(TestITE.O) == (I1 if S else I0)
 
 
 @pytest.mark.parametrize("op", [int, bool])

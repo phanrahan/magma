@@ -1,14 +1,12 @@
-"""
-Test the `m.Bits` type
-"""
-
 import operator
 import pytest
+
+from hwtypes import BitVector
+
 import magma as m
 from magma import Bits
 from magma.testing import check_files_equal
-from magma.simulator import PythonSimulator
-from hwtypes import BitVector
+
 
 ARRAY2 = m.Array[2, m.Bit]
 ARRAY4 = m.Array[4, m.Bit]
@@ -198,13 +196,6 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBits{n}Invert.v",
                              f"gold/TestBits{n}Invert.v")
 
-    sim = PythonSimulator(TestInvert)
-    for _ in range(2):
-        I = BitVector.random(n)
-        sim.set_value(TestInvert.I, I)
-        sim.evaluate()
-        assert sim.get_value(TestInvert.O) == ~I
-
 
 @pytest.mark.parametrize("n", [1, 3])
 @pytest.mark.parametrize("op", ["and_", "or_", "xor", "lshift", "rshift"])
@@ -229,15 +220,6 @@ EndCircuit()\
               TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}{magma_op}.v",
                              f"gold/TestBits{n}{magma_op}.v")
-
-    sim = PythonSimulator(TestBinary)
-    for _ in range(2):
-        I0 = BitVector.random(n)
-        I1 = BitVector.random(n)
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
 
 
 @pytest.mark.parametrize("n", [1, 3])
@@ -266,16 +248,6 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBits{n}ITE.v",
                              f"gold/TestBits{n}ITE.v")
 
-    sim = PythonSimulator(TestITE)
-    for S in [0, 1]:
-        I0 = BitVector.random(n)
-        I1 = BitVector.random(n)
-        sim.set_value(TestITE.I0, I0)
-        sim.set_value(TestITE.I1, I1)
-        sim.set_value(TestITE.S, S)
-        sim.evaluate()
-        assert sim.get_value(TestITE.O) == (I1 if S else I0)
-
 
 @pytest.mark.parametrize("n", [1, 3])
 def test_eq(n):
@@ -295,15 +267,6 @@ EndCircuit()\
     m.compile(f"build/TestBits{n}eq", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}eq.v",
                              f"gold/TestBits{n}eq.v")
-
-    sim = PythonSimulator(TestBinary)
-    for i in range(2):
-        I0 = BitVector.random(n)
-        I1 = BitVector.random(n)
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == (I0 == I1)
 
 
 @pytest.mark.parametrize("n", [1, 3])
@@ -328,13 +291,6 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBits{n}ext.v",
                              f"gold/TestBits{n}ext.v")
 
-    sim = PythonSimulator(TestExt)
-    for i in range(2):
-        I = BitVector.random(n)
-        sim.set_value(TestExt.I, I)
-        sim.evaluate()
-        assert sim.get_value(TestExt.O) == I.zext(3)
-
 
 @pytest.mark.parametrize("n", [1, 3])
 def test_bvcomp(n):
@@ -355,15 +311,6 @@ EndCircuit()\
     m.compile(f"build/TestBits{n}bvcomp", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}bvcomp.v",
                              f"gold/TestBits{n}bvcomp.v")
-
-    sim = PythonSimulator(TestBinary)
-    for i in range(2):
-        I0 = BitVector.random(n)
-        I1 = BitVector.random(n)
-        sim.set_value(TestBinary.I0, I0)
-        sim.set_value(TestBinary.I1, I1)
-        sim.evaluate()
-        assert sim.get_value(TestBinary.O) == (I0 == I1)
 
 
 @pytest.mark.parametrize("n", [1, 3])
@@ -390,13 +337,6 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBits{n}x{x}Repeat.v",
                              f"gold/TestBits{n}x{x}Repeat.v")
 
-    sim = PythonSimulator(TestRepeat)
-    for i in range(2):
-        I = BitVector.random(n)
-        sim.set_value(TestRepeat.I, I)
-        sim.evaluate()
-        assert sim.get_value(TestRepeat.O) == I.repeat(x)
-
 
 @pytest.mark.parametrize("op", [operator.and_, operator.or_, operator.xor,
                                 operator.lshift, operator.rshift, operator.add,
@@ -407,12 +347,6 @@ def test_rops(op):
     class Main(m.Circuit):
         io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bits[5]))
         io.O @= op(x, io.I)
-
-    sim = PythonSimulator(Main)
-    I = BitVector.random(5)
-    sim.set_value(Main.I, I)
-    sim.evaluate()
-    assert sim.get_value(Main.O) == op(x, I)
 
 
 @pytest.mark.parametrize("op, op_str", [
