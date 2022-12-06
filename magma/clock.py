@@ -100,7 +100,7 @@ class Enable(Bit):
             # a when statement, but now the user is explicitly wiring the enable
             # When this happens, we choose the user's explicit wiring, and
             # discard the implicit logic (rather than forcing the user to call
-            # rewire explicitly)
+            # rewire explicitly).
             self.unwire(debug_info)
         super().wire(o, debug_info)
         self._driven_implicitly_by_when = driven_implicitly_by_when
