@@ -43,7 +43,6 @@ def debug(fn):
     tree = wrapper.visit(Transformer())
 
     namespace = dict(**fn.__globals__)
-    print(tree.code)
     exec(tree.code, namespace)
     debug_fn = namespace[fn.__name__]
 
