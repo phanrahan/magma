@@ -9,10 +9,6 @@ from magma.ref import AnonRef, NamedRef
 class Transformer(cst.CSTTransformer):
     METADATA_DEPENDENCIES = (cst.metadata.PositionProvider,)
 
-    def __init__(self, filename):
-        super().__init__()
-        self.filename = filename
-
     def leave_Assign(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.CSTNode:
@@ -25,10 +21,10 @@ class Transformer(cst.CSTTransformer):
                                 original_node).start
         value_str = cst.Module((cst.Expr(updated_node.value), )).code
         name = updated_node.targets[0].target.value
-        tree = cst.parse_expression(
-            f"m.debug_rewriter.set_debug_info({value_str}, \"{name}\")"
+        targets = updated_node.targets + (
+            cst.AssignTarget(cst.parse_expression(f"self.{name}")),
         )
-        return updated_node.with_changes(value=tree)
+        return updated_node.with_changes(targets=targets)
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
         return True
@@ -40,30 +36,21 @@ class Transformer(cst.CSTTransformer):
 
 
 def debug(fn):
-    filename = inspect.getfile(fn)
     indented_program_txt = inspect.getsource(fn)
     program_txt = textwrap.dedent(indented_program_txt)
     tree = cst.parse_module(program_txt)
     wrapper = cst.metadata.MetadataWrapper(tree)
-    tree = wrapper.visit(Transformer(filename))
-    code = "import magma as m\n" + tree.code
+    tree = wrapper.visit(Transformer())
 
-    namespace = {}
-    exec(code, namespace)
+    namespace = dict(**fn.__globals__)
+    print(tree.code)
+    exec(tree.code, namespace)
     debug_fn = namespace[fn.__name__]
 
     def wrapper(*args, **kwargs):
         try:
             return debug_fn(*args, **kwargs)
         except Exception:
+            # TODO: Namespace issues, need to inherite fn closure
             return fn(*args, **kwargs)
     return wrapper
-
-
-def set_debug_info(value, name):
-    if not isinstance(value, Type):
-        return
-    if not isinstance(value.name, AnonRef):
-        return
-    value.name = NamedRef(name)
-    return value
