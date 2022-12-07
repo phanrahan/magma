@@ -716,9 +716,11 @@ def test_lazy_array_nested(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array_nested"
-        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Array[2, m.Tuple[m.Bit, m.Bit]]))
 
-        x = m.Array[2, m.Tuple[m.Bit, m.Bit]](name="x")
+        T = m.Product.from_fields("anon", {"x": m.Bit, "y": m.Bit})
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Array[2, T]))
+
+        x = m.Array[2, T](name="x")
 
         with m.when(io.S):
             x[0][0] @= 0

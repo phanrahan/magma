@@ -53,6 +53,7 @@ from magma.linking import (
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.primitives.when import iswhen
+from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
 from magma.t import Kind, Type
@@ -670,6 +671,13 @@ class ModuleVisitor:
             return self.visit_when(module)
 
     @wrap_with_not_implemented_error
+    def visit_magma_wire(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, Wire) and not defn.flattened
+        return self.visit_coreir_wire(module)
+
+    @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -820,6 +828,8 @@ class ModuleVisitor:
         assert isinstance(inst, AnonymousCircuitType)
         defn = type(inst)
         elaborate_magma_registers = self._ctx.opts.elaborate_magma_registers
+        if isinstance(defn, Wire) and not defn.flattened:
+            return self.visit_magma_wire(module)
         if isinstance(defn, Mux):
             return self.visit_magma_mux(module)
         if isinstance(defn, Register) and not elaborate_magma_registers:
