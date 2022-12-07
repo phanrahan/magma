@@ -62,6 +62,14 @@ class Mux(Generator2):
         self.height = height
         self.T = T
 
+        self.primitive = True
+        self.stateful = False
+
+        def _simulate(_, __, ___):
+            raise NotImplementedError()
+
+        self.simulate = _simulate
+
     def elaborate(self):
         N = magma_type(self.T).flat_length()
         mux = CoreIRCommonLibMuxN(self.height, N)()
