@@ -52,14 +52,14 @@ module Mux2xTuplex_UInt8 (
     output [7:0] O_x,
     input S
 );
-wire [7:0] coreir_commonlib_mux2x8_inst0_out;
-commonlib_muxn__N2__width8 coreir_commonlib_mux2x8_inst0 (
+wire [7:0] mux_out;
+commonlib_muxn__N2__width8 mux (
     .in_data_0(I0_x),
     .in_data_1(I1_x),
     .in_sel(S),
-    .out(coreir_commonlib_mux2x8_inst0_out)
+    .out(mux_out)
 );
-assign O_x = coreir_commonlib_mux2x8_inst0_out;
+assign O_x = mux_out;
 endmodule
 
 module Test (

@@ -98,18 +98,18 @@ module Mux4xBits6 (
     input [1:0] S,
     output [5:0] O
 );
-wire [5:0] coreir_commonlib_mux4x6_inst0_out;
-wire [5:0] coreir_commonlib_mux4x6_inst0_in_data [3:0];
-assign coreir_commonlib_mux4x6_inst0_in_data[3] = I3;
-assign coreir_commonlib_mux4x6_inst0_in_data[2] = I2;
-assign coreir_commonlib_mux4x6_inst0_in_data[1] = I1;
-assign coreir_commonlib_mux4x6_inst0_in_data[0] = I0;
-commonlib_muxn__N4__width6 coreir_commonlib_mux4x6_inst0 (
-    .in_data(coreir_commonlib_mux4x6_inst0_in_data),
+wire [5:0] mux_out;
+wire [5:0] mux_in_data [3:0];
+assign mux_in_data[3] = I3;
+assign mux_in_data[2] = I2;
+assign mux_in_data[1] = I1;
+assign mux_in_data[0] = I0;
+commonlib_muxn__N4__width6 mux (
+    .in_data(mux_in_data),
     .in_sel(S),
-    .out(coreir_commonlib_mux4x6_inst0_out)
+    .out(mux_out)
 );
-assign O = coreir_commonlib_mux4x6_inst0_out;
+assign O = mux_out;
 endmodule
 
 module TestSlice (

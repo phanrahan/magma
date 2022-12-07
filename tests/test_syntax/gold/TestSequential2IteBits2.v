@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(8'h00),
     .width(8)
-) reg_P8_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
     .out(O)
@@ -38,16 +38,16 @@ module Mux2x_SequentialRegisterWrapperBits8 (
     input S,
     output [7:0] O
 );
-reg [7:0] coreir_commonlib_mux2x8_inst0_out;
+reg [7:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x8_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x8_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x8_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Mux2xTuplea__SequentialRegisterWrapperBits8 (
@@ -56,16 +56,16 @@ module Mux2xTuplea__SequentialRegisterWrapperBits8 (
     output [7:0] O_a,
     input S
 );
-reg [7:0] coreir_commonlib_mux2x8_inst0_out;
+reg [7:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x8_inst0_out = I0_a;
+    mux_out = I0_a;
 end else begin
-    coreir_commonlib_mux2x8_inst0_out = I1_a;
+    mux_out = I1_a;
 end
 end
 
-assign O_a = coreir_commonlib_mux2x8_inst0_out;
+assign O_a = mux_out;
 endmodule
 
 module Test (

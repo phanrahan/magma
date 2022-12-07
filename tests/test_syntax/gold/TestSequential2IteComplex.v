@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(2'h0),
     .width(2)
-) reg_P2_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
     .out(O)
@@ -37,17 +37,17 @@ module Register (
     output O,
     input CLK
 );
-wire [0:0] reg_P1_inst0_out;
+wire [0:0] _reg_out;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
-) reg_P1_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
-    .out(reg_P1_inst0_out)
+    .out(_reg_out)
 );
-assign O = reg_P1_inst0_out[0];
+assign O = _reg_out[0];
 endmodule
 
 module Mux2x_SequentialRegisterWrapperBits2 (
@@ -56,16 +56,16 @@ module Mux2x_SequentialRegisterWrapperBits2 (
     input S,
     output [1:0] O
 );
-reg [1:0] coreir_commonlib_mux2x2_inst0_out;
+reg [1:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x2_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x2_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x2_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Mux2x_SequentialRegisterWrapperBit (
@@ -74,16 +74,16 @@ module Mux2x_SequentialRegisterWrapperBit (
     input S,
     output O
 );
-reg [0:0] coreir_commonlib_mux2x1_inst0_out;
+reg [0:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x1_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x1_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x1_inst0_out[0];
+assign O = mux_out[0];
 endmodule
 
 module Mux2xTuplea_TupleArray2__SequentialRegisterWrapperBit_b_Array2_Bit (
@@ -95,17 +95,17 @@ module Mux2xTuplea_TupleArray2__SequentialRegisterWrapperBit_b_Array2_Bit (
     output [1:0] O_b,
     input S
 );
-reg [3:0] coreir_commonlib_mux2x4_inst0_out;
+reg [3:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = {I0_b,I0_a__0[1],I0_a__0[0]};
+    mux_out = {I0_b,I0_a__0[1],I0_a__0[0]};
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = {I1_b,I1_a__0[1],I1_a__0[0]};
+    mux_out = {I1_b,I1_a__0[1],I1_a__0[0]};
 end
 end
 
-assign O_a__0 = {coreir_commonlib_mux2x4_inst0_out[1],coreir_commonlib_mux2x4_inst0_out[0]};
-assign O_b = {coreir_commonlib_mux2x4_inst0_out[3],coreir_commonlib_mux2x4_inst0_out[2]};
+assign O_a__0 = {mux_out[1],mux_out[0]};
+assign O_b = {mux_out[3],mux_out[2]};
 endmodule
 
 module Test (

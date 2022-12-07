@@ -32,16 +32,16 @@ module Mux2xBit (
     input S,
     output O
 );
-wire [0:0] coreir_commonlib_mux2x1_inst0_out;
-wire [0:0] coreir_commonlib_mux2x1_inst0_in_data [1:0];
-assign coreir_commonlib_mux2x1_inst0_in_data[1] = I1;
-assign coreir_commonlib_mux2x1_inst0_in_data[0] = I0;
-commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
-    .in_data(coreir_commonlib_mux2x1_inst0_in_data),
+wire [0:0] mux_out;
+wire [0:0] mux_in_data [1:0];
+assign mux_in_data[1] = I1;
+assign mux_in_data[0] = I0;
+commonlib_muxn__N2__width1 mux (
+    .in_data(mux_in_data),
     .in_sel(S),
-    .out(coreir_commonlib_mux2x1_inst0_out)
+    .out(mux_out)
 );
-assign O = coreir_commonlib_mux2x1_inst0_out[0];
+assign O = mux_out[0];
 endmodule
 
 module test_mux_operator (

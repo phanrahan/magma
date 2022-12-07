@@ -8,7 +8,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %5 = comb.extract %WDATA_y from 5 : (i7) -> i1
         %6 = comb.extract %WDATA_y from 6 : (i7) -> i1
         %7 = comb.concat %6, %5, %4, %3, %2, %1, %0, %WDATA_x : i1, i1, i1, i1, i1, i1, i1, i1
-        %9 = sv.reg {name = "coreir_mem32x8_inst0"} : !hw.inout<!hw.array<32xi8>>
+        %9 = sv.reg {name = "coreir_mem"} : !hw.inout<!hw.array<32xi8>>
         %10 = sv.array_index_inout %9[%RADDR] : !hw.inout<!hw.array<32xi8>>, i5
         %8 = sv.read_inout %10 : !hw.inout<i8>
         %11 = sv.array_index_inout %9[%WADDR] : !hw.inout<!hw.array<32xi8>>, i5

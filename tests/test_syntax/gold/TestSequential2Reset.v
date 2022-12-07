@@ -27,16 +27,16 @@ module Mux2xUInt3 (
     input S,
     output [2:0] O
 );
-reg [2:0] coreir_commonlib_mux2x3_inst0_out;
+reg [2:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x3_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x3_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x3_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Register (
@@ -47,22 +47,22 @@ module Register (
     input ASYNCRESET
 );
 wire [2:0] enable_mux_O;
-Mux2xUInt3 enable_mux (
-    .I0(O),
-    .I1(I),
-    .S(CE),
-    .O(enable_mux_O)
-);
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(3'h0),
     .width(3)
-) reg_PR3_inst0 (
+) _reg (
     .clk(CLK),
     .arst(ASYNCRESET),
     .in(enable_mux_O),
     .out(O)
+);
+Mux2xUInt3 enable_mux (
+    .I0(O),
+    .I1(I),
+    .S(CE),
+    .O(enable_mux_O)
 );
 endmodule
 

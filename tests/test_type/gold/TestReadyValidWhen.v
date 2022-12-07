@@ -4,16 +4,16 @@ module Mux2xBits5 (
     input S,
     output [4:0] O
 );
-reg [4:0] coreir_commonlib_mux2x5_inst0_out;
+reg [4:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x5_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x5_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x5_inst0_out;
+assign O = mux_out;
 endmodule
 
 module TestReadyValidWhen (

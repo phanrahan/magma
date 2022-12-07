@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(4'h0),
     .width(4)
-) reg_P4_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
     .out(O)
@@ -38,16 +38,16 @@ module Mux2x_SequentialRegisterWrapperBits4 (
     input S,
     output [3:0] O
 );
-reg [3:0] coreir_commonlib_mux2x4_inst0_out;
+reg [3:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x4_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Mux2xBits4 (
@@ -56,16 +56,16 @@ module Mux2xBits4 (
     input S,
     output [3:0] O
 );
-reg [3:0] coreir_commonlib_mux2x4_inst0_out;
+reg [3:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x4_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Basic (

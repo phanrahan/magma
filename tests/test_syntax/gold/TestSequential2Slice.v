@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(64'h0000000000000000),
     .width(64)
-) reg_P64_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
     .out(O)
@@ -92,124 +92,124 @@ module Mux56xBits8 (
     input [5:0] S,
     output [7:0] O
 );
-reg [7:0] coreir_commonlib_mux56x8_inst0_out;
+reg [7:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux56x8_inst0_out = I0;
+    mux_out = I0;
 end else if (S == 1) begin
-    coreir_commonlib_mux56x8_inst0_out = I1;
+    mux_out = I1;
 end else if (S == 2) begin
-    coreir_commonlib_mux56x8_inst0_out = I2;
+    mux_out = I2;
 end else if (S == 3) begin
-    coreir_commonlib_mux56x8_inst0_out = I3;
+    mux_out = I3;
 end else if (S == 4) begin
-    coreir_commonlib_mux56x8_inst0_out = I4;
+    mux_out = I4;
 end else if (S == 5) begin
-    coreir_commonlib_mux56x8_inst0_out = I5;
+    mux_out = I5;
 end else if (S == 6) begin
-    coreir_commonlib_mux56x8_inst0_out = I6;
+    mux_out = I6;
 end else if (S == 7) begin
-    coreir_commonlib_mux56x8_inst0_out = I7;
+    mux_out = I7;
 end else if (S == 8) begin
-    coreir_commonlib_mux56x8_inst0_out = I8;
+    mux_out = I8;
 end else if (S == 9) begin
-    coreir_commonlib_mux56x8_inst0_out = I9;
+    mux_out = I9;
 end else if (S == 10) begin
-    coreir_commonlib_mux56x8_inst0_out = I10;
+    mux_out = I10;
 end else if (S == 11) begin
-    coreir_commonlib_mux56x8_inst0_out = I11;
+    mux_out = I11;
 end else if (S == 12) begin
-    coreir_commonlib_mux56x8_inst0_out = I12;
+    mux_out = I12;
 end else if (S == 13) begin
-    coreir_commonlib_mux56x8_inst0_out = I13;
+    mux_out = I13;
 end else if (S == 14) begin
-    coreir_commonlib_mux56x8_inst0_out = I14;
+    mux_out = I14;
 end else if (S == 15) begin
-    coreir_commonlib_mux56x8_inst0_out = I15;
+    mux_out = I15;
 end else if (S == 16) begin
-    coreir_commonlib_mux56x8_inst0_out = I16;
+    mux_out = I16;
 end else if (S == 17) begin
-    coreir_commonlib_mux56x8_inst0_out = I17;
+    mux_out = I17;
 end else if (S == 18) begin
-    coreir_commonlib_mux56x8_inst0_out = I18;
+    mux_out = I18;
 end else if (S == 19) begin
-    coreir_commonlib_mux56x8_inst0_out = I19;
+    mux_out = I19;
 end else if (S == 20) begin
-    coreir_commonlib_mux56x8_inst0_out = I20;
+    mux_out = I20;
 end else if (S == 21) begin
-    coreir_commonlib_mux56x8_inst0_out = I21;
+    mux_out = I21;
 end else if (S == 22) begin
-    coreir_commonlib_mux56x8_inst0_out = I22;
+    mux_out = I22;
 end else if (S == 23) begin
-    coreir_commonlib_mux56x8_inst0_out = I23;
+    mux_out = I23;
 end else if (S == 24) begin
-    coreir_commonlib_mux56x8_inst0_out = I24;
+    mux_out = I24;
 end else if (S == 25) begin
-    coreir_commonlib_mux56x8_inst0_out = I25;
+    mux_out = I25;
 end else if (S == 26) begin
-    coreir_commonlib_mux56x8_inst0_out = I26;
+    mux_out = I26;
 end else if (S == 27) begin
-    coreir_commonlib_mux56x8_inst0_out = I27;
+    mux_out = I27;
 end else if (S == 28) begin
-    coreir_commonlib_mux56x8_inst0_out = I28;
+    mux_out = I28;
 end else if (S == 29) begin
-    coreir_commonlib_mux56x8_inst0_out = I29;
+    mux_out = I29;
 end else if (S == 30) begin
-    coreir_commonlib_mux56x8_inst0_out = I30;
+    mux_out = I30;
 end else if (S == 31) begin
-    coreir_commonlib_mux56x8_inst0_out = I31;
+    mux_out = I31;
 end else if (S == 32) begin
-    coreir_commonlib_mux56x8_inst0_out = I32;
+    mux_out = I32;
 end else if (S == 33) begin
-    coreir_commonlib_mux56x8_inst0_out = I33;
+    mux_out = I33;
 end else if (S == 34) begin
-    coreir_commonlib_mux56x8_inst0_out = I34;
+    mux_out = I34;
 end else if (S == 35) begin
-    coreir_commonlib_mux56x8_inst0_out = I35;
+    mux_out = I35;
 end else if (S == 36) begin
-    coreir_commonlib_mux56x8_inst0_out = I36;
+    mux_out = I36;
 end else if (S == 37) begin
-    coreir_commonlib_mux56x8_inst0_out = I37;
+    mux_out = I37;
 end else if (S == 38) begin
-    coreir_commonlib_mux56x8_inst0_out = I38;
+    mux_out = I38;
 end else if (S == 39) begin
-    coreir_commonlib_mux56x8_inst0_out = I39;
+    mux_out = I39;
 end else if (S == 40) begin
-    coreir_commonlib_mux56x8_inst0_out = I40;
+    mux_out = I40;
 end else if (S == 41) begin
-    coreir_commonlib_mux56x8_inst0_out = I41;
+    mux_out = I41;
 end else if (S == 42) begin
-    coreir_commonlib_mux56x8_inst0_out = I42;
+    mux_out = I42;
 end else if (S == 43) begin
-    coreir_commonlib_mux56x8_inst0_out = I43;
+    mux_out = I43;
 end else if (S == 44) begin
-    coreir_commonlib_mux56x8_inst0_out = I44;
+    mux_out = I44;
 end else if (S == 45) begin
-    coreir_commonlib_mux56x8_inst0_out = I45;
+    mux_out = I45;
 end else if (S == 46) begin
-    coreir_commonlib_mux56x8_inst0_out = I46;
+    mux_out = I46;
 end else if (S == 47) begin
-    coreir_commonlib_mux56x8_inst0_out = I47;
+    mux_out = I47;
 end else if (S == 48) begin
-    coreir_commonlib_mux56x8_inst0_out = I48;
+    mux_out = I48;
 end else if (S == 49) begin
-    coreir_commonlib_mux56x8_inst0_out = I49;
+    mux_out = I49;
 end else if (S == 50) begin
-    coreir_commonlib_mux56x8_inst0_out = I50;
+    mux_out = I50;
 end else if (S == 51) begin
-    coreir_commonlib_mux56x8_inst0_out = I51;
+    mux_out = I51;
 end else if (S == 52) begin
-    coreir_commonlib_mux56x8_inst0_out = I52;
+    mux_out = I52;
 end else if (S == 53) begin
-    coreir_commonlib_mux56x8_inst0_out = I53;
+    mux_out = I53;
 end else if (S == 54) begin
-    coreir_commonlib_mux56x8_inst0_out = I54;
+    mux_out = I54;
 end else begin
-    coreir_commonlib_mux56x8_inst0_out = I55;
+    mux_out = I55;
 end
 end
 
-assign O = coreir_commonlib_mux56x8_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Mux2xBit (
@@ -218,16 +218,16 @@ module Mux2xBit (
     input S,
     output O
 );
-reg [0:0] coreir_commonlib_mux2x1_inst0_out;
+reg [0:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x1_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x1_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x1_inst0_out[0];
+assign O = mux_out[0];
 endmodule
 
 module TestSequential2Slice (

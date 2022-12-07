@@ -87,16 +87,16 @@ module Mux2xBits5 (
     input S,
     output [4:0] O
 );
-wire [4:0] coreir_commonlib_mux2x5_inst0_out;
-wire [4:0] coreir_commonlib_mux2x5_inst0_in_data [1:0];
-assign coreir_commonlib_mux2x5_inst0_in_data[1] = I1;
-assign coreir_commonlib_mux2x5_inst0_in_data[0] = I0;
-commonlib_muxn__N2__width5 coreir_commonlib_mux2x5_inst0 (
-    .in_data(coreir_commonlib_mux2x5_inst0_in_data),
+wire [4:0] mux_out;
+wire [4:0] mux_in_data [1:0];
+assign mux_in_data[1] = I1;
+assign mux_in_data[0] = I0;
+commonlib_muxn__N2__width5 mux (
+    .in_data(mux_in_data),
     .in_sel(S),
-    .out(coreir_commonlib_mux2x5_inst0_out)
+    .out(mux_out)
 );
-assign O = coreir_commonlib_mux2x5_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Register (
@@ -105,24 +105,24 @@ module Register (
     input CE,
     input CLK
 );
+wire [4:0] _reg_out;
 wire [4:0] enable_mux_O;
-wire [4:0] reg_P5_inst0_out;
-Mux2xBits5 enable_mux (
-    .I0(reg_P5_inst0_out),
-    .I1(I),
-    .S(CE),
-    .O(enable_mux_O)
-);
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(5'h00),
     .width(5)
-) reg_P5_inst0 (
+) _reg (
     .clk(CLK),
     .in(enable_mux_O),
-    .out(reg_P5_inst0_out)
+    .out(_reg_out)
 );
-assign O = reg_P5_inst0_out;
+Mux2xBits5 enable_mux (
+    .I0(_reg_out),
+    .I1(I),
+    .S(CE),
+    .O(enable_mux_O)
+);
+assign O = _reg_out;
 endmodule
 
 module Memory (
@@ -135,9 +135,9 @@ module Memory (
     input WE
 );
 wire [4:0] Register_inst0_O;
-wire [4:0] coreir_mem4x5_inst0_rdata;
+wire [4:0] coreir_mem_rdata;
 Register Register_inst0 (
-    .I(coreir_mem4x5_inst0_rdata),
+    .I(coreir_mem_rdata),
     .O(Register_inst0_O),
     .CE(RE),
     .CLK(CLK)
@@ -146,12 +146,12 @@ coreir_sync_read_mem #(
     .depth(4),
     .has_init(1'b0),
     .width(5)
-) coreir_mem4x5_inst0 (
+) coreir_mem (
     .clk(CLK),
     .wdata(WDATA),
     .waddr(WADDR),
     .wen(WE),
-    .rdata(coreir_mem4x5_inst0_rdata),
+    .rdata(coreir_mem_rdata),
     .ren(RE),
     .raddr(RADDR)
 );

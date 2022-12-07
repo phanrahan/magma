@@ -65,7 +65,7 @@ module Memory (
 wire bit_const_0_None_out;
 wire [1:0] const_0_2_out;
 wire [4:0] const_0_5_out;
-wire [4:0] coreir_mem4x5_inst0_rdata;
+wire [4:0] coreir_mem_rdata;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
@@ -89,15 +89,15 @@ coreir_mem #(
     .has_init(1'b1),
     .sync_read(1'b0),
     .width(5)
-) coreir_mem4x5_inst0 (
+) coreir_mem (
     .clk(CLK),
     .wdata(const_0_5_out),
     .waddr(const_0_2_out),
     .wen(bit_const_0_None_out),
-    .rdata(coreir_mem4x5_inst0_rdata),
+    .rdata(coreir_mem_rdata),
     .raddr(RADDR)
 );
-assign RDATA = coreir_mem4x5_inst0_rdata;
+assign RDATA = coreir_mem_rdata;
 endmodule
 
 module test_memory_read_only (

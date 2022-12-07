@@ -4,16 +4,16 @@ module Mux2xBits3 (
     input S,
     output [2:0] O
 );
-reg [2:0] coreir_commonlib_mux2x3_inst0_out;
+reg [2:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x3_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x3_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x3_inst0_out;
+assign O = mux_out;
 endmodule
 
 module pre_unroll (
