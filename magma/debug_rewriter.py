@@ -41,7 +41,12 @@ class Transformer(cst.CSTTransformer):
 
 def debug(fn):
     indented_program_txt = inspect.getsource(fn)
-    program_txt = textwrap.dedent(indented_program_txt).lstrip()
+    program_txt = textwrap.dedent(indented_program_txt)
+    # Dedenting might not work because they might have a triple block quote
+    # string that's not indented, so as a fallback we try removing the initial
+    # indent at least, which is fine if the body is overindented as long as it's
+    # consistent
+    program_txt = program_txt.lstrip()
     tree = cst.parse_module(program_txt)
     wrapper = cst.metadata.MetadataWrapper(tree)
     tree = wrapper.visit(Transformer())
