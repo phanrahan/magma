@@ -41,7 +41,7 @@ class Transformer(cst.CSTTransformer):
 
 def debug(fn):
     indented_program_txt = inspect.getsource(fn)
-    program_txt = textwrap.dedent(indented_program_txt)
+    program_txt = textwrap.dedent(indented_program_txt).lstrip()
     tree = cst.parse_module(program_txt)
     wrapper = cst.metadata.MetadataWrapper(tree)
     tree = wrapper.visit(Transformer())

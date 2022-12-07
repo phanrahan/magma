@@ -23,7 +23,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %22 = comb.extract %14 from 7 : (i8) -> i1
         %23 = hw.struct_extract %12["y"] : !hw.struct<x: i8, y: i1>
         %24 = comb.concat %23, %22, %21, %20, %19, %18, %17, %16, %15 : i1, i1, i1, i1, i1, i1, i1, i1, i1
-        %25 = sv.reg {name = "reg"} : !hw.inout<i9>
+        %25 = sv.reg {name = "_reg"} : !hw.inout<i9>
         sv.alwaysff(posedge %CLK) {
             sv.passign %25, %24 : i9
         } (asyncreset : posedge %ASYNCRESET) {
@@ -149,7 +149,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %106 = comb.extract %90 from 14 : (i16) -> i1
         %107 = comb.extract %90 from 15 : (i16) -> i1
         %108 = comb.concat %107, %106, %105, %104, %103, %102, %101, %100, %99, %98, %97, %96, %95, %94, %93, %92, %89, %88, %87, %86, %85, %84, %83, %82, %81, %80, %79, %78, %77, %76, %75, %74, %71, %70, %69, %68, %67, %66, %65, %64, %63, %62, %61, %60, %59, %58, %57, %56, %53, %52, %51, %50, %49, %48, %47, %46, %45, %44, %43, %42, %41, %40, %39, %38, %35, %34, %33, %32, %31, %30, %29, %28, %27, %26, %25, %24, %23, %22, %21, %20, %17, %16, %15, %14, %13, %12, %11, %10, %9, %8, %7, %6, %5, %4, %3, %2 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
-        %110 = sv.reg {name = "reg_P96_inst0"} : !hw.inout<i96>
+        %110 = sv.reg {name = "_reg"} : !hw.inout<i96>
         sv.alwaysff(posedge %CLK) {
             sv.passign %110, %108 : i96
         }
@@ -266,7 +266,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @Register_unq2(%I: i8, %CE: i1, %CLK: i1) -> (O: i8) {
         %2 = hw.array_create %I, %0 : i8
         %1 = hw.array_get %2[%CE] : !hw.array<2xi8>, i1
-        %3 = sv.reg {name = "reg_P8_inst0"} : !hw.inout<i8>
+        %3 = sv.reg {name = "_reg"} : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %3, %1 : i8
         }

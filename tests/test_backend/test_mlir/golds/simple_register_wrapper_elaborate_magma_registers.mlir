@@ -1,6 +1,6 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @Register(%I: i8, %CLK: i1) -> (O: i8) {
-        %1 = sv.reg {name = "reg"} : !hw.inout<i8>
+        %1 = sv.reg {name = "_reg"} : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %1, %I : i8
         }

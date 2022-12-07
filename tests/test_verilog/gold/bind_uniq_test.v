@@ -115,9 +115,6 @@ wire [4:0] magma_Bits_5_xor_inst0_out;
 wire [19:0] nested_other_circ_x_y [0:0];
 wire orr_5_inst0_O;
 wire temp3;
-bar_foo_SomeCircuit_unq1 SomeCircuit_inst0 (
-    .I(magma_Bits_5_xor_inst0_out)
-);
 assign _magma_bind_wire_0 = orr_5_inst0_O;
 assign _magma_bind_wire_1 = andr_5_inst0_O;
 assign _magma_bind_wire_2_0 = orr_5_inst0_O;
@@ -188,6 +185,9 @@ orr_5 orr_5_inst0 (
     .I(in1),
     .O(orr_5_inst0_O)
 );
+bar_foo_SomeCircuit_unq1 some_circ (
+    .I(magma_Bits_5_xor_inst0_out)
+);
 assign temp3 = andr_5_inst0_O;
 wire [5:0] term_inst0_in;
 assign term_inst0_in = {ndarr[2],ndarr[1],ndarr[0]};
@@ -243,9 +243,6 @@ wire [3:0] magma_Bits_4_xor_inst0_out;
 wire [19:0] nested_other_circ_x_y [0:0];
 wire orr_4_inst0_O;
 wire temp3;
-bar_foo_SomeCircuit SomeCircuit_inst0 (
-    .I(magma_Bits_4_xor_inst0_out)
-);
 assign _magma_bind_wire_0 = orr_4_inst0_O;
 assign _magma_bind_wire_1 = andr_4_inst0_O;
 assign _magma_bind_wire_2_0 = orr_4_inst0_O;
@@ -316,6 +313,9 @@ orr_4 orr_4_inst0 (
     .I(in1),
     .O(orr_4_inst0_O)
 );
+bar_foo_SomeCircuit some_circ (
+    .I(magma_Bits_4_xor_inst0_out)
+);
 assign temp3 = andr_4_inst0_O;
 wire [5:0] term_inst0_in;
 assign term_inst0_in = {ndarr[2],ndarr[1],ndarr[0]};
@@ -343,16 +343,16 @@ endmodule
 module bar_foo_Main (
     input CLK
 );
-wire RTL_inst0_handshake_arr_0_valid;
-wire RTL_inst0_handshake_arr_1_valid;
-wire RTL_inst0_handshake_arr_2_valid;
-wire RTL_inst0_handshake_valid;
-wire RTL_inst0_out;
-wire RTL_inst1_handshake_arr_0_valid;
-wire RTL_inst1_handshake_arr_1_valid;
-wire RTL_inst1_handshake_arr_2_valid;
-wire RTL_inst1_handshake_valid;
-wire RTL_inst1_out;
+wire RTL4_handshake_arr_0_valid;
+wire RTL4_handshake_arr_1_valid;
+wire RTL4_handshake_arr_2_valid;
+wire RTL4_handshake_valid;
+wire RTL4_out;
+wire RTL5_handshake_arr_0_valid;
+wire RTL5_handshake_arr_1_valid;
+wire RTL5_handshake_arr_2_valid;
+wire RTL5_handshake_valid;
+wire RTL5_out;
 wire corebit_undriven_inst0_out;
 wire corebit_undriven_inst1_out;
 wire corebit_undriven_inst10_out;
@@ -377,73 +377,73 @@ wire [3:0] undriven_inst0_out;
 wire [3:0] undriven_inst1_out;
 wire [4:0] undriven_inst2_out;
 wire [4:0] undriven_inst3_out;
-wire [1:0] RTL_inst0_ndarr [2:0];
-assign RTL_inst0_ndarr[2] = {corebit_undriven_inst9_out,corebit_undriven_inst8_out};
-assign RTL_inst0_ndarr[1] = {corebit_undriven_inst7_out,corebit_undriven_inst6_out};
-assign RTL_inst0_ndarr[0] = {corebit_undriven_inst5_out,corebit_undriven_inst4_out};
-bar_foo_RTL RTL_inst0 (
+wire [1:0] RTL4_ndarr [2:0];
+assign RTL4_ndarr[2] = {corebit_undriven_inst9_out,corebit_undriven_inst8_out};
+assign RTL4_ndarr[1] = {corebit_undriven_inst7_out,corebit_undriven_inst6_out};
+assign RTL4_ndarr[0] = {corebit_undriven_inst5_out,corebit_undriven_inst4_out};
+bar_foo_RTL RTL4 (
     .CLK(CLK),
     .handshake_arr_0_ready(corebit_undriven_inst1_out),
-    .handshake_arr_0_valid(RTL_inst0_handshake_arr_0_valid),
+    .handshake_arr_0_valid(RTL4_handshake_arr_0_valid),
     .handshake_arr_1_ready(corebit_undriven_inst2_out),
-    .handshake_arr_1_valid(RTL_inst0_handshake_arr_1_valid),
+    .handshake_arr_1_valid(RTL4_handshake_arr_1_valid),
     .handshake_arr_2_ready(corebit_undriven_inst3_out),
-    .handshake_arr_2_valid(RTL_inst0_handshake_arr_2_valid),
+    .handshake_arr_2_valid(RTL4_handshake_arr_2_valid),
     .handshake_ready(corebit_undriven_inst0_out),
-    .handshake_valid(RTL_inst0_handshake_valid),
+    .handshake_valid(RTL4_handshake_valid),
     .in1(undriven_inst0_out),
     .in2(undriven_inst1_out),
-    .ndarr(RTL_inst0_ndarr),
-    .out(RTL_inst0_out)
+    .ndarr(RTL4_ndarr),
+    .out(RTL4_out)
 );
-wire [1:0] RTL_inst1_ndarr [2:0];
-assign RTL_inst1_ndarr[2] = {corebit_undriven_inst19_out,corebit_undriven_inst18_out};
-assign RTL_inst1_ndarr[1] = {corebit_undriven_inst17_out,corebit_undriven_inst16_out};
-assign RTL_inst1_ndarr[0] = {corebit_undriven_inst15_out,corebit_undriven_inst14_out};
-bar_foo_RTL_unq1 RTL_inst1 (
+wire [1:0] RTL5_ndarr [2:0];
+assign RTL5_ndarr[2] = {corebit_undriven_inst19_out,corebit_undriven_inst18_out};
+assign RTL5_ndarr[1] = {corebit_undriven_inst17_out,corebit_undriven_inst16_out};
+assign RTL5_ndarr[0] = {corebit_undriven_inst15_out,corebit_undriven_inst14_out};
+bar_foo_RTL_unq1 RTL5 (
     .CLK(CLK),
     .handshake_arr_0_ready(corebit_undriven_inst11_out),
-    .handshake_arr_0_valid(RTL_inst1_handshake_arr_0_valid),
+    .handshake_arr_0_valid(RTL5_handshake_arr_0_valid),
     .handshake_arr_1_ready(corebit_undriven_inst12_out),
-    .handshake_arr_1_valid(RTL_inst1_handshake_arr_1_valid),
+    .handshake_arr_1_valid(RTL5_handshake_arr_1_valid),
     .handshake_arr_2_ready(corebit_undriven_inst13_out),
-    .handshake_arr_2_valid(RTL_inst1_handshake_arr_2_valid),
+    .handshake_arr_2_valid(RTL5_handshake_arr_2_valid),
     .handshake_ready(corebit_undriven_inst10_out),
-    .handshake_valid(RTL_inst1_handshake_valid),
+    .handshake_valid(RTL5_handshake_valid),
     .in1(undriven_inst2_out),
     .in2(undriven_inst3_out),
-    .ndarr(RTL_inst1_ndarr),
-    .out(RTL_inst1_out)
+    .ndarr(RTL5_ndarr),
+    .out(RTL5_out)
 );
 bar_corebit_term corebit_term_inst0 (
-    .in(RTL_inst0_out)
+    .in(RTL4_out)
 );
 bar_corebit_term corebit_term_inst1 (
-    .in(RTL_inst0_handshake_valid)
+    .in(RTL4_handshake_valid)
 );
 bar_corebit_term corebit_term_inst2 (
-    .in(RTL_inst0_handshake_arr_0_valid)
+    .in(RTL4_handshake_arr_0_valid)
 );
 bar_corebit_term corebit_term_inst3 (
-    .in(RTL_inst0_handshake_arr_1_valid)
+    .in(RTL4_handshake_arr_1_valid)
 );
 bar_corebit_term corebit_term_inst4 (
-    .in(RTL_inst0_handshake_arr_2_valid)
+    .in(RTL4_handshake_arr_2_valid)
 );
 bar_corebit_term corebit_term_inst5 (
-    .in(RTL_inst1_out)
+    .in(RTL5_out)
 );
 bar_corebit_term corebit_term_inst6 (
-    .in(RTL_inst1_handshake_valid)
+    .in(RTL5_handshake_valid)
 );
 bar_corebit_term corebit_term_inst7 (
-    .in(RTL_inst1_handshake_arr_0_valid)
+    .in(RTL5_handshake_arr_0_valid)
 );
 bar_corebit_term corebit_term_inst8 (
-    .in(RTL_inst1_handshake_arr_1_valid)
+    .in(RTL5_handshake_arr_1_valid)
 );
 bar_corebit_term corebit_term_inst9 (
-    .in(RTL_inst1_handshake_arr_2_valid)
+    .in(RTL5_handshake_arr_2_valid)
 );
 bar_corebit_undriven corebit_undriven_inst0 (
     .out(corebit_undriven_inst0_out)
