@@ -254,7 +254,9 @@ class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         ctx = DefinitionContext(StagedPlacer(name))
         push_definition_context(ctx, use_staged_logger=True)
-        return NamerDict()
+        if get_debug_mode():
+            return NamerDict()
+        return type.__prepare__(name, bases, **kwargs)
 
     """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
