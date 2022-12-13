@@ -442,7 +442,7 @@ class xmr_bind_asserts(m.Circuit):
 
 
 ProcessInlineVerilogPass(xmr_bind_asserts).run()
-xmr_bind.bind(xmr_bind_asserts, xmr_bind.inst.xmr_bind_grandchild_inst0.y)
+xmr_bind.bind(xmr_bind_asserts, xmr_bind.inst.inst.y)
 
 
 class simple_compile_guard(m.Circuit):
