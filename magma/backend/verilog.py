@@ -123,8 +123,9 @@ def compileinstance(self):
     debug_str = ""
     for k, v in self.interface.ports.items():
         if getattr(v, "debug_info", False) and get_codegen_debug_info():
-            filename, lineno, module = \
+            filename, lineno, module = (
                 v.debug_info.filename, v.debug_info.lineno, v.debug_info.module
+            )
         #print('arg', k, v,)
         if v.is_input():
             # find the output connected to v
@@ -178,8 +179,10 @@ def compiledefinition(cls):
     args = ', '.join(vmoduleargs(cls.interface))
     s = ''
     if (
-        get_codegen_debug_info() and cls.debug_info and
-        cls.debug_info.filename and cls.debug_info.lineno
+        get_codegen_debug_info() and
+        cls.debug_info and
+        cls.debug_info.filename and
+        cls.debug_info.lineno
     ):
         s += f'// Defined at {make_relative(cls.debug_info.filename)}:{cls.debug_info.lineno}\n'
     s += 'module %s (%s);\n' % (cls.verilog_name, args)
