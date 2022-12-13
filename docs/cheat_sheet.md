@@ -45,6 +45,20 @@ class <name>(m.Enum):
     k0 = v0
     k1 = v1
     ...
+
+```
+
+Example
+```python
+class State(m.Enum):
+    IDLE = 0
+    CONFIG = 1
+    LOOP = 2
+    FLAG_RESET = 3
+
+class LoopState(m.Enum):
+    LOOP_READ = 0
+    LOOP_STIM = 1
 ```
 
 # Type qualifiers
@@ -68,39 +82,40 @@ inout respectively.
 # Registers
 Retain state until updated:
 ```python
-my_reg = mantle.Register(32)
-my_reg_init_7 = mantle.Register(32, init=7)
-my_reg_clock_enable = mantle.Register(32, init=7, has_ce=True)
-my_reg_uint = mantle.Register(32, init=7, has_ce=True, T=m.UInt)
+# Note that m.Register is a generator, which returns a circuit, which is then
+# instanced
+my_reg = m.Regester(m.Bits[32])()
+my_reg_init_7 = m.Register(m.Bits[32], init=7)()
+my_reg_clock_enable = m.Register(m.Bits[32], init=7, has_enable=True)()
+my_reg_uint = m.Register(m.UInt[32], init=7, has_enable=True)()
 ```
 Define update value by wiring to the input `I` port
 ```
 my_reg.I @= next_val
 ```
-Set `N` to `None` for a Register of a single `Bit` (setting `N` to `1` will
-produce a register of `Bits[1]`)
-```python
-bit_reg = mantle.Register(None)
-```
 
 # Memories
 ```python
-MyMemCircuit = mantle.DefineMemory(height, width, readonly=False, read_latency=0)
+MyMemCircuit = m.Memory(height, T, read_latency=0, readonly=False, init=None,
+                        has_read_enable=False)
 my_mem_inst = MyMemCircuit()
 ```
 * `height`: number of elements
-* `width`: width of each element
+* `T`: type of each element
 * `readonly`: ROM if True else RAM
+* `init`: `tuple` of initial values of each element
 * `read_latency`: number of registers to append to read out port
+* `has_read_enabe`: add a read enable port
 
 Memory ports (where `addr_width = max(clog2(height - 1), 1)`):
 
 * `RADDR`: `m.In(m.Bits[addr_width])`
-* `RDATA`: `m.Out(m.Bits[width])`
+* `RDATA`: `m.Out(T)`
 * `WADDR`: `m.In(m.Bits[addr_width])`
-* `WDATA`: `m.In(m.Bits[width])`
+* `WDATA`: `m.In(mT`
 * `CLK`: `m.In(m.Clock)`
 * `WE`: `m.In(m.Bit)`
+* `RE` (optional): `m.In(m.Bit)`
 
 # Circuits
 **Defining**: subclass `m.Circuit`
@@ -108,8 +123,8 @@ Memory ports (where `addr_width = max(clog2(height - 1), 1)`):
 class Accum16(m.Circuit):
     io = m.IO(I=m.In(m.UInt[16]), O=m.Out(m.UInt[16])) + m.ClockIO()
 
-    sum_ = mantle.Register(16)
-    io.O @= sum_(m.uint(sum_.O) + io.I)
+    sum_ = m.Register(m.UInt[16])()
+    io.O @= sum_(sum_.O + io.I)
 ```
 **Usage**: circuits are used by instancing them inside another definitions and
   their ports are accessed using dot notation
@@ -121,18 +136,16 @@ sum_ = my_module.O
 
 **Wiring**: wire an output to an input using `@=` operator (statically typed)
 
-**Metaprogramming**: abstract over parameters by generating a circuit definition inside a closure
+**Metaprogramming**: abstract over parameters by using a Generator2
 ```python
-def define_accum(width: int):
+class Accum(m.Generator2):
+   def __init__(self, width: int):
+        self.io = m.IO(I=m.In(m.UInt[width]), O=m.Out(m.UInt[width])) + m.ClockIO()
 
-   class Accum(m.Circuit):
-        name = f"Accum{width}"
-        io = m.IO(I=m.In(m.UInt[width]), O=m.Out(m.UInt[width])) + m.ClockIO()
-
-        sum_ = mantle.Register(width)
-        io.O @= sum_(m.uint(sum_.O) + io.I)
-
-   return Accum
+        sum_ = m.Register(m.UInt[width])()
+        io.O @= sum_(sum_.O + io.I)
+Accum8 = Accum(8)
+accum8_inst = Accum8()
 ```
 
 # Operators
@@ -173,48 +186,46 @@ Note that the the right shift operator when applied to an `SInt` becomes
 an arithmetic shift right operator (which replicates the sign bit as it shifts right).
 
 ## Functional operators
-- `mantle.mux(*I, S)` (constraint: `len(S) == log2_ceil(len(I))`): select `I[S]`.
+- `m.mux(*I, S)` (constraint: `len(S) == log2_ceil(len(I))`): select `I[S]`.
 - `m.zext(v, n)`: zero extend array `v` by `n`
 - `m.sext(v, n)`: sign extend array `v` by `n`
 - `m.concat(*arrays)`: concat arrays together
 - `m.repeat(value, n)`: create an array repeating `value` `n` times
 
-# Combinational
+# when
 ```python
-@m.circuit.combinational
-def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
-    if S:
-        return I[0]
-    else:
-        return I[1]
-
+class BasicWhen(m.Circuit):
+    io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+    with m.when(io.S):
+        io.O @= io.I[0]
+    with m.otherwise():
+        io.O @= io.I[1]
 ```
 
-produces
-
+# when with registers
 ```python
-basic_if = DefineCircuit("basic_if", "I", In(Bits[2]), "S", In(Bit), "O", Out(Bit))
-Mux2xOutBit_inst0 = Mux2xOutBit()
-wire(basic_if.I[1], Mux2xOutBit_inst0.I0)
-wire(basic_if.I[0], Mux2xOutBit_inst0.I1)
-wire(basic_if.S, Mux2xOutBit_inst0.S)
-wire(Mux2xOutBit_inst0.O, basic_if.O)
-EndCircuit()
-```
-See [here](circuit_definitions.md) for more details.
+class RegDefault(m.Circuit):
+    name = "test_when_reg_ce"
+    io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+              CE=m.In(m.Bit))
 
-# Sequential
+    x = m.Register(m.Bits[8])()
+    # Register implicit default is x.I @= x.O
+    with m.when(io.CE):
+        x.I @= io.I
+    io.O @= x.O
+```
+
+# when with registers with enable
 ```python
-@m.circuit.sequential(async_reset=True)
-class DelayBy2:
-    def __init__(self):
-        self.x: m.Bits[2] = m.bits(0, 2)
-        self.y: m.Bits[2] = m.bits(0, 2)
+class RegDefault(m.Circuit):
+    name = "test_when_reg_ce"
+    io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+              CE=m.In(m.Bit))
 
-    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
-        O = self.y
-        self.y = self.x
-        self.x = I
-        return O
+    x = m.Register(m.Bits[8], has_enable=True)()
+    with m.when(io.CE):
+        x.I @= io.I
+        # x.CE will implicitly be 1 when written
+    io.O @= x.O
 ```
-See [here](circuit_definitions.md) for more details.

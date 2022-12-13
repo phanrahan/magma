@@ -1,10 +1,12 @@
 import abc
 import contextlib
 import dataclasses
+import functools
 from typing import List, Mapping, Optional, Tuple
 import weakref
 
 from magma.backend.mlir.common import WithId, default_field, constant
+from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.common import Stack
 
@@ -66,6 +68,20 @@ class MlirAttribute(metaclass=MlirAttributeMeta):
         raise NotImplementedError()
 
 
+class MlirLocation(MlirAttribute):
+    pass
+
+
+@functools.lru_cache()
+def _default_location():
+    # NOTE(rsetaluri): Due to the circular import dependency on the builtin
+    # dialect for the default (unknown) location, we need to use a dynamic
+    # import. Fortunately, this is used in a dataclass field factory function
+    # anyway, and we can cache it so it will be little to no overhead.
+    from magma.backend.mlir.builtin import builtin
+    return builtin.UnknownLoc()
+
+
 @dataclasses.dataclass
 class MlirBlock(WithId):
     operations: List['MlirOp'] = default_field(list, init=False)
@@ -80,9 +96,9 @@ class MlirBlock(WithId):
     def set_parent(self, parent: 'MlirRegion'):
         self.parent = weakref.ref(parent)
 
-    def print(self, printer: PrinterBase):
+    def print(self, printer: PrinterBase, opts: PrintOpts):
         for operation in self.operations:
-            operation.print(printer)
+            operation.print(printer, opts)
 
 
 _block_stack = Stack()
@@ -117,9 +133,9 @@ class MlirRegion(WithId):
     def set_parent(self, parent: 'MlirOp'):
         self.parent = weakref.ref(parent)
 
-    def print(self, printer: PrinterBase):
+    def print(self, printer: PrinterBase, opts: PrintOpts):
         for block in self.blocks:
-            block.print(printer)
+            block.print(printer, opts)
 
 
 class MlirOpMeta(DialectKind):
@@ -145,6 +161,7 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
     attr_dict: Mapping = default_field(dict, init=False)
     # @parent is of type MlirBlock.
     parent: OptionalWeakRef = default_field(constant(None), init=False)
+    location: MlirLocation = default_field(_default_location, init=False)
 
     def new_region(self) -> MlirRegion:
         region = MlirRegion()
@@ -155,18 +172,22 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
     def set_parent(self, parent: MlirBlock):
         self.parent = weakref.ref(parent)
 
-    def print(self, printer: PrinterBase):
+    def print(self, printer: PrinterBase, opts: PrintOpts):
         self.print_op(printer)
         if not self.regions:
             printer.flush()
+            if opts.print_locations:
+                printer.print_line(self.location.emit())
             return
         printer.print(" {")
         printer.flush()
         printer.push()
         for region in self.regions:
-            region.print(printer)
+            region.print(printer, opts)
         printer.pop()
         printer.print_line("}")
+        if opts.print_locations:
+            printer.print_line(self.location.emit())
 
     @abc.abstractmethod
     def print_op(self, printer: PrinterBase):

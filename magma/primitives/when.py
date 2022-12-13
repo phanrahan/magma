@@ -2,9 +2,9 @@ import functools
 import itertools
 from typing import Dict, Optional, Union, Set
 
-from magma.bit import Bit
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
+from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
@@ -165,7 +165,14 @@ class WhenBuilder(CircuitBuilder):
         port_name = f"{name_prefix}{next(name_counter)}"
         self._add_port(port_name, type_qualifier(type(value).undirected_t))
         with no_when():
-            wire(getattr(self, port_name), value)
+            port = getattr(self, port_name)
+            if value.is_input() and isinstance(value, Enable):
+                value.wire(
+                    port,
+                    driven_implicitly_by_when=value.driven_implicitly_by_when
+                )
+            else:
+                wire(port, value)
         value_to_name[value] = port_name
 
     def add_drivee(self, value: Type):

@@ -333,3 +333,27 @@ def test_key_error():
             io.I[None]
         with pytest.raises(KeyError):
             io.I[object()]
+
+
+def test_mixed_direction_lazy_resolve(caplog):
+
+    class T(m.Product):
+        x = m.In(m.Bit)
+        y = m.Out(m.Bit)
+
+    class U(m.Product):
+        x = m.Bit
+        y = m.Bit
+
+    class Foo(m.Circuit):
+        io = m.IO(I=T, O=m.Flip(T))
+        u = U()
+        u @= io.I  # bulk wire
+        u.y @= io.O.y
+        io.O.x @= u.x
+        assert io.O.x.value() is u.x
+        assert u.y.value() is io.O.y
+        assert u.x.value() is io.I.x
+        assert io.I.y.value() is u.y
+
+    assert not caplog.messages, "Should not raise wiring errors"

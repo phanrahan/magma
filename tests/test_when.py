@@ -716,9 +716,11 @@ def test_lazy_array_nested(caplog):
 
     class _Test(m.Circuit):
         name = "test_when_lazy_array_nested"
-        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Array[2, m.Tuple[m.Bit, m.Bit]]))
 
-        x = m.Array[2, m.Tuple[m.Bit, m.Bit]](name="x")
+        T = m.Product.from_fields("anon", {"x": m.Bit, "y": m.Bit})
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Array[2, T]))
+
+        x = m.Array[2, T](name="x")
 
         with m.when(io.S):
             x[0][0] @= 0
@@ -1136,4 +1138,21 @@ def test_when_spurious_assign():
 
     m.compile(f"build/{_Test.name}", _Test,
               output="mlir", flatten_all_tuples=True)
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_reg_ce_implicit_override():
+
+    class _Test(m.Circuit):
+        name = "test_when_reg_ce_implicit_override"
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]),
+                  x=m.In(m.Bit), y=m.In(m.Bit))
+
+        x = m.Register(m.Bits[8], has_enable=True)()
+        with m.when(io.y):
+            x.I @= io.I
+        x.CE @= io.x
+        io.O @= x.O
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
