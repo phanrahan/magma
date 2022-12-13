@@ -7,5 +7,6 @@ from magma.util import reset_global_context
 @pytest.fixture(autouse=True)
 def magma_test():
     config.use_namer_dict = True
+    config.use_generator_debug_rewriter = True
     magma.config.set_compile_dir('callee_file_dir')
     reset_global_context()

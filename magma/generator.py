@@ -78,8 +78,7 @@ def _make_type(cls, *args, **kwargs):
     name = cls.__name__
     bases = (cls._base_cls_,)
     dct = cls._base_metacls_.__prepare__(name, bases)
-    if not getattr(cls, "_disable_debug_", False):
-        # TODO: temp flag for debug bench, do not need
+    if config.use_generator_debug_rewriter:
         cls.__init__ = debug(cls.__init__)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
