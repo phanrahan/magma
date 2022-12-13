@@ -42,7 +42,7 @@ class MlirCompiler(Compiler):
         if self.opts.get("flatten_all_tuples", False):
             elaborate_tuples(self.main)
 
-        insert_coreir_wires(self.main)
+        insert_coreir_wires(self.main, flatten=False)
         wire_clocks(self.main)
         # NOTE(leonardt): finalizing whens must happen after any
         # passes that modify the circuit.  This is because passes

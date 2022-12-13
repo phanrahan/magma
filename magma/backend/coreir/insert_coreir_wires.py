@@ -17,10 +17,11 @@ def _sanitize_name(name):
 
 
 class InsertCoreIRWires(DefinitionPass):
-    def __init__(self, main):
+    def __init__(self, main, flatten: bool = True):
         super().__init__(main)
         self.seen = set()
         self.wire_map = {}
+        self._flatten = flatten
 
     def _make_wire(self, driver, value, definition):
         is_bits = (isinstance(driver.name, ArrayRef) and
@@ -42,7 +43,7 @@ class InsertCoreIRWires(DefinitionPass):
                 driver.name.name = "_" + driver.name.name
 
             name = f"{driver_name}"
-            wire_inst = Wire(T)(name=name)
+            wire_inst = Wire(T, flatten=self._flatten)(name=name)
             self.wire_map[driver] = wire_inst
         wire_inst = self.wire_map[driver]
         wire_input = wire_inst.I
@@ -55,18 +56,21 @@ class InsertCoreIRWires(DefinitionPass):
             # the entire bits (this avoids an "undriven" error when only one
             # index of the bits is used)
 
-        if not is_bits and not isinstance(driver, Digital):
+        if self._flatten and not is_bits and not isinstance(driver, Digital):
             driver = as_bits(driver)
             wire_output = from_bits(T, wire_output)
 
         # Could be already wired for fanout cases
         if not wire_input.driven():
             wire_input @= driver
-        if (
-            not isinstance(wire_output, type(value)) and
-            isinstance(value, _ClockType) or
-            isinstance(wire_output, _ClockType)
-        ):
+        recast = (
+            self._flatten
+            and (
+                isinstance(value, _ClockType)
+                and not isinstance(wire_output, type(value))
+            )
+        )
+        if recast:
             # This mean it was cast by the user (e.g. m.clock(value)), so we
             # need to "recast" the wire output
             wire_output = convertbit(wire_output, type(value))

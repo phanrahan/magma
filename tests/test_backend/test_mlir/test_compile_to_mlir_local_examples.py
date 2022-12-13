@@ -3,6 +3,7 @@ import itertools
 import pytest
 
 import magma as m
+from magma.debug import debug_info
 from magma.primitives.mux import CoreIRCommonLibMuxN
 from magma.uniquification import uniquification_pass, reset_names
 
@@ -25,6 +26,14 @@ class _simple_coreir_common_lib_mux_n_wrapper(m.Circuit):
     )
     io = m.IO(I=m.In(T), O=m.Out(m.Bits[6]))
     io.O @= CoreIRCommonLibMuxN(8, 6)()(io.I)
+
+
+@contextlib.contextmanager
+def _set_debug_info(ckt, debug_info):
+    old_debug_info = ckt.debug_info
+    ckt.debug_info = debug_info
+    yield
+    ckt.debug_info = old_debug_info
 
 
 @pytest.mark.parametrize("ckt", get_local_examples())
@@ -169,7 +178,8 @@ def test_compile_to_mlir_location_info_style(ckt, location_info_style: str):
         "gold_name": gold_name,
     }
     kwargs.update({"check_verilog": False})
-    run_test_compile_to_mlir(ckt, **kwargs)
+    with _set_debug_info(ckt, debug_info("file.py", 100, "")):
+        run_test_compile_to_mlir(ckt, **kwargs)
 
 
 @pytest.mark.parametrize(
