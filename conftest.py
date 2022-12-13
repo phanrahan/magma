@@ -1,11 +1,13 @@
 import pytest
-import magma.config
-from magma.config import config
+from magma.config import config as magma_config
 from magma.util import reset_global_context
+
+
+def pytst_configure(config):
+    magma_config.compile_dir = 'callee_file_dir'
+    magma_config.use_namer_dict = True
 
 
 @pytest.fixture(autouse=True)
 def magma_test():
-    config.use_namer_dict = True
-    magma.config.set_compile_dir('callee_file_dir')
     reset_global_context()
