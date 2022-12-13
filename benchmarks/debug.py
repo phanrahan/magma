@@ -4,7 +4,7 @@ import magma as m
 
 
 def gen_circuit(debug_mode, n=8):
-    if debug_mode == 0:
+    if debug_mode == 2:
         m.config.config.use_generator_debug_rewriter = True
     else:
         m.config.config.use_generator_debug_rewriter = False
