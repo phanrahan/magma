@@ -6,7 +6,7 @@ from magma.util import reset_global_context
 def pytest_configure(config):
     magma_config.compile_dir = 'callee_file_dir'
     magma_config.use_namer_dict = True
-    config.use_generator_debug_rewriter = True
+    magma_config.use_generator_debug_rewriter = True
 
 
 @pytest.fixture(autouse=True)
