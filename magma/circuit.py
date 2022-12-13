@@ -14,7 +14,6 @@ from . import cache_definition
 from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
 from .wire import *
-from .config import get_debug_mode, set_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
@@ -27,6 +26,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
+from magma.config import get_debug_mode, set_debug_mode, config
 from magma.definition_context import (
     DefinitionContext,
     definition_context_manager,
@@ -254,7 +254,7 @@ class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         ctx = DefinitionContext(StagedPlacer(name))
         push_definition_context(ctx, use_staged_logger=True)
-        if get_debug_mode():
+        if config.use_namer_dict():
             return NamerDict()
         return type.__prepare__(name, bases, **kwargs)
 

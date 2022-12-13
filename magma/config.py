@@ -90,6 +90,7 @@ class ConfigManager:
 config = ConfigManager(
     compile_dir=RuntimeConfig("normal"),
     debug_mode=RuntimeConfig(False),
+    use_namer_dict=RuntimeConfig(False)
 )
 
 
