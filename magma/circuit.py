@@ -254,7 +254,7 @@ class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         ctx = DefinitionContext(StagedPlacer(name))
         push_definition_context(ctx, use_staged_logger=True)
-        if config.use_namer_dict():
+        if config.use_namer_dict:
             return NamerDict()
         return type.__prepare__(name, bases, **kwargs)
 
