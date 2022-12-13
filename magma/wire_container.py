@@ -409,7 +409,12 @@ class AggregateWireable(Wireable):
             to_process.extend(next._wire.driving())
 
     def _should_wire_children(self, o):
-        return self._resolved or o._resolved or self.is_mixed()
+        return (
+            self._resolved or 
+            o._resolved or 
+            self.is_mixed() or 
+            o.is_mixed
+        )
 
 
 def aggregate_wireable_method(fn):
