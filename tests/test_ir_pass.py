@@ -1,3 +1,4 @@
+from magma.config import config
 from magma.passes import IRPass
 from magma import Bit, Circuit, IO, In, Out, wire
 
