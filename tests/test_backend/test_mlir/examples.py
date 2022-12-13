@@ -297,8 +297,8 @@ class complex_wire(m.Circuit):
         O @= tmp
 
 
-m.backend.coreir.insert_coreir_wires.insert_coreir_wires(simple_wire)
-m.backend.coreir.insert_coreir_wires.insert_coreir_wires(complex_wire)
+m.backend.coreir.insert_coreir_wires.insert_coreir_wires(simple_wire, flatten=False)
+m.backend.coreir.insert_coreir_wires.insert_coreir_wires(complex_wire, flatten=False)
 
 
 class simple_clock_cast(m.Circuit):

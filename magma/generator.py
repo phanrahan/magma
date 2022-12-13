@@ -6,6 +6,7 @@ from .circuit import (DefineCircuitKind, Circuit, DebugCircuit,
                       DebugDefineCircuitKind, NamerDict)
 from . import cache_definition
 from magma.common import ParamDict
+from magma.config import config
 from magma.debug_rewriter import debug
 from hwtypes import BitVector
 
@@ -148,7 +149,8 @@ class Generator2(metaclass=_Generator2Meta):
         cls.bind_generators.append(monitor)
 
     def __setattr__(cls, key, value):
-        cls._namer_dict[key] = value
+        if config.use_namer_dict:
+            cls._namer_dict[key] = value
         super().__setattr__(key, value)
 
 
