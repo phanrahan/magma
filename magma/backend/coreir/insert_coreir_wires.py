@@ -66,8 +66,9 @@ class InsertCoreIRWires(DefinitionPass):
         recast = (
             self._flatten
             and (
-                isinstance(value, _ClockType)
-                and not isinstance(wire_output, type(value))
+                not isinstance(wire_output, type(value)) and
+                isinstance(value, _ClockType) or
+                isinstance(wire_output, _ClockType)
             )
         )
         if recast:
