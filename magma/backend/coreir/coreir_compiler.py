@@ -8,7 +8,9 @@ from magma.frontend import coreir_ as coreir_frontend
 from magma.is_definition import isdefinition
 from magma.logging import root_logger
 from magma.passes import InstanceGraphPass
+from magma.passes.elaborate_circuit import elaborate_all_pass
 from magma.passes.raise_logs_as_exceptions import raise_logs_as_exceptions_pass
+from magma.primitives.mux import Mux
 from magma.symbol_table import SymbolTable
 from magma.symbol_table_utils import MasterSymbolTable
 
@@ -77,15 +79,18 @@ class CoreIRCompiler(Compiler):
         self.passes = opts.get("passes", [])
         if "markdirty" not in self.passes:
             self.passes.append("markdirty")
-        self.deps = self._deps()
         self.backend = coreir_frontend.GetCoreIRBackend()
 
     def compile(self):
         result = {}
         result["symbol_table"] = symbol_table = SymbolTable()
+        elaborate_all_pass(self.main, generators=(Mux,))
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
         raise_logs_as_exceptions_pass(self.main)
+        # NOTE(rsetaluri): We can compute deps only after all the passes have
+        # been run, as they can possibly introduce new circuits with new deps.
+        self.deps = self._deps()
         backend = self.backend
         opts = _make_opts(backend, self.opts)
         opts["symbol_table"] = symbol_table

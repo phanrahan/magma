@@ -1,4 +1,5 @@
 import magma as m
+from magma.passes.elaborate_circuit import elaborate_all_pass
 from magma.simulator import PythonSimulator
 from magma.simulator.coreir_simulator import CoreIRSimulator
 from hwtypes import BitVector as BV
@@ -17,6 +18,8 @@ def test_counter():
             O = self.count
             return O
     print(repr(Counter))
+
+    elaborate_all_pass(Counter, generators=(m.Mux,))
 
     sim = PythonSimulator(Counter, Counter.CLK)
     sim.set_value(Counter.inc, True)

@@ -1,4 +1,5 @@
 import magma as m
+from magma.passes.elaborate_circuit import elaborate_all_pass
 import fault as f
 
 
@@ -9,6 +10,8 @@ def test_register():
         io.O @= m.Register(
             m.Bits[4], reset_type=m.Reset
         )()(io.I)
+
+    elaborate_all_pass(Foo, generators=(m.Mux,))
 
     tester = f.PythonTester(Foo, Foo.CLK)
     tester.circuit.I = 3
