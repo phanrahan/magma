@@ -1,6 +1,8 @@
 from magma.array import Array
+from magma.digital import Digital
+from magma.bits import Bits
 from magma.clock import AsyncReset, AsyncResetN, Clock, _ClockType
-from magma.conversions import as_bits, from_bits, bit, convertbit
+from magma.conversions import as_bits, from_bits, bit, convertbit, convertbits
 from magma.digital import Digital
 from magma.generator import Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
@@ -70,10 +72,15 @@ class InsertCoreIRWires(DefinitionPass):
                 and not isinstance(wire_output, type(value))
             )
         )
-        if recast:
+        if not isinstance(wire_output, type(value)):
             # This mean it was cast by the user (e.g. m.clock(value)), so we
             # need to "recast" the wire output
-            wire_output = convertbit(wire_output, type(value))
+            T = type(value)
+            if isinstance(value, Digital):
+                wire_output = convertbit(wire_output, T)
+            elif isinstance(value, Array):
+                wire_output = convertbits(wire_output, len(T), T,
+                                          issubclass(T, Bits))
         value @= wire_output
 
     def _insert_wire(self, value, definition):
