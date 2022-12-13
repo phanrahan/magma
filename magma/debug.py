@@ -2,7 +2,8 @@ from dataclasses import dataclass
 import uinspect
 import collections
 
-from magma.config import get_debug_mode
+from magma.config import get_debug_mode, config
+
 
 @dataclass
 class _DebugInfo:
@@ -15,7 +16,7 @@ debug_info = _DebugInfo
 
 
 def get_debug_info(frames_to_skip):
-    if get_debug_mode():
+    if config.use_uinspect:
         filename, lineno = uinspect.get_location(frames_to_skip)
     else:
         filename, lineno = None, None
