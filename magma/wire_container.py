@@ -410,10 +410,10 @@ class AggregateWireable(Wireable):
 
     def _should_wire_children(self, o):
         return (
-            self._resolved or 
-            o._resolved or 
-            self.is_mixed() or 
-            o.is_mixed
+            self._resolved or
+            o._resolved or
+            self.is_mixed() or
+            o.is_mixed()
         )
 
 
