@@ -72,14 +72,30 @@ class MlirLocation(MlirAttribute):
     pass
 
 
-@functools.lru_cache()
+_location_stack = Stack()
+
+
+def get_location_stack() -> Stack:
+    global _location_stack
+    return _location_stack
+
+
+@contextlib.contextmanager
+def push_location(location: MlirLocation):
+    get_location_stack().push(location)
+    try:
+        yield
+    finally:
+        get_location_stack().pop()
+
+
 def _default_location():
     # NOTE(rsetaluri): Due to the circular import dependency on the builtin
     # dialect for the default (unknown) location, we need to use a dynamic
     # import. Fortunately, this is used in a dataclass field factory function
     # anyway, and we can cache it so it will be little to no overhead.
     from magma.backend.mlir.builtin import builtin
-    return builtin.UnknownLoc()
+    return get_location_stack().peek_default(builtin.UnknownLoc())
 
 
 @dataclasses.dataclass
