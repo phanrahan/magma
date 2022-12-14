@@ -30,11 +30,11 @@ class _simple_coreir_common_lib_mux_n_wrapper(m.Circuit):
 
 
 @contextlib.contextmanager
-def _set_debug_info(ckt, debug_info):
-    old_debug_info = ckt.debug_info
-    ckt.debug_info = debug_info
+def _set_debug_info(obj, debug_info):
+    old_debug_info = obj.debug_info
+    obj.debug_info = debug_info
     yield
-    ckt.debug_info = old_debug_info
+    obj.debug_info = old_debug_info
 
 
 @pytest.mark.parametrize("ckt", get_local_examples())
@@ -179,7 +179,14 @@ def test_compile_to_mlir_location_info_style(ckt, location_info_style: str):
         "gold_name": gold_name,
     }
     kwargs.update({"check_verilog": False})
-    with _set_debug_info(ckt, debug_info("file.py", 100, "")):
+    with contextlib.ExitStack() as exit_stack:
+        exit_stack.enter_context(
+            _set_debug_info(ckt, debug_info("file.py", 100, ""))
+        )
+        for i, inst in enumerate(ckt.instances):
+            exit_stack.enter_context(
+                _set_debug_info(inst, debug_info("file.py", 100 + i, ""))
+            )
         run_test_compile_to_mlir(ckt, **kwargs)
 
 
