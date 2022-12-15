@@ -83,3 +83,16 @@ def test_namer_dict_already_named():
     m.compile("build/test_namer_dict_already_named",
               test_namer_dict_already_named, output="mlir")
     assert check_gold(__file__, f"test_namer_dict_already_named.mlir")
+
+
+def test_namer_dict_generator():
+
+    class Foo(m.Generator2):
+        def __init__(self, n):
+            self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
+            self.x = m.Bits[n]()
+            self.x @= self.io.I
+            self.io.O @= self.x
+
+    m.compile("build/test_namer_dict_generator", Foo(8), output="mlir")
+    assert check_gold(__file__, f"test_namer_dict_generator.mlir")
