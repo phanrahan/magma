@@ -65,21 +65,15 @@ class InsertCoreIRWires(DefinitionPass):
         # Could be already wired for fanout cases
         if not wire_input.driven():
             wire_input @= driver
-        recast = (
-            self._flatten
-            and (
-                isinstance(value, _ClockType)
-                and not isinstance(wire_output, type(value))
-            )
-        )
-        if not isinstance(wire_output, type(value)):
+
+        value_T = type(value)
+        if not isinstance(wire_output, value_T):
             # This mean it was cast by the user (e.g. m.clock(value)), so we
             # need to "recast" the wire output
-            T = type(value)
             if isinstance(value, Digital):
-                wire_output = convertbit(wire_output, T)
+                wire_output = convertbit(wire_output, value_T)
             elif isinstance(value, Array):
-                wire_output = convertbits(wire_output, len(T), T,
+                wire_output = convertbits(wire_output, len(value_T), value_T,
                                           issubclass(T, Bits))
         value @= wire_output
 
