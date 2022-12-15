@@ -227,6 +227,7 @@ class NamerDict(dict):
                 # SmartExpr doesn't have a magma_value
                 # TODO: This probably shouldn't be a protocol type then
                 pass
+        # TODO: Refactor shared code between these cases
         if (
             (isinstance(value, Type) and hasattr(value, "name") and
              isinstance(value.name, AnonRef)) or
@@ -241,8 +242,30 @@ class NamerDict(dict):
                     self._set_name(f"{key}_0", values[0])
                 self._set_name(f"{key}_{len(values)}", value)
             values.append(value)
-        # TODO: Should we handle name collisions between explicitly named values
-        # and inferred names?
+        elif isinstance(type(value), CircuitKind):
+            values = self._inferred_names.setdefault(value.name, [])
+            if len(values) == 0:
+                pass
+            else:
+                if len(values) == 1:
+                    self._set_name(f"{value.name}_0", values[0])
+                self._set_name(f"{value.name}_{len(values)}", value)
+            values.append(value)
+        elif (
+            isinstance(value, Type) and
+            hasattr(value, "name") and
+            isinstance(value.name, TempNamedRef)
+        ):
+            values = self._inferred_names.setdefault(value.name.name, [])
+            if len(values) == 0:
+                values.append(value)
+            elif len(values) == 1 and values[0] is value:
+                pass
+            else:
+                if len(values) == 1:
+                    self._set_name(f"{value.name.name}_0", values[0])
+                self._set_name(f"{value.name.name}_{len(values)}", value)
+                values.append(value)
 
         super().__setitem__(key, orig_value)
 

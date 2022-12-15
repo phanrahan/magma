@@ -96,3 +96,38 @@ def test_namer_dict_generator():
 
     m.compile("build/test_namer_dict_generator", Foo(8), output="mlir")
     assert check_gold(__file__, f"test_namer_dict_generator.mlir")
+
+
+def test_namer_dict_explicit_collision_inst():
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+
+    class test_namer_dict_explicit_collision_inst(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+        x = Foo(name="foo")
+        foo = Foo()
+        io.O @= foo(x(io.I))
+
+    m.compile("build/test_namer_dict_explicit_collision_inst",
+              test_namer_dict_explicit_collision_inst, output="mlir")
+    assert check_gold(__file__, f"test_namer_dict_explicit_collision_inst.mlir")
+
+
+def test_namer_dict_explicit_collision_value():
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+
+    class test_namer_dict_explicit_collision_value(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+        x = m.Bits[8](name="y")
+        x @= io.I
+        y = m.Bits[8]()
+        y @= x
+        io.O @= y
+
+    m.compile("build/test_namer_dict_explicit_collision_value",
+              test_namer_dict_explicit_collision_value, output="mlir")
+    assert check_gold(__file__,
+                      f"test_namer_dict_explicit_collision_value.mlir")
