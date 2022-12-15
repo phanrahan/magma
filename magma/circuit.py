@@ -224,8 +224,7 @@ class NamerDict(dict):
             try:
                 value = magma_value(value)
             except NotImplementedError:
-                # SmartExpr doesn't have a magma_value
-                # TODO: This probably shouldn't be a protocol type then
+                # SmartExpr doesn't have a magma_value yet
                 pass
         # TODO: Refactor shared code between these cases
         if (
