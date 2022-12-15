@@ -1,6 +1,6 @@
 from magma.array import Array
-from magma.digital import Digital
 from magma.bits import Bits
+from magma.digital import Digital
 from magma.clock import AsyncReset, AsyncResetN, Clock, _ClockType
 from magma.conversions import as_bits, from_bits, bit, convertbit, convertbits
 from magma.digital import Digital
@@ -73,8 +73,10 @@ class InsertCoreIRWires(DefinitionPass):
             if isinstance(value, Digital):
                 wire_output = convertbit(wire_output, value_T)
             elif isinstance(value, Array):
-                wire_output = convertbits(wire_output, len(value_T), value_T,
-                                          issubclass(T, Bits))
+                wire_output = convertbits(
+                    wire_output, len(value_T), value_T,
+                    issubclass(value_T, Bits)
+                )
         value @= wire_output
 
     def _insert_wire(self, value, definition):

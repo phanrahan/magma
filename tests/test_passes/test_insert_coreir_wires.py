@@ -255,6 +255,7 @@ def test_insert_coreir_wires_temp_array_not_whole_anon():
 
 
 def test_insert_coreir_wires_recast():
+
     class Main(m.Circuit):
         io = m.IO(I=m.In(m.SInt[8]), O=m.Out(m.UInt[8]))
 
@@ -262,5 +263,5 @@ def test_insert_coreir_wires_recast():
         x @= io.I - 1
         io.O @= m.uint(x) + 1
 
-    # Should not raise an error
+    # Check that compilation succeeds without error.
     m.compile(f"build/insert_coreir_wires_recast", Main, output="mlir")
