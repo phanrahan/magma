@@ -15,7 +15,7 @@ class _DebugInfo:
 debug_info = _DebugInfo
 
 
-config.use_uinspect = RuntimeConfig(True)
+config.register(use_uinspect=RuntimeConfig(True))
 
 
 def get_debug_info(frames_to_skip):
