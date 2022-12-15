@@ -5,13 +5,13 @@ module Main (
     input clocks_clk,
     input clocks_rst
 );
-wire foo_O;
-Foo foo (
+wire Foo_inst0_O;
+Foo Foo_inst0 (
     .I(I),
-    .O(foo_O),
+    .O(Foo_inst0_O),
     .clocks_clk(clocks_clk),
     .clocks_rst(clocks_rst)
 );
-assign O = foo_O;
+assign O = Foo_inst0_O;
 endmodule
 

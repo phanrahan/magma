@@ -1,12 +1,3 @@
-module coreir_wire #(
-    parameter width = 1
-) (
-    input [width-1:0] in,
-    output [width-1:0] out
-);
-  assign out = in;
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -234,200 +225,110 @@ module _Top (
     input I,
     input CLK
 );
-wire [9:0] x_0_x_out;
-wire [9:0] x_1_x_out;
-wire [9:0] x_2_x_out;
-wire [9:0] x_3_x_out;
-wire [9:0] x_4_x_out;
-wire [9:0] x_5_x_out;
-wire [9:0] x_6_x_out;
-wire [9:0] x_7_x_out;
-wire [9:0] x_8_x_out;
-wire [9:0] x_9_x_out;
 `ifdef COND
 A A (
-    .port_0(x_0_x_out[0]),
-    .port_1(x_0_x_out[1]),
-    .port_2(x_0_x_out[2]),
-    .port_3(x_0_x_out[3]),
-    .port_4(x_0_x_out[4]),
-    .port_5(x_0_x_out[5]),
-    .port_6(x_0_x_out[6]),
-    .port_7(x_0_x_out[7]),
-    .port_8(x_0_x_out[8]),
-    .port_9(x_0_x_out[9]),
-    .port_10(x_1_x_out[0]),
-    .port_11(x_1_x_out[1]),
-    .port_12(x_1_x_out[2]),
-    .port_13(x_1_x_out[3]),
-    .port_14(x_1_x_out[4]),
-    .port_15(x_1_x_out[5]),
-    .port_16(x_1_x_out[6]),
-    .port_17(x_1_x_out[7]),
-    .port_18(x_1_x_out[8]),
-    .port_19(x_1_x_out[9]),
-    .port_20(x_2_x_out[0]),
-    .port_21(x_2_x_out[1]),
-    .port_22(x_2_x_out[2]),
-    .port_23(x_2_x_out[3]),
-    .port_24(x_2_x_out[4]),
-    .port_25(x_2_x_out[5]),
-    .port_26(x_2_x_out[6]),
-    .port_27(x_2_x_out[7]),
-    .port_28(x_2_x_out[8]),
-    .port_29(x_2_x_out[9]),
-    .port_30(x_3_x_out[0]),
-    .port_31(x_3_x_out[1]),
-    .port_32(x_3_x_out[2]),
-    .port_33(x_3_x_out[3]),
-    .port_34(x_3_x_out[4]),
-    .port_35(x_3_x_out[5]),
-    .port_36(x_3_x_out[6]),
-    .port_37(x_3_x_out[7]),
-    .port_38(x_3_x_out[8]),
-    .port_39(x_3_x_out[9]),
-    .port_40(x_4_x_out[0]),
-    .port_41(x_4_x_out[1]),
-    .port_42(x_4_x_out[2]),
-    .port_43(x_4_x_out[3]),
-    .port_44(x_4_x_out[4]),
-    .port_45(x_4_x_out[5]),
-    .port_46(x_4_x_out[6]),
-    .port_47(x_4_x_out[7]),
-    .port_48(x_4_x_out[8]),
-    .port_49(x_4_x_out[9]),
-    .port_50(x_5_x_out[0]),
-    .port_51(x_5_x_out[1]),
-    .port_52(x_5_x_out[2]),
-    .port_53(x_5_x_out[3]),
-    .port_54(x_5_x_out[4]),
-    .port_55(x_5_x_out[5]),
-    .port_56(x_5_x_out[6]),
-    .port_57(x_5_x_out[7]),
-    .port_58(x_5_x_out[8]),
-    .port_59(x_5_x_out[9]),
-    .port_60(x_6_x_out[0]),
-    .port_61(x_6_x_out[1]),
-    .port_62(x_6_x_out[2]),
-    .port_63(x_6_x_out[3]),
-    .port_64(x_6_x_out[4]),
-    .port_65(x_6_x_out[5]),
-    .port_66(x_6_x_out[6]),
-    .port_67(x_6_x_out[7]),
-    .port_68(x_6_x_out[8]),
-    .port_69(x_6_x_out[9]),
-    .port_70(x_7_x_out[0]),
-    .port_71(x_7_x_out[1]),
-    .port_72(x_7_x_out[2]),
-    .port_73(x_7_x_out[3]),
-    .port_74(x_7_x_out[4]),
-    .port_75(x_7_x_out[5]),
-    .port_76(x_7_x_out[6]),
-    .port_77(x_7_x_out[7]),
-    .port_78(x_7_x_out[8]),
-    .port_79(x_7_x_out[9]),
-    .port_80(x_8_x_out[0]),
-    .port_81(x_8_x_out[1]),
-    .port_82(x_8_x_out[2]),
-    .port_83(x_8_x_out[3]),
-    .port_84(x_8_x_out[4]),
-    .port_85(x_8_x_out[5]),
-    .port_86(x_8_x_out[6]),
-    .port_87(x_8_x_out[7]),
-    .port_88(x_8_x_out[8]),
-    .port_89(x_8_x_out[9]),
-    .port_90(x_9_x_out[0]),
-    .port_91(x_9_x_out[1]),
-    .port_92(x_9_x_out[2]),
-    .port_93(x_9_x_out[3]),
-    .port_94(x_9_x_out[4]),
-    .port_95(x_9_x_out[5]),
-    .port_96(x_9_x_out[6]),
-    .port_97(x_9_x_out[7]),
-    .port_98(x_9_x_out[8]),
-    .port_99(x_9_x_out[9]),
+    .port_0(I),
+    .port_1(I),
+    .port_2(I),
+    .port_3(I),
+    .port_4(I),
+    .port_5(I),
+    .port_6(I),
+    .port_7(I),
+    .port_8(I),
+    .port_9(I),
+    .port_10(I),
+    .port_11(I),
+    .port_12(I),
+    .port_13(I),
+    .port_14(I),
+    .port_15(I),
+    .port_16(I),
+    .port_17(I),
+    .port_18(I),
+    .port_19(I),
+    .port_20(I),
+    .port_21(I),
+    .port_22(I),
+    .port_23(I),
+    .port_24(I),
+    .port_25(I),
+    .port_26(I),
+    .port_27(I),
+    .port_28(I),
+    .port_29(I),
+    .port_30(I),
+    .port_31(I),
+    .port_32(I),
+    .port_33(I),
+    .port_34(I),
+    .port_35(I),
+    .port_36(I),
+    .port_37(I),
+    .port_38(I),
+    .port_39(I),
+    .port_40(I),
+    .port_41(I),
+    .port_42(I),
+    .port_43(I),
+    .port_44(I),
+    .port_45(I),
+    .port_46(I),
+    .port_47(I),
+    .port_48(I),
+    .port_49(I),
+    .port_50(I),
+    .port_51(I),
+    .port_52(I),
+    .port_53(I),
+    .port_54(I),
+    .port_55(I),
+    .port_56(I),
+    .port_57(I),
+    .port_58(I),
+    .port_59(I),
+    .port_60(I),
+    .port_61(I),
+    .port_62(I),
+    .port_63(I),
+    .port_64(I),
+    .port_65(I),
+    .port_66(I),
+    .port_67(I),
+    .port_68(I),
+    .port_69(I),
+    .port_70(I),
+    .port_71(I),
+    .port_72(I),
+    .port_73(I),
+    .port_74(I),
+    .port_75(I),
+    .port_76(I),
+    .port_77(I),
+    .port_78(I),
+    .port_79(I),
+    .port_80(I),
+    .port_81(I),
+    .port_82(I),
+    .port_83(I),
+    .port_84(I),
+    .port_85(I),
+    .port_86(I),
+    .port_87(I),
+    .port_88(I),
+    .port_89(I),
+    .port_90(I),
+    .port_91(I),
+    .port_92(I),
+    .port_93(I),
+    .port_94(I),
+    .port_95(I),
+    .port_96(I),
+    .port_97(I),
+    .port_98(I),
+    .port_99(I),
     .port_100(CLK)
 );
 `endif
-wire [9:0] x_0_x_in;
-assign x_0_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_0_x (
-    .in(x_0_x_in),
-    .out(x_0_x_out)
-);
-wire [9:0] x_1_x_in;
-assign x_1_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_1_x (
-    .in(x_1_x_in),
-    .out(x_1_x_out)
-);
-wire [9:0] x_2_x_in;
-assign x_2_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_2_x (
-    .in(x_2_x_in),
-    .out(x_2_x_out)
-);
-wire [9:0] x_3_x_in;
-assign x_3_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_3_x (
-    .in(x_3_x_in),
-    .out(x_3_x_out)
-);
-wire [9:0] x_4_x_in;
-assign x_4_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_4_x (
-    .in(x_4_x_in),
-    .out(x_4_x_out)
-);
-wire [9:0] x_5_x_in;
-assign x_5_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_5_x (
-    .in(x_5_x_in),
-    .out(x_5_x_out)
-);
-wire [9:0] x_6_x_in;
-assign x_6_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_6_x (
-    .in(x_6_x_in),
-    .out(x_6_x_out)
-);
-wire [9:0] x_7_x_in;
-assign x_7_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_7_x (
-    .in(x_7_x_in),
-    .out(x_7_x_out)
-);
-wire [9:0] x_8_x_in;
-assign x_8_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_8_x (
-    .in(x_8_x_in),
-    .out(x_8_x_out)
-);
-wire [9:0] x_9_x_in;
-assign x_9_x_in = {I,I,I,I,I,I,I,I,I,I};
-coreir_wire #(
-    .width(10)
-) x_9_x (
-    .in(x_9_x_in),
-    .out(x_9_x_out)
-);
 endmodule
 

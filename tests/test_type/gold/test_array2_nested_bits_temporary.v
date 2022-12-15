@@ -37,6 +37,7 @@ module Foo (
     output [7:0] O [3:0],
     input CLK
 );
+wire [7:0] Register_inst0_O;
 wire magma_Bit_and_inst0_out;
 wire magma_Bit_and_inst1_out;
 wire magma_Bit_and_inst2_out;
@@ -50,25 +51,24 @@ wire [7:0] pointer_0;
 wire [7:0] pointer_1;
 wire [7:0] pointer_2;
 wire [7:0] pointer_3;
-wire [7:0] reg_O;
+Register Register_inst0 (
+    .I(write_pointer),
+    .O(Register_inst0_O),
+    .CLK(CLK)
+);
 assign magma_Bit_and_inst0_out = pointer_0[7] & 1'b1;
 assign magma_Bit_and_inst1_out = pointer_1[7] & 1'b1;
 assign magma_Bit_and_inst2_out = pointer_2[7] & 1'b1;
 assign magma_Bit_and_inst3_out = pointer_3[7] & 1'b1;
-assign magma_UInt_8_add_inst0_out = 8'(\reg _O + 8'h00);
-assign magma_UInt_8_add_inst1_out = 8'(\reg _O + 8'h01);
-assign magma_UInt_8_add_inst2_out = 8'(\reg _O + 8'h02);
-assign magma_UInt_8_add_inst3_out = 8'(\reg _O + 8'h03);
+assign magma_UInt_8_add_inst0_out = 8'(Register_inst0_O + 8'h00);
+assign magma_UInt_8_add_inst1_out = 8'(Register_inst0_O + 8'h01);
+assign magma_UInt_8_add_inst2_out = 8'(Register_inst0_O + 8'h02);
+assign magma_UInt_8_add_inst3_out = 8'(Register_inst0_O + 8'h03);
 assign pointer = {magma_UInt_8_add_inst3_out,magma_UInt_8_add_inst2_out,magma_UInt_8_add_inst1_out,magma_UInt_8_add_inst0_out};
 assign pointer_0 = magma_UInt_8_add_inst0_out;
 assign pointer_1 = magma_UInt_8_add_inst1_out;
 assign pointer_2 = magma_UInt_8_add_inst2_out;
 assign pointer_3 = magma_UInt_8_add_inst3_out;
-Register reg (
-    .I(write_pointer),
-    .O(reg_O),
-    .CLK(CLK)
-);
 assign O[3] = {pointer[31],pointer[30],pointer[29],pointer[28],pointer[27],pointer[26],pointer[25],pointer[24]};
 assign O[2] = {pointer[23],pointer[22],pointer[21],pointer[20],pointer[19],pointer[18],pointer[17],pointer[16]};
 assign O[1] = {pointer[15],pointer[14],pointer[13],pointer[12],pointer[11],pointer[10],pointer[9],pointer[8]};

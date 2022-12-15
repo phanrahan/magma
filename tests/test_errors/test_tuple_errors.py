@@ -188,5 +188,5 @@ def test_unwired_mixed(caplog):
     assert caplog.messages[0] == "Bar.z.x not driven"
     assert caplog.messages[1] == "Bar.z.x: Unconnected"
 
-    assert caplog.messages[2] == "foo.z.y not driven"
-    assert caplog.messages[3] == "foo.z.y: Unconnected"
+    assert caplog.messages[2] == "Foo_inst0.z.y not driven"
+    assert caplog.messages[3] == "Foo_inst0.z.y: Unconnected"

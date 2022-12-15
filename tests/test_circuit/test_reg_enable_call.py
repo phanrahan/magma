@@ -13,12 +13,12 @@ def test_reg_enable_call():
     assert repr(test_reg_enable_call) == """\
 test_reg_enable_call = DefineCircuit("test_reg_enable_call", "I", In(Bits[5]), \
 "O", Out(Bits[5]), "nen", In(Bit), "CLK", In(Clock))
+Register_inst0 = Register()
 magma_Bit_not_inst0 = magma_Bit_not()
-reg = Register()
+wire(test_reg_enable_call.I, Register_inst0.I)
+wire(magma_Bit_not_inst0.out, Register_inst0.en)
 wire(test_reg_enable_call.nen, magma_Bit_not_inst0.in)
-wire(test_reg_enable_call.I, reg.I)
-wire(magma_Bit_not_inst0.out, reg.en)
-wire(reg.O, test_reg_enable_call.O)
+wire(Register_inst0.O, test_reg_enable_call.O)
 EndCircuit()\
 """
     m.compile("build/test_reg_enable_call", test_reg_enable_call)

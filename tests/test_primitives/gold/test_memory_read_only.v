@@ -105,12 +105,12 @@ module test_memory_read_only (
     output [4:0] rdata,
     input clk
 );
-wire [4:0] Mem4x5_RDATA;
-Memory Mem4x5 (
+wire [4:0] Memory_inst0_RDATA;
+Memory Memory_inst0 (
     .RADDR(raddr),
-    .RDATA(Mem4x5_RDATA),
+    .RDATA(Memory_inst0_RDATA),
     .CLK(clk)
 );
-assign rdata = Mem4x5_RDATA;
+assign rdata = Memory_inst0_RDATA;
 endmodule
 

@@ -16,8 +16,8 @@ def test_lut():
     lut3 = _Top.lut3
 
     assert repr(lut1) == 'lut1 = LUT2(name="lut1")'
-    assert repr(lut2) == 'lut2 = AnonymousCircuitType("I", array([lut1.I0, lut1.I1]), "O", lut1.O)'
-    assert repr(lut3) == 'lut3 = AnonymousCircuitType("I0", lut1.I0, "I1", lut1.I1, "O", lut1.O)'
+    assert repr(lut2) == 'AnonymousCircuitType("I", array([lut1.I0, lut1.I1]), "O", lut1.O)'
+    assert repr(lut3) == 'AnonymousCircuitType("I0", lut1.I0, "I1", lut1.I1, "O", lut1.O)'
 
 def test_rom():
     class ROM2(Circuit):
@@ -35,7 +35,7 @@ def test_rom():
     rom3 = _Top.rom3
 
     assert repr(rom1) == 'rom1 = ROM2(name="rom1")'
-    assert repr(rom2) == 'rom2 = AnonymousCircuitType("I0", rom1.I[0], "I1", rom1.I[1], "O", rom1.O)'
-    assert repr(rom3) == 'rom3 = AnonymousCircuitType("I", array([rom1.I[0], rom1.I[1]]), "O", rom1.O)'
+    assert repr(rom2) == 'AnonymousCircuitType("I0", rom1.I[0], "I1", rom1.I[1], "O", rom1.O)'
+    assert repr(rom3) == 'AnonymousCircuitType("I", array([rom1.I[0], rom1.I[1]]), "O", rom1.O)'
 
 

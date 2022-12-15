@@ -4,9 +4,9 @@
     "modules":{
       "CompileGuardCircuit_1":{
         "type":["Record",[
-          ["CLK",["Named","coreir.clkIn"]],
           ["port_0","Bit"],
-          ["port_1","BitIn"]
+          ["port_1",["Named","coreir.clkIn"]],
+          ["port_2","BitIn"]
         ]],
         "instances":{
           "Register_inst0":{
@@ -21,11 +21,11 @@
           }
         },
         "connections":[
-          ["self.CLK","Register_inst0.CLK"],
+          ["self.port_1","Register_inst0.CLK"],
           ["magma_Bit_xor_inst0.out","Register_inst0.I"],
           ["self.port_0","Register_inst0.O"],
           ["magma_Bit_xor_inst0.in1","bit_const_1_None.out"],
-          ["self.port_1","magma_Bit_xor_inst0.in0"]
+          ["self.port_2","magma_Bit_xor_inst0.in0"]
         ]
       },
       "Register":{
@@ -60,9 +60,9 @@
           }
         },
         "connections":[
-          ["self.CLK","CompileGuardCircuit_1.CLK"],
           ["self.O","CompileGuardCircuit_1.port_0"],
-          ["self.I","CompileGuardCircuit_1.port_1"]
+          ["self.CLK","CompileGuardCircuit_1.port_1"],
+          ["self.I","CompileGuardCircuit_1.port_2"]
         ]
       }
     }

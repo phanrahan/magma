@@ -58,27 +58,27 @@ module Main (
     output O1,
     input CLK
 );
+wire Register_inst0_O;
 wire magma_Bit_not_inst0_out;
 wire magma_Bit_not_inst1_out;
-wire reg_O;
 Mux2xBit Mux2xBit_inst0 (
-    .I0(\reg _O),
+    .I0(Register_inst0_O),
     .I1(magma_Bit_not_inst0_out),
     .S(s),
     .O(O0)
 );
 Mux2xBit Mux2xBit_inst1 (
     .I0(magma_Bit_not_inst1_out),
-    .I1(\reg _O),
+    .I1(Register_inst0_O),
     .S(s),
     .O(O1)
 );
-assign magma_Bit_not_inst0_out = ~ \reg _O;
-assign magma_Bit_not_inst1_out = ~ \reg _O;
-Register reg (
+Register Register_inst0 (
     .I(O0),
-    .O(reg_O),
+    .O(Register_inst0_O),
     .CLK(CLK)
 );
+assign magma_Bit_not_inst0_out = ~ Register_inst0_O;
+assign magma_Bit_not_inst1_out = ~ Register_inst0_O;
 endmodule
 

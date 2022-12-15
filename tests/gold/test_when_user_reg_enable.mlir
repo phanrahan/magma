@@ -84,7 +84,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %49 = comb.concat %38, %37, %36, %35, %34, %33, %32, %31 : i1, i1, i1, i1, i1, i1, i1, i1
-        %21 = hw.instance "x" @Register(I: %49: i8, CE: %39: i1, CLK: %CLK: i1) -> (O: i8)
+        %21 = hw.instance "Register_inst0" @Register(I: %49: i8, CE: %39: i1, CLK: %CLK: i1) -> (O: i8)
         hw.output %21 : i8
     }
 }

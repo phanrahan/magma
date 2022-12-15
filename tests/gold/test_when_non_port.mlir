@@ -11,9 +11,6 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %3, %1 : i1
             }
         }
-        %5 = sv.wire sym @test_non_port.x {name="x"} : !hw.inout<i1>
-        sv.assign %5, %2 : i1
-        %4 = sv.read_inout %5 : !hw.inout<i1>
-        hw.output %4 : i1
+        hw.output %2 : i1
     }
 }

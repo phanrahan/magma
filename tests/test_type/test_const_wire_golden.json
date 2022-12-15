@@ -16,12 +16,12 @@
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
           },
-          "foo_inst":{
+          "foo_inst0":{
             "modref":"global.foo"
           }
         },
         "connections":[
-          ["foo_inst.I","bit_const_0_None.out"],
+          ["foo_inst0.I","bit_const_0_None.out"],
           ["self.O","bit_const_0_None.out"]
         ]
       }

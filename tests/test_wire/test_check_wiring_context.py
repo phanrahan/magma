@@ -43,8 +43,8 @@ def test_bad_temp(caplog):
 
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Bar", Bar)
-    assert str(e.value) == ("Cannot wire Foo.x to Bar._z.in because they are "
-                            "not from the same definition context")
+    assert str(e.value) == ("Cannot wire Foo.x to Bar.y because they are not "
+                            "from the same definition context")
 
 
 def test_bad_temp2(caplog):
@@ -61,8 +61,8 @@ def test_bad_temp2(caplog):
 
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == ("Cannot wire Bar.x to Foo.z.in because they are "
-                            "not from the same definition context")
+    assert str(e.value) == ("Cannot wire Bar.x to Foo.y because they are not "
+                            "from the same definition context")
 
 
 def test_bad_portview(caplog):
@@ -87,7 +87,7 @@ def test_bad_portview(caplog):
 
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Foo", Biz)
-    assert str(e.value) == ("Cannot wire bar.foo.y to Biz.y because they "
+    assert str(e.value) == ("Cannot wire Bar.Foo_inst0.y to Biz.y because they "
                             "are not from the same definition context")
 
 
@@ -109,7 +109,7 @@ def test_bad_inst(caplog):
 
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Bar", Bar)
-    assert str(e.value) == ("Cannot wire Baz.bar.y to Bar.foo.x "
+    assert str(e.value) == ("Cannot wire Baz.Bar_inst0.y to Bar.Foo_inst0.x "
                             "because they are not from the same definition "
                             "context")
 

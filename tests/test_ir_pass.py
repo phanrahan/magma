@@ -1,4 +1,3 @@
-from magma.config import config
 from magma.passes import IRPass
 from magma import Bit, Circuit, IO, In, Out, wire
 
@@ -28,17 +27,17 @@ wire(_Cell.I, _Cell.O)
 EndCircuit()
 
 _Top = DefineCircuit("_Top", "I", In(Bit), "O", Out(Bit))
-cell_0 = _Cell()
-cell_1 = _Cell()
-cell_2 = _Cell()
-cell_3 = _Cell()
-cell_4 = _Cell()
-wire(_Top.I, cell_0.I)
-wire(cell_0.O, cell_1.I)
-wire(cell_1.O, cell_2.I)
-wire(cell_2.O, cell_3.I)
-wire(cell_3.O, cell_4.I)
-wire(cell_4.O, _Top.O)
+_Cell_inst0 = _Cell()
+_Cell_inst1 = _Cell()
+_Cell_inst2 = _Cell()
+_Cell_inst3 = _Cell()
+_Cell_inst4 = _Cell()
+wire(_Top.I, _Cell_inst0.I)
+wire(_Cell_inst0.O, _Cell_inst1.I)
+wire(_Cell_inst1.O, _Cell_inst2.I)
+wire(_Cell_inst2.O, _Cell_inst3.I)
+wire(_Cell_inst3.O, _Cell_inst4.I)
+wire(_Cell_inst4.O, _Top.O)
 EndCircuit()
 
 """

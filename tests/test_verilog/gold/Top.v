@@ -4,22 +4,22 @@ module Top (
     output O,
     input CLK
 );
-wire ff0_O;
-wire ff1_O;
+wire FF_inst0_O;
+wire FF_inst1_O;
 FF #(
     .init(0)
-) ff0 (
+) FF_inst0 (
     .I(I),
-    .O(ff0_O),
+    .O(FF_inst0_O),
     .CLK(CLK)
 );
 FF #(
     .init(1)
-) ff1 (
-    .I(ff0_O),
-    .O(ff1_O),
+) FF_inst1 (
+    .I(FF_inst0_O),
+    .O(FF_inst1_O),
     .CLK(CLK)
 );
-assign O = ff1_O;
+assign O = FF_inst1_O;
 endmodule
 

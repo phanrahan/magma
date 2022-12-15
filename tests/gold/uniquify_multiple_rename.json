@@ -30,23 +30,23 @@
           ["O2",["Array",3,"Bit"]]
         ]],
         "instances":{
-          "foo0":{
+          "Foo_inst0":{
             "modref":"global.Foo"
           },
-          "foo1":{
+          "Foo_inst1":{
             "modref":"global.Foo_unq1"
           },
-          "foo2":{
+          "Foo_inst2":{
             "modref":"global.Foo_unq1"
           }
         },
         "connections":[
-          ["self.I0","foo0.I"],
-          ["self.O0","foo0.O"],
-          ["self.I1","foo1.I"],
-          ["self.O1","foo1.O"],
-          ["self.I2","foo2.I"],
-          ["self.O2","foo2.O"]
+          ["self.I0","Foo_inst0.I"],
+          ["self.O0","Foo_inst0.O"],
+          ["self.I1","Foo_inst1.I"],
+          ["self.O1","Foo_inst1.O"],
+          ["self.I2","Foo_inst2.I"],
+          ["self.O2","Foo_inst2.O"]
         ]
       }
     }

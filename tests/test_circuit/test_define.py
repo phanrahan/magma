@@ -121,7 +121,7 @@ def test_unwired_ports_warnings(caplog):
     m.compile("build/test_unwired_output", main, "verilog")
     assert check_files_equal(__file__, f"build/test_unwired_output.v",
                              f"gold/test_unwired_output.v")
-    assert caplog.records[-2].msg == "main.and2.I0 not connected"
+    assert caplog.records[-2].msg == "main.And2_inst0.I0 not connected"
     assert caplog.records[-1].msg == "main.O is unwired"
 
 
