@@ -9,7 +9,8 @@ def test_uint_sint(caplog):
         io.b @= io.a
         assert not io.b.driven()
     expected = """\
-Cannot wire Main.a (Out(UInt[16])) to Main.b (In(SInt[16]))\
+Cannot wire Main.a (Out(UInt[16])) to Main.b (In(SInt[16]))
+>>         io.b @= io.a\
 """
     assert caplog.messages[0][-len(expected):] == expected
 
@@ -18,7 +19,8 @@ Cannot wire Main.a (Out(UInt[16])) to Main.b (In(SInt[16]))\
         io.b @= io.a
         assert not io.b.driven()
     expected = """\
-Cannot wire Main2.a (Out(SInt[16])) to Main2.b (In(UInt[16]))\
+Cannot wire Main2.a (Out(SInt[16])) to Main2.b (In(UInt[16]))
+>>         io.b @= io.a\
 """
     assert caplog.messages[1][-len(expected):] == expected
 

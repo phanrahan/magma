@@ -2,6 +2,7 @@ import pytest
 
 import magma as m
 from magma.testing import check_files_equal
+from magma.testing.utils import has_warning
 
 
 def _check_compile(name, circ, nested=False, inline=False):
@@ -170,10 +171,10 @@ def test_array2_overlapping_index(nested, caplog):
         io.O[1] @= io.I[0]
 
     _check_compile("test_array2_overlapping_index", Foo, nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[0], Old Output: Foo.I[1], "
-                                          "New Output: Foo.I[0]")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:170: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[0], Old Output: Foo.I[1], New Output: Foo.I[0]
+>>         io.O[0] @= io.I[0]\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
@@ -187,10 +188,10 @@ def test_array2_overlapping_index_slice(nested, caplog):
         io.O[0:2] @= io.I
 
     _check_compile("test_array2_overlapping_index_slice", Foo, nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[0], Old Output: Foo.I[1], "
-                                          "New Output: Foo.I[0]")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:188: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[0], Old Output: Foo.I[1], New Output: Foo.I[0]
+>>         io.O[0:2] @= io.I\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
@@ -204,10 +205,10 @@ def test_array2_overlapping_slice_index(nested, caplog):
         io.O[0] @= io.I[1]
 
     _check_compile("test_array2_overlapping_slice_index", Foo, nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[0], Old Output: Foo.I[0], "
-                                          "New Output: Foo.I[1]")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:205: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[0], Old Output: Foo.I[0], New Output: Foo.I[1]
+>>         io.O[0] @= io.I[1]\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
@@ -221,14 +222,14 @@ def test_array2_overlapping_slice_slice(nested, caplog):
         io.O[1:4] @= io.I[:3]
 
     _check_compile("test_array2_overlapping_slice_slice", Foo, nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[1], Old Output: Foo.I[2], "
-                                          "New Output: Foo.I[0]")
-    assert (str(caplog.records[1].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[2], Old Output: Foo.I[3], "
-                                          "New Output: Foo.I[1]")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:222: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[1], Old Output: Foo.I[2], New Output: Foo.I[0]
+>>         io.O[1:4] @= io.I[:3]\
+""")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:222: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[2], Old Output: Foo.I[3], New Output: Foo.I[1]
+>>         io.O[1:4] @= io.I[:3]\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
@@ -242,14 +243,14 @@ def test_array2_overlapping_slice_slice2(nested, caplog):
         io.O[0:3] @= io.I[1:]
 
     _check_compile("test_array2_overlapping_slice_slice2", Foo, nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[1], Old Output: Foo.I[0], "
-                                          "New Output: Foo.I[2]")
-    assert (str(caplog.records[1].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[2], Old Output: Foo.I[1], "
-                                          "New Output: Foo.I[3]")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:243: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[1], Old Output: Foo.I[0], New Output: Foo.I[2]
+>>         io.O[0:3] @= io.I[1:]\
+""")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:243: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[2], Old Output: Foo.I[1], New Output: Foo.I[3]
+>>         io.O[0:3] @= io.I[1:]\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
@@ -279,10 +280,10 @@ def test_array2_overlapping_delayed_slice_index(nested, caplog):
         x @= io.I[:3]
 
     _check_compile("test_array2_overlapping_delayed_slice_index", Foo, nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[1], Old Output: Foo.I[2], "
-                                          "New Output: Foo.I[0]")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:280: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[1], Old Output: Foo.I[2], New Output: Foo.I[0]
+>>         x @= io.I[:3]\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
@@ -297,10 +298,10 @@ def test_array2_overlapping_delayed_slice_slice(nested, caplog):
         x @= io.I[:3]
 
     _check_compile("test_array2_overlapping_delayed_slice_slice", Foo, nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[1], Old Output: Foo.I[1], "
-                                          "New Output: Foo.I[0]")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:298: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[1], Old Output: Foo.I[1], New Output: Foo.I[0]
+>>         x @= io.I[:3]\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
@@ -314,10 +315,10 @@ def test_array2_overlapping_override_bulk_wire(nested, caplog):
         io.O[0] @= io.I[2]
 
     _check_compile("test_array2_overlapping_override_bulk_wire", Foo, nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[0], Old Output: Foo.I[0], "
-                                          "New Output: Foo.I[2]")
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:315: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[0], Old Output: Foo.I[0], New Output: Foo.I[2]
+>>         io.O[0] @= io.I[2]\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
@@ -332,8 +333,10 @@ def test_array2_overlapping_override_bulk_wire_slice(nested, caplog):
 
     _check_compile("test_array2_overlapping_override_bulk_wire_slice", Foo,
                    nested)
-    error_msg = "Wiring multiple outputs to same wire, using last connection. Input: Foo.O[0], Old Output: Foo.I[0], New Output: Foo.I[2]"  # noqa
-    assert str(caplog.records[0].msg) == error_msg
+    assert has_warning(caplog, """\
+tests/test_type/test_array2.py:332: Wiring multiple outputs to same wire, using last connection. Input: Foo.O[1], Old Output: Foo.I[1], New Output: Foo.I[3]
+>>         io.O[0:2] @= io.I[2:4]\
+""")
 
 
 @pytest.mark.parametrize('nested', [False, True])
