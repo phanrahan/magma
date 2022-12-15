@@ -89,8 +89,7 @@ class ConfigManager:
 
 config = ConfigManager(
     compile_dir=RuntimeConfig("normal"),
-    debug_mode=RuntimeConfig(False),
-    use_uinspect=RuntimeConfig(True)
+    debug_mode=RuntimeConfig(False)
 )
 
 
