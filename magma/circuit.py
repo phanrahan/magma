@@ -26,7 +26,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
-from magma.config import get_debug_mode, set_debug_mode, config
+from magma.config import get_debug_mode, set_debug_mode, config, RuntimeConfig
 from magma.definition_context import (
     DefinitionContext,
     definition_context_manager,
@@ -276,6 +276,9 @@ class NamerDict(dict):
 
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
+
+
+config.register(use_namer_dict=RuntimeConfig(False))
 
 
 class CircuitKind(type):
