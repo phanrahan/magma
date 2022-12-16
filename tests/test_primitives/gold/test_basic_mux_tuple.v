@@ -7,17 +7,17 @@ module Mux2xTupleBit_Bits2 (
     output [1:0] O__1,
     input S
 );
-reg [2:0] coreir_commonlib_mux2x3_inst0_out;
+reg [2:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x3_inst0_out = {I0__1,I0__0};
+    mux_out = {I0__1,I0__0};
 end else begin
-    coreir_commonlib_mux2x3_inst0_out = {I1__1,I1__0};
+    mux_out = {I1__1,I1__0};
 end
 end
 
-assign O__0 = coreir_commonlib_mux2x3_inst0_out[0];
-assign O__1 = {coreir_commonlib_mux2x3_inst0_out[2],coreir_commonlib_mux2x3_inst0_out[1]};
+assign O__0 = mux_out[0];
+assign O__1 = {mux_out[2],mux_out[1]};
 endmodule
 
 module test_basic_mux_tuple (

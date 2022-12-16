@@ -54,26 +54,26 @@ module Memory (
     input [4:0] WDATA_1_Y,
     input WE
 );
-wire [11:0] coreir_mem4x12_inst0_rdata;
-wire [11:0] coreir_mem4x12_inst0_wdata;
-assign coreir_mem4x12_inst0_wdata = {WDATA_1_Y,WDATA_1_X,WDATA_0_Y,WDATA_0_X};
+wire [11:0] coreir_mem_rdata;
+wire [11:0] coreir_mem_wdata;
+assign coreir_mem_wdata = {WDATA_1_Y,WDATA_1_X,WDATA_0_Y,WDATA_0_X};
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
     .sync_read(1'b0),
     .width(12)
-) coreir_mem4x12_inst0 (
+) coreir_mem (
     .clk(CLK),
-    .wdata(coreir_mem4x12_inst0_wdata),
+    .wdata(coreir_mem_wdata),
     .waddr(WADDR),
     .wen(WE),
-    .rdata(coreir_mem4x12_inst0_rdata),
+    .rdata(coreir_mem_rdata),
     .raddr(RADDR)
 );
-assign RDATA_0_X = coreir_mem4x12_inst0_rdata[0];
-assign RDATA_0_Y = {coreir_mem4x12_inst0_rdata[5],coreir_mem4x12_inst0_rdata[4],coreir_mem4x12_inst0_rdata[3],coreir_mem4x12_inst0_rdata[2],coreir_mem4x12_inst0_rdata[1]};
-assign RDATA_1_X = coreir_mem4x12_inst0_rdata[6];
-assign RDATA_1_Y = {coreir_mem4x12_inst0_rdata[11],coreir_mem4x12_inst0_rdata[10],coreir_mem4x12_inst0_rdata[9],coreir_mem4x12_inst0_rdata[8],coreir_mem4x12_inst0_rdata[7]};
+assign RDATA_0_X = coreir_mem_rdata[0];
+assign RDATA_0_Y = {coreir_mem_rdata[5],coreir_mem_rdata[4],coreir_mem_rdata[3],coreir_mem_rdata[2],coreir_mem_rdata[1]};
+assign RDATA_1_X = coreir_mem_rdata[6];
+assign RDATA_1_Y = {coreir_mem_rdata[11],coreir_mem_rdata[10],coreir_mem_rdata[9],coreir_mem_rdata[8],coreir_mem_rdata[7]};
 endmodule
 
 module test_memory_arr (

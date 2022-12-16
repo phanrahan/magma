@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(16'h0000),
     .width(16)
-) reg_P16_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
     .out(O)

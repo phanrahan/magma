@@ -4,16 +4,16 @@ module Mux2xBit (
     input S,
     output O
 );
-reg [0:0] coreir_commonlib_mux2x1_inst0_out;
+reg [0:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x1_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x1_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x1_inst0_out[0];
+assign O = mux_out[0];
 endmodule
 
 module TestReadyValidNoDeqWhen (

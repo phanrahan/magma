@@ -59,16 +59,16 @@ module Mux2xBits8 (
     input S,
     output [7:0] O
 );
-wire [7:0] coreir_commonlib_mux2x8_inst0_out;
-wire [7:0] coreir_commonlib_mux2x8_inst0_in_data [1:0];
-assign coreir_commonlib_mux2x8_inst0_in_data[1] = I1;
-assign coreir_commonlib_mux2x8_inst0_in_data[0] = I0;
-commonlib_muxn__N2__width8 coreir_commonlib_mux2x8_inst0 (
-    .in_data(coreir_commonlib_mux2x8_inst0_in_data),
+wire [7:0] mux_out;
+wire [7:0] mux_in_data [1:0];
+assign mux_in_data[1] = I1;
+assign mux_in_data[0] = I0;
+commonlib_muxn__N2__width8 mux (
+    .in_data(mux_in_data),
     .in_sel(S),
-    .out(coreir_commonlib_mux2x8_inst0_out)
+    .out(mux_out)
 );
-assign O = coreir_commonlib_mux2x8_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Register (
@@ -79,14 +79,23 @@ module Register (
     input RESET
 );
 wire [7:0] Mux2xBits8_inst0_O;
+wire [7:0] _reg_out;
 wire [7:0] const_222_8_out;
 wire [7:0] enable_mux_O;
-wire [7:0] reg_P8_inst0_out;
 Mux2xBits8 Mux2xBits8_inst0 (
     .I0(enable_mux_O),
     .I1(const_222_8_out),
     .S(RESET),
     .O(Mux2xBits8_inst0_O)
+);
+coreir_reg #(
+    .clk_posedge(1'b1),
+    .init(8'hde),
+    .width(8)
+) _reg (
+    .clk(CLK),
+    .in(Mux2xBits8_inst0_O),
+    .out(_reg_out)
 );
 coreir_const #(
     .value(8'hde),
@@ -95,21 +104,12 @@ coreir_const #(
     .out(const_222_8_out)
 );
 Mux2xBits8 enable_mux (
-    .I0(reg_P8_inst0_out),
+    .I0(_reg_out),
     .I1(I),
     .S(CE),
     .O(enable_mux_O)
 );
-coreir_reg #(
-    .clk_posedge(1'b1),
-    .init(8'hde),
-    .width(8)
-) reg_P8_inst0 (
-    .clk(CLK),
-    .in(Mux2xBits8_inst0_O),
-    .out(reg_P8_inst0_out)
-);
-assign O = reg_P8_inst0_out;
+assign O = _reg_out;
 endmodule
 
 module test_enable_reg (

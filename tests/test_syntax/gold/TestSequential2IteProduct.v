@@ -21,17 +21,17 @@ module Register (
     output O,
     input CLK
 );
-wire [0:0] reg_P1_inst0_out;
+wire [0:0] _reg_out;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
-) reg_P1_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
-    .out(reg_P1_inst0_out)
+    .out(_reg_out)
 );
-assign O = reg_P1_inst0_out[0];
+assign O = _reg_out[0];
 endmodule
 
 module Mux2xTuplea__SequentialRegisterWrapperBit (
@@ -40,16 +40,16 @@ module Mux2xTuplea__SequentialRegisterWrapperBit (
     output O_a,
     input S
 );
-reg [0:0] coreir_commonlib_mux2x1_inst0_out;
+reg [0:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x1_inst0_out = I0_a;
+    mux_out = I0_a;
 end else begin
-    coreir_commonlib_mux2x1_inst0_out = I1_a;
+    mux_out = I1_a;
 end
 end
 
-assign O_a = coreir_commonlib_mux2x1_inst0_out[0];
+assign O_a = mux_out[0];
 endmodule
 
 module Mux2xBit (
@@ -58,16 +58,16 @@ module Mux2xBit (
     input S,
     output O
 );
-reg [0:0] coreir_commonlib_mux2x1_inst0_out;
+reg [0:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x1_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x1_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x1_inst0_out[0];
+assign O = mux_out[0];
 endmodule
 
 module Test (

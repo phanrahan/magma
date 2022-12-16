@@ -91,6 +91,7 @@ class ConfigManager:
 
 config = ConfigManager(
     compile_dir=RuntimeConfig("normal"),
+    use_generator_debug_rewriter=RuntimeConfig(False),
     debug_mode=RuntimeConfig(False)
 )
 

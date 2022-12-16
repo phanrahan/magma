@@ -21,30 +21,30 @@ module Register (
     output [1:0] O [3:0][2:0],
     input CLK
 );
-wire [23:0] reg_P24_inst0_out;
-wire [23:0] reg_P24_inst0_in;
-assign reg_P24_inst0_in = {I[3][2],I[3][1],I[3][0],I[2][2],I[2][1],I[2][0],I[1][2],I[1][1],I[1][0],I[0][2],I[0][1],I[0][0]};
+wire [23:0] _reg_out;
+wire [23:0] _reg_in;
+assign _reg_in = {I[3][2],I[3][1],I[3][0],I[2][2],I[2][1],I[2][0],I[1][2],I[1][1],I[1][0],I[0][2],I[0][1],I[0][0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(24'h000000),
     .width(24)
-) reg_P24_inst0 (
+) _reg (
     .clk(CLK),
-    .in(reg_P24_inst0_in),
-    .out(reg_P24_inst0_out)
+    .in(_reg_in),
+    .out(_reg_out)
 );
-assign O[3][2] = {reg_P24_inst0_out[23],reg_P24_inst0_out[22]};
-assign O[3][1] = {reg_P24_inst0_out[21],reg_P24_inst0_out[20]};
-assign O[3][0] = {reg_P24_inst0_out[19],reg_P24_inst0_out[18]};
-assign O[2][2] = {reg_P24_inst0_out[17],reg_P24_inst0_out[16]};
-assign O[2][1] = {reg_P24_inst0_out[15],reg_P24_inst0_out[14]};
-assign O[2][0] = {reg_P24_inst0_out[13],reg_P24_inst0_out[12]};
-assign O[1][2] = {reg_P24_inst0_out[11],reg_P24_inst0_out[10]};
-assign O[1][1] = {reg_P24_inst0_out[9],reg_P24_inst0_out[8]};
-assign O[1][0] = {reg_P24_inst0_out[7],reg_P24_inst0_out[6]};
-assign O[0][2] = {reg_P24_inst0_out[5],reg_P24_inst0_out[4]};
-assign O[0][1] = {reg_P24_inst0_out[3],reg_P24_inst0_out[2]};
-assign O[0][0] = {reg_P24_inst0_out[1],reg_P24_inst0_out[0]};
+assign O[3][2] = {_reg_out[23],_reg_out[22]};
+assign O[3][1] = {_reg_out[21],_reg_out[20]};
+assign O[3][0] = {_reg_out[19],_reg_out[18]};
+assign O[2][2] = {_reg_out[17],_reg_out[16]};
+assign O[2][1] = {_reg_out[15],_reg_out[14]};
+assign O[2][0] = {_reg_out[13],_reg_out[12]};
+assign O[1][2] = {_reg_out[11],_reg_out[10]};
+assign O[1][1] = {_reg_out[9],_reg_out[8]};
+assign O[1][0] = {_reg_out[7],_reg_out[6]};
+assign O[0][2] = {_reg_out[5],_reg_out[4]};
+assign O[0][1] = {_reg_out[3],_reg_out[2]};
+assign O[0][0] = {_reg_out[1],_reg_out[0]};
 endmodule
 
 module Mux4xArray3_Array2_Bit (
@@ -55,22 +55,22 @@ module Mux4xArray3_Array2_Bit (
     input [1:0] S,
     output [1:0] O [2:0]
 );
-reg [5:0] coreir_commonlib_mux4x6_inst0_out;
+reg [5:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux4x6_inst0_out = {I0[2],I0[1],I0[0]};
+    mux_out = {I0[2],I0[1],I0[0]};
 end else if (S == 1) begin
-    coreir_commonlib_mux4x6_inst0_out = {I1[2],I1[1],I1[0]};
+    mux_out = {I1[2],I1[1],I1[0]};
 end else if (S == 2) begin
-    coreir_commonlib_mux4x6_inst0_out = {I2[2],I2[1],I2[0]};
+    mux_out = {I2[2],I2[1],I2[0]};
 end else begin
-    coreir_commonlib_mux4x6_inst0_out = {I3[2],I3[1],I3[0]};
+    mux_out = {I3[2],I3[1],I3[0]};
 end
 end
 
-assign O[2] = {coreir_commonlib_mux4x6_inst0_out[5],coreir_commonlib_mux4x6_inst0_out[4]};
-assign O[1] = {coreir_commonlib_mux4x6_inst0_out[3],coreir_commonlib_mux4x6_inst0_out[2]};
-assign O[0] = {coreir_commonlib_mux4x6_inst0_out[1],coreir_commonlib_mux4x6_inst0_out[0]};
+assign O[2] = {mux_out[5],mux_out[4]};
+assign O[1] = {mux_out[3],mux_out[2]};
+assign O[0] = {mux_out[1],mux_out[0]};
 endmodule
 
 module Main (

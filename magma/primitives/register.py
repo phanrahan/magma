@@ -209,10 +209,10 @@ class Register(AbstractRegister):
             coreir_init = as_bits(init)
         coreir_init = int(coreir_init)
 
-        reg = _CoreIRRegister(T.flat_length(), init=coreir_init,
-                              has_async_reset=has_async_reset,
-                              has_async_resetn=has_async_resetn)()
-        O = from_bits(T, reg.O)
+        _reg = _CoreIRRegister(T.flat_length(), init=coreir_init,
+                               has_async_reset=has_async_reset,
+                               has_async_resetn=has_async_resetn)()
+        O = from_bits(T, _reg.O)
         wire(O, getattr(self.io, O_name))
 
         I = getattr(self.io, I_name)
@@ -233,7 +233,7 @@ class Register(AbstractRegister):
             I = Mux(2, T)(name="enable_mux")(O, I, enable)
         elif (has_reset or has_resetn):
             I = Mux(2, T)()(I, init, reset_select)
-        reg.I @= as_bits(I)
+        _reg.I @= as_bits(I)
 
     def get_enable(self, inst):
         return getattr(inst, self.CE_name, None)

@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(16'h0000),
     .width(16)
-) reg_P16_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
     .out(O)
@@ -38,16 +38,16 @@ module Mux2x_SequentialRegisterWrapperSInt16 (
     input S,
     output [15:0] O
 );
-reg [15:0] coreir_commonlib_mux2x16_inst0_out;
+reg [15:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x16_inst0_out = I0;
+    mux_out = I0;
 end else begin
-    coreir_commonlib_mux2x16_inst0_out = I1;
+    mux_out = I1;
 end
 end
 
-assign O = coreir_commonlib_mux2x16_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Test2 (

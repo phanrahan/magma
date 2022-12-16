@@ -4,16 +4,16 @@ module Mux2xTuplea_Bit (
     output O_a,
     input S
 );
-reg [0:0] coreir_commonlib_mux2x1_inst0_out;
+reg [0:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x1_inst0_out = I0_a;
+    mux_out = I0_a;
 end else begin
-    coreir_commonlib_mux2x1_inst0_out = I1_a;
+    mux_out = I1_a;
 end
 end
 
-assign O_a = coreir_commonlib_mux2x1_inst0_out[0];
+assign O_a = mux_out[0];
 endmodule
 
 module Test (

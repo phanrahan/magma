@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(3'h0),
     .width(3)
-) reg_P3_inst0 (
+) _reg (
     .clk(CLK),
     .in(I),
     .out(O)
@@ -37,26 +37,26 @@ module Register (
     output [6:0] O [7:0],
     input CLK
 );
-wire [55:0] reg_P56_inst0_out;
-wire [55:0] reg_P56_inst0_in;
-assign reg_P56_inst0_in = {I[7],I[6],I[5],I[4],I[3],I[2],I[1],I[0]};
+wire [55:0] _reg_out;
+wire [55:0] _reg_in;
+assign _reg_in = {I[7],I[6],I[5],I[4],I[3],I[2],I[1],I[0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(56'h00000000000000),
     .width(56)
-) reg_P56_inst0 (
+) _reg (
     .clk(CLK),
-    .in(reg_P56_inst0_in),
-    .out(reg_P56_inst0_out)
+    .in(_reg_in),
+    .out(_reg_out)
 );
-assign O[7] = {reg_P56_inst0_out[55],reg_P56_inst0_out[54],reg_P56_inst0_out[53],reg_P56_inst0_out[52],reg_P56_inst0_out[51],reg_P56_inst0_out[50],reg_P56_inst0_out[49]};
-assign O[6] = {reg_P56_inst0_out[48],reg_P56_inst0_out[47],reg_P56_inst0_out[46],reg_P56_inst0_out[45],reg_P56_inst0_out[44],reg_P56_inst0_out[43],reg_P56_inst0_out[42]};
-assign O[5] = {reg_P56_inst0_out[41],reg_P56_inst0_out[40],reg_P56_inst0_out[39],reg_P56_inst0_out[38],reg_P56_inst0_out[37],reg_P56_inst0_out[36],reg_P56_inst0_out[35]};
-assign O[4] = {reg_P56_inst0_out[34],reg_P56_inst0_out[33],reg_P56_inst0_out[32],reg_P56_inst0_out[31],reg_P56_inst0_out[30],reg_P56_inst0_out[29],reg_P56_inst0_out[28]};
-assign O[3] = {reg_P56_inst0_out[27],reg_P56_inst0_out[26],reg_P56_inst0_out[25],reg_P56_inst0_out[24],reg_P56_inst0_out[23],reg_P56_inst0_out[22],reg_P56_inst0_out[21]};
-assign O[2] = {reg_P56_inst0_out[20],reg_P56_inst0_out[19],reg_P56_inst0_out[18],reg_P56_inst0_out[17],reg_P56_inst0_out[16],reg_P56_inst0_out[15],reg_P56_inst0_out[14]};
-assign O[1] = {reg_P56_inst0_out[13],reg_P56_inst0_out[12],reg_P56_inst0_out[11],reg_P56_inst0_out[10],reg_P56_inst0_out[9],reg_P56_inst0_out[8],reg_P56_inst0_out[7]};
-assign O[0] = {reg_P56_inst0_out[6],reg_P56_inst0_out[5],reg_P56_inst0_out[4],reg_P56_inst0_out[3],reg_P56_inst0_out[2],reg_P56_inst0_out[1],reg_P56_inst0_out[0]};
+assign O[7] = {_reg_out[55],_reg_out[54],_reg_out[53],_reg_out[52],_reg_out[51],_reg_out[50],_reg_out[49]};
+assign O[6] = {_reg_out[48],_reg_out[47],_reg_out[46],_reg_out[45],_reg_out[44],_reg_out[43],_reg_out[42]};
+assign O[5] = {_reg_out[41],_reg_out[40],_reg_out[39],_reg_out[38],_reg_out[37],_reg_out[36],_reg_out[35]};
+assign O[4] = {_reg_out[34],_reg_out[33],_reg_out[32],_reg_out[31],_reg_out[30],_reg_out[29],_reg_out[28]};
+assign O[3] = {_reg_out[27],_reg_out[26],_reg_out[25],_reg_out[24],_reg_out[23],_reg_out[22],_reg_out[21]};
+assign O[2] = {_reg_out[20],_reg_out[19],_reg_out[18],_reg_out[17],_reg_out[16],_reg_out[15],_reg_out[14]};
+assign O[1] = {_reg_out[13],_reg_out[12],_reg_out[11],_reg_out[10],_reg_out[9],_reg_out[8],_reg_out[7]};
+assign O[0] = {_reg_out[6],_reg_out[5],_reg_out[4],_reg_out[3],_reg_out[2],_reg_out[1],_reg_out[0]};
 endmodule
 
 module Mux8xBits7 (
@@ -71,28 +71,28 @@ module Mux8xBits7 (
     input [2:0] S,
     output [6:0] O
 );
-reg [6:0] coreir_commonlib_mux8x7_inst0_out;
+reg [6:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux8x7_inst0_out = I0;
+    mux_out = I0;
 end else if (S == 1) begin
-    coreir_commonlib_mux8x7_inst0_out = I1;
+    mux_out = I1;
 end else if (S == 2) begin
-    coreir_commonlib_mux8x7_inst0_out = I2;
+    mux_out = I2;
 end else if (S == 3) begin
-    coreir_commonlib_mux8x7_inst0_out = I3;
+    mux_out = I3;
 end else if (S == 4) begin
-    coreir_commonlib_mux8x7_inst0_out = I4;
+    mux_out = I4;
 end else if (S == 5) begin
-    coreir_commonlib_mux8x7_inst0_out = I5;
+    mux_out = I5;
 end else if (S == 6) begin
-    coreir_commonlib_mux8x7_inst0_out = I6;
+    mux_out = I6;
 end else begin
-    coreir_commonlib_mux8x7_inst0_out = I7;
+    mux_out = I7;
 end
 end
 
-assign O = coreir_commonlib_mux8x7_inst0_out;
+assign O = mux_out;
 endmodule
 
 module Test2 (

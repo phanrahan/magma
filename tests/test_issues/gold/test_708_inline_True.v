@@ -4,16 +4,16 @@ module Mux2xTuplex_UInt8 (
     output [7:0] O_x,
     input S
 );
-reg [7:0] coreir_commonlib_mux2x8_inst0_out;
+reg [7:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x8_inst0_out = I0_x;
+    mux_out = I0_x;
 end else begin
-    coreir_commonlib_mux2x8_inst0_out = I1_x;
+    mux_out = I1_x;
 end
 end
 
-assign O_x = coreir_commonlib_mux2x8_inst0_out;
+assign O_x = mux_out;
 endmodule
 
 module Test (

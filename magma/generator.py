@@ -7,6 +7,7 @@ from .circuit import (DefineCircuitKind, Circuit, DebugCircuit,
 from . import cache_definition
 from magma.common import ParamDict
 from magma.config import config
+from magma.debug_rewriter import debug
 from hwtypes import BitVector
 
 
@@ -77,6 +78,8 @@ def _make_type(cls, *args, **kwargs):
     name = cls.__name__
     bases = (cls._base_cls_,)
     dct = cls._base_metacls_.__prepare__(name, bases)
+    if config.use_generator_debug_rewriter:
+        cls.__init__ = debug(cls.__init__)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
     # NOTE(leonardt): We need to override the Generator2 classmethod bind with

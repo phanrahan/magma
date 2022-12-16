@@ -87,16 +87,16 @@
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{
-          "coreir_commonlib_mux2x2_inst0":{
+          "mux":{
             "genref":"commonlib.muxn",
             "genargs":{"N":["Int",2], "width":["Int",2]}
           }
         },
         "connections":[
-          ["self.I0","coreir_commonlib_mux2x2_inst0.in.data.0"],
-          ["self.I1","coreir_commonlib_mux2x2_inst0.in.data.1"],
-          ["self.S","coreir_commonlib_mux2x2_inst0.in.sel.0"],
-          ["self.O","coreir_commonlib_mux2x2_inst0.out"]
+          ["self.I0","mux.in.data.0"],
+          ["self.I1","mux.in.data.1"],
+          ["self.S","mux.in.sel.0"],
+          ["self.O","mux.out"]
         ]
       },
       "Register":{
@@ -106,16 +106,16 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "reg_P4_inst0":{
+          "_reg":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",4]},
             "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",4],"4'h0"]}
           }
         },
         "connections":[
-          ["self.CLK","reg_P4_inst0.clk"],
-          ["self.I","reg_P4_inst0.in"],
-          ["self.O","reg_P4_inst0.out"]
+          ["self.CLK","_reg.clk"],
+          ["self.I","_reg.in"],
+          ["self.O","_reg.out"]
         ]
       },
       "Register_unq1":{
@@ -126,22 +126,22 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "enable_mux":{
-            "modref":"global.Mux2xUInt2"
-          },
-          "reg_P2_inst0":{
+          "_reg":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",2]},
             "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
+          },
+          "enable_mux":{
+            "modref":"global.Mux2xUInt2"
           }
         },
         "connections":[
-          ["reg_P2_inst0.out","enable_mux.I0"],
+          ["self.CLK","_reg.clk"],
+          ["enable_mux.O","_reg.in"],
+          ["enable_mux.I0","_reg.out"],
+          ["self.O","_reg.out"],
           ["self.I","enable_mux.I1"],
-          ["reg_P2_inst0.in","enable_mux.O"],
-          ["self.CE","enable_mux.S"],
-          ["self.CLK","reg_P2_inst0.clk"],
-          ["self.O","reg_P2_inst0.out"]
+          ["self.CE","enable_mux.S"]
         ]
       },
       "_Top":{

@@ -7,17 +7,17 @@ module Mux2xTupleX_Bits2_Y_Bits4 (
     output [3:0] O_Y,
     input S
 );
-reg [5:0] coreir_commonlib_mux2x6_inst0_out;
+reg [5:0] mux_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x6_inst0_out = {I0_Y,I0_X};
+    mux_out = {I0_Y,I0_X};
 end else begin
-    coreir_commonlib_mux2x6_inst0_out = {I1_Y,I1_X};
+    mux_out = {I1_Y,I1_X};
 end
 end
 
-assign O_X = {coreir_commonlib_mux2x6_inst0_out[1],coreir_commonlib_mux2x6_inst0_out[0]};
-assign O_Y = {coreir_commonlib_mux2x6_inst0_out[5],coreir_commonlib_mux2x6_inst0_out[4],coreir_commonlib_mux2x6_inst0_out[3],coreir_commonlib_mux2x6_inst0_out[2]};
+assign O_X = {mux_out[1],mux_out[0]};
+assign O_Y = {mux_out[5],mux_out[4],mux_out[3],mux_out[2]};
 endmodule
 
 module test_basic_mux_product (

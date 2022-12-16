@@ -21,33 +21,33 @@ module Register (
     output [6:0] O [14:0],
     input CLK
 );
-wire [104:0] reg_P105_inst0_out;
-wire [104:0] reg_P105_inst0_in;
-assign reg_P105_inst0_in = {I[14],I[13],I[12],I[11],I[10],I[9],I[8],I[7],I[6],I[5],I[4],I[3],I[2],I[1],I[0]};
+wire [104:0] _reg_out;
+wire [104:0] _reg_in;
+assign _reg_in = {I[14],I[13],I[12],I[11],I[10],I[9],I[8],I[7],I[6],I[5],I[4],I[3],I[2],I[1],I[0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(105'h000000000000000000000000000),
     .width(105)
-) reg_P105_inst0 (
+) _reg (
     .clk(CLK),
-    .in(reg_P105_inst0_in),
-    .out(reg_P105_inst0_out)
+    .in(_reg_in),
+    .out(_reg_out)
 );
-assign O[14] = {reg_P105_inst0_out[104],reg_P105_inst0_out[103],reg_P105_inst0_out[102],reg_P105_inst0_out[101],reg_P105_inst0_out[100],reg_P105_inst0_out[99],reg_P105_inst0_out[98]};
-assign O[13] = {reg_P105_inst0_out[97],reg_P105_inst0_out[96],reg_P105_inst0_out[95],reg_P105_inst0_out[94],reg_P105_inst0_out[93],reg_P105_inst0_out[92],reg_P105_inst0_out[91]};
-assign O[12] = {reg_P105_inst0_out[90],reg_P105_inst0_out[89],reg_P105_inst0_out[88],reg_P105_inst0_out[87],reg_P105_inst0_out[86],reg_P105_inst0_out[85],reg_P105_inst0_out[84]};
-assign O[11] = {reg_P105_inst0_out[83],reg_P105_inst0_out[82],reg_P105_inst0_out[81],reg_P105_inst0_out[80],reg_P105_inst0_out[79],reg_P105_inst0_out[78],reg_P105_inst0_out[77]};
-assign O[10] = {reg_P105_inst0_out[76],reg_P105_inst0_out[75],reg_P105_inst0_out[74],reg_P105_inst0_out[73],reg_P105_inst0_out[72],reg_P105_inst0_out[71],reg_P105_inst0_out[70]};
-assign O[9] = {reg_P105_inst0_out[69],reg_P105_inst0_out[68],reg_P105_inst0_out[67],reg_P105_inst0_out[66],reg_P105_inst0_out[65],reg_P105_inst0_out[64],reg_P105_inst0_out[63]};
-assign O[8] = {reg_P105_inst0_out[62],reg_P105_inst0_out[61],reg_P105_inst0_out[60],reg_P105_inst0_out[59],reg_P105_inst0_out[58],reg_P105_inst0_out[57],reg_P105_inst0_out[56]};
-assign O[7] = {reg_P105_inst0_out[55],reg_P105_inst0_out[54],reg_P105_inst0_out[53],reg_P105_inst0_out[52],reg_P105_inst0_out[51],reg_P105_inst0_out[50],reg_P105_inst0_out[49]};
-assign O[6] = {reg_P105_inst0_out[48],reg_P105_inst0_out[47],reg_P105_inst0_out[46],reg_P105_inst0_out[45],reg_P105_inst0_out[44],reg_P105_inst0_out[43],reg_P105_inst0_out[42]};
-assign O[5] = {reg_P105_inst0_out[41],reg_P105_inst0_out[40],reg_P105_inst0_out[39],reg_P105_inst0_out[38],reg_P105_inst0_out[37],reg_P105_inst0_out[36],reg_P105_inst0_out[35]};
-assign O[4] = {reg_P105_inst0_out[34],reg_P105_inst0_out[33],reg_P105_inst0_out[32],reg_P105_inst0_out[31],reg_P105_inst0_out[30],reg_P105_inst0_out[29],reg_P105_inst0_out[28]};
-assign O[3] = {reg_P105_inst0_out[27],reg_P105_inst0_out[26],reg_P105_inst0_out[25],reg_P105_inst0_out[24],reg_P105_inst0_out[23],reg_P105_inst0_out[22],reg_P105_inst0_out[21]};
-assign O[2] = {reg_P105_inst0_out[20],reg_P105_inst0_out[19],reg_P105_inst0_out[18],reg_P105_inst0_out[17],reg_P105_inst0_out[16],reg_P105_inst0_out[15],reg_P105_inst0_out[14]};
-assign O[1] = {reg_P105_inst0_out[13],reg_P105_inst0_out[12],reg_P105_inst0_out[11],reg_P105_inst0_out[10],reg_P105_inst0_out[9],reg_P105_inst0_out[8],reg_P105_inst0_out[7]};
-assign O[0] = {reg_P105_inst0_out[6],reg_P105_inst0_out[5],reg_P105_inst0_out[4],reg_P105_inst0_out[3],reg_P105_inst0_out[2],reg_P105_inst0_out[1],reg_P105_inst0_out[0]};
+assign O[14] = {_reg_out[104],_reg_out[103],_reg_out[102],_reg_out[101],_reg_out[100],_reg_out[99],_reg_out[98]};
+assign O[13] = {_reg_out[97],_reg_out[96],_reg_out[95],_reg_out[94],_reg_out[93],_reg_out[92],_reg_out[91]};
+assign O[12] = {_reg_out[90],_reg_out[89],_reg_out[88],_reg_out[87],_reg_out[86],_reg_out[85],_reg_out[84]};
+assign O[11] = {_reg_out[83],_reg_out[82],_reg_out[81],_reg_out[80],_reg_out[79],_reg_out[78],_reg_out[77]};
+assign O[10] = {_reg_out[76],_reg_out[75],_reg_out[74],_reg_out[73],_reg_out[72],_reg_out[71],_reg_out[70]};
+assign O[9] = {_reg_out[69],_reg_out[68],_reg_out[67],_reg_out[66],_reg_out[65],_reg_out[64],_reg_out[63]};
+assign O[8] = {_reg_out[62],_reg_out[61],_reg_out[60],_reg_out[59],_reg_out[58],_reg_out[57],_reg_out[56]};
+assign O[7] = {_reg_out[55],_reg_out[54],_reg_out[53],_reg_out[52],_reg_out[51],_reg_out[50],_reg_out[49]};
+assign O[6] = {_reg_out[48],_reg_out[47],_reg_out[46],_reg_out[45],_reg_out[44],_reg_out[43],_reg_out[42]};
+assign O[5] = {_reg_out[41],_reg_out[40],_reg_out[39],_reg_out[38],_reg_out[37],_reg_out[36],_reg_out[35]};
+assign O[4] = {_reg_out[34],_reg_out[33],_reg_out[32],_reg_out[31],_reg_out[30],_reg_out[29],_reg_out[28]};
+assign O[3] = {_reg_out[27],_reg_out[26],_reg_out[25],_reg_out[24],_reg_out[23],_reg_out[22],_reg_out[21]};
+assign O[2] = {_reg_out[20],_reg_out[19],_reg_out[18],_reg_out[17],_reg_out[16],_reg_out[15],_reg_out[14]};
+assign O[1] = {_reg_out[13],_reg_out[12],_reg_out[11],_reg_out[10],_reg_out[9],_reg_out[8],_reg_out[7]};
+assign O[0] = {_reg_out[6],_reg_out[5],_reg_out[4],_reg_out[3],_reg_out[2],_reg_out[1],_reg_out[0]};
 endmodule
 
 module Test2 (
