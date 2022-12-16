@@ -21,9 +21,6 @@ class Transformer(cst.CSTTransformer):
         if not isinstance(updated_node.targets[0].target, cst.Name):
             return updated_node
 
-        pos = self.get_metadata(cst.metadata.PositionProvider,
-                                original_node).start
-        value_str = cst.Module((cst.Expr(updated_node.value), )).code
         name = updated_node.targets[0].target.value
         targets = updated_node.targets + (
             cst.AssignTarget(cst.parse_expression(f"self.{name}")),
@@ -48,8 +45,7 @@ def debug(fn):
     # consistent
     program_txt = program_txt.lstrip()
     tree = cst.parse_module(program_txt)
-    wrapper = cst.metadata.MetadataWrapper(tree)
-    tree = wrapper.visit(Transformer())
+    tree = tree.visit(Transformer())
 
     namespace = dict(**fn.__globals__)
     exec(tree.code, namespace)
