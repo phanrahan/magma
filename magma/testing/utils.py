@@ -5,6 +5,7 @@ import difflib
 import filecmp
 import os
 import pytest
+import re
 import shutil
 import sys
 
@@ -55,15 +56,21 @@ def magma_debug_section():
     return _MagmaDebugSection()
 
 
+def _unformat(msg):
+    # Remove escaped formatting, e.g. bold or color in stdout log.
+    ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
+    return ansi_escape.sub('', str(msg))
+
+
 def has_log(caplog, level=None, msg=None):
     if level is None and msg is None:
         return len(caplog.records) > 0
     if level and not msg:
         gen = (log.levelname == level for log in caplog.records)
     elif msg and not level:
-        gen = (str(log.msg) == str(msg) for log in caplog.records)
+        gen = (_unformat(log.msg) == _unformat(msg) for log in caplog.records)
     else:
-        gen = (log.levelname == level and str(log.msg) == str(msg)
+        gen = (log.levelname == level and _unformat(log.msg) == _unformat(msg)
                for log in caplog.records)
     return any(gen)
 

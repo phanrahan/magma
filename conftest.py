@@ -8,6 +8,7 @@ def pytest_configure(config):
     # TODO: Enable this globally for testing
     # revert a3a2452168f2251277a14548d053a9ca7a45bff7 for golds
     # magma_config.use_namer_dict = True
+    magma_config.use_uinspect = True
 
 
 @pytest.fixture(autouse=True)

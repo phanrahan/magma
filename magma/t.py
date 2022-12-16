@@ -3,6 +3,7 @@ import enum
 from functools import lru_cache
 from magma.common import deprecated
 from magma.compatibility import IntegerTypes, StringTypes
+from magma.debug import get_debug_info
 from magma.ref import (
     AnonRef, NamedRef, TempNamedRef, DefnRef, InstRef, PortViewRef
 )
@@ -116,7 +117,7 @@ class Type(object):
         if self.is_output():
             raise TypeError(f"Cannot use @= to assign to output: {self} "
                             f"(trying to assign {other})")
-        wire(other, self)
+        wire(other, self, get_debug_info(3))
         return self
 
     @abc.abstractmethod
