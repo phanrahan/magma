@@ -34,8 +34,8 @@ def _get_source_line(filename, lineno):
 
 
 def _attach_debug_info(msg, debug_info):
-    file = debug_info[0]
-    line = debug_info[1]
+    file = debug_info.filename
+    line = debug_info.lineno
     line_info = _make_bold(f"{make_relative(file)}:{line}")
     msg = f"{line_info}: {msg}"
     try:

@@ -59,9 +59,10 @@ def test_binop(op):
             O1=m.Out(m.smart.SmartBits[8]),
             O2=m.Out(m.smart.SmartBits[12]),
             O3=m.Out(m.smart.SmartBits[16]))
-        io.O1 @= op(io.I0, io.I1)
-        io.O2 @= op(io.I0, io.I1)
-        io.O3 @= op(io.I0, io.I1)
+        val = op(io.I0, io.I1)
+        io.O1 @= val
+        io.O2 @= val
+        io.O3 @= val
 
     class _Gold(m.Circuit):
         name = "test_binop"
@@ -72,8 +73,9 @@ def test_binop(op):
             O2=m.Out(m.UInt[12]),
             O3=m.Out(m.UInt[16]))
         O1 = m.UInt[8]()
-        io.O1 @= op(m.zext_to(io.I0, 12), io.I1)[:8]
-        io.O1._resolve_bulk_wire()  # force elaboration for repr test
+        O1 @= op(m.zext_to(io.I0, 12), io.I1)[:8]
+        O1[0]  # force elaboration for repr test
+        io.O1 @= O1
         io.O2 @= op(m.zext_to(io.I0, 12), io.I1)
         io.O3 @= op(m.zext_to(io.I0, 16), m.zext_to(io.I1, 16))
 
@@ -119,10 +121,9 @@ def test_lshift():
             I1=m.In(m.smart.SmartBits[4]),
             O1=m.Out(m.smart.SmartBits[8]),
             O2=m.Out(m.smart.SmartBits[16]))
-        io.O1 @= io.I0 << io.I1
-        O2 = m.smart.SmartBits[16]()
-        O2 @= io.I0 << io.I1
-        io.O2 @= O2
+        val = io.I0 << io.I1
+        io.O1 @= val
+        io.O2 @= val
 
     class _Gold(m.Circuit):
         name = "test_lshift"
@@ -132,7 +133,7 @@ def test_lshift():
             O1=m.Out(m.UInt[8]),
             O2=m.Out(m.UInt[16]))
         io.O1 @= io.I0 << m.zext_to(io.I1, 8)
-        O2 = m.Bits[16]()
+        O2 = m.UInt[16]()
         O2 @= m.zext_to(io.I0 << m.zext_to(io.I1, 8), 16)
         io.O2 @= O2
 
@@ -150,13 +151,10 @@ def test_rshift():
             O1=m.Out(m.smart.SmartBits[4]),
             O2=m.Out(m.smart.SmartBits[8]),
             O3=m.Out(m.smart.SmartBits[16]))
-        O1 = m.smart.SmartBits[4]()
-        O1 @= io.I0 >> io.I1
-        io.O1 @= O1
-        io.O2 @= io.I0 >> io.I1
-        O3 = m.smart.SmartBits[16]()
-        O3 @= io.I0 >> io.I1
-        io.O3 @= O3
+        val = io.I0 >> io.I1
+        io.O1 @= val
+        io.O2 @= val
+        io.O3 @= val
 
     class _Gold(m.Circuit):
         name = "test_rshift"
@@ -166,12 +164,12 @@ def test_rshift():
             O1=m.Out(m.UInt[4]),
             O2=m.Out(m.UInt[8]),
             O3=m.Out(m.UInt[16]))
-        O1 = m.Bits[4]()
+        O1 = m.UInt[4]()
         O1 @= (io.I0 >> m.zext_to(io.I1, 8))[:4]
         O1[0]  # force elaboration for repr test
         io.O1 @= O1
         io.O2 @= m.zext_to(io.I0 >> m.zext_to(io.I1, 8), 8)
-        O3 = m.Bits[16]()
+        O3 = m.UInt[16]()
         O3 @= m.zext_to(io.I0 >> m.zext_to(io.I1, 8), 16)
         io.O3 @= O3
 
@@ -189,12 +187,9 @@ def test_concat():
             I2=m.In(m.smart.SmartBits[10]),
             O1=m.Out(m.smart.SmartBits[4]),
             O2=m.Out(m.smart.SmartBits[16]))
-        O1 = m.smart.SmartBits[4]()
-        O1 @= m.smart.concat(io.I0 + io.I1, io.I2)
-        io.O1 @= O1
-        O2 = m.smart.SmartBits[16]()
-        O2 @= m.smart.concat(io.I0 + io.I1, io.I2)
-        io.O2 @= O2
+        val = m.smart.concat(io.I0 + io.I1, io.I2)
+        io.O1 @= val
+        io.O2 @= val
 
     class _Gold(m.Circuit):
         name = "test_concat"
@@ -204,10 +199,10 @@ def test_concat():
             I2=m.In(m.UInt[10]),
             O1=m.Out(m.UInt[4]),
             O2=m.Out(m.UInt[16]))
-        O1 = m.Bits[4]()
+        O1 = m.UInt[4]()
         O1 @= m.concat(io.I0 + m.zext_to(io.I1, 8), io.I2)[:4]
         io.O1 @= O1
-        O2 = m.Bits[16]()
+        O2 = m.UInt[16]()
         O2 @= m.concat(io.I0 + m.zext_to(io.I1, 8), io.I2)[:16]
         io.O2 @= O2
 
@@ -225,12 +220,8 @@ def test_repeat():
             O1=m.Out(m.smart.SmartBits[24]),
             O2=m.Out(m.smart.SmartBits[6]),
         )
-        O1 = m.smart.SmartBits[24]()
-        O1 @= m.smart.repeat(io.I0, 3)
-        io.O1 @= O1
-        O2 = m.smart.SmartBits[6]()
-        O2 @= m.smart.repeat(io.I1[0], 6)
-        io.O2 @= O2
+        io.O1 @= m.smart.repeat(io.I0, 3)
+        io.O2 @= m.smart.repeat(io.I1[0], 6)
 
     class _Gold(m.Circuit):
         name = "test_repeat"
@@ -240,9 +231,9 @@ def test_repeat():
             O1=m.Out(m.UInt[24]),
             O2=m.Out(m.UInt[6]),
         )
-        O1 = m.Bits[24]()  # force elaboration for repr test
+        O1 = m.UInt[24]()  # force elaboration for repr test
         O1 @= m.as_bits(m.repeat(io.I0, 3))
-        O2 = m.Bits[6]()  # force elaboration for repr test
+        O2 = m.UInt[6]()  # force elaboration for repr test
         O2 @= m.repeat(io.I1[0], 6)
         io.O1 @= O1
         io.O2 @= O2
@@ -261,8 +252,9 @@ def test_unary():
             I0=m.In(m.smart.SmartBits[8]),
             O1=m.Out(m.smart.SmartBits[4]),
             O2=m.Out(m.smart.SmartBits[16]))
-        io.O1 @= op(io.I0)
-        io.O2 @= op(io.I0)
+        val = op(io.I0)
+        io.O1 @= val
+        io.O2 @= val
 
     class _Gold(m.Circuit):
         name = "test_unary"
@@ -270,8 +262,10 @@ def test_unary():
             I0=m.In(m.UInt[8]),
             O1=m.Out(m.UInt[4]),
             O2=m.Out(m.UInt[16]))
-        io.O1 @= op(io.I0)[:4]
-        io.O1[0]  # force elaboration for repr test
+        O1 = m.UInt[4]()
+        O1 @= op(io.I0)[:4]
+        O1[0]  # force elaboration for repr test
+        io.O1 @= O1
         io.O2 @= op(m.zext_to(io.I0, 16))
 
     return _Test, _Gold
@@ -539,9 +533,7 @@ def test_mux():
             S=m.In(m.smart.SmartBits[8]),
             O0=m.Out(m.smart.SmartBits[16]),
         )
-        O0 = m.smart.SmartBits[16]()
-        O0 @= m.smart.mux([io.I0, io.I1], io.S)
-        io.O0 @= O0
+        io.O0 @= m.smart.mux([io.I0, io.I1], io.S)
 
     class _Gold(m.Circuit):
         name = "test_mux"
@@ -551,7 +543,7 @@ def test_mux():
             S=m.In(m.UInt[8]),
             O0=m.Out(m.UInt[16]),
         )
-        O0 = m.Bits[16]()  # force elaboration for repr test
+        O0 = m.UInt[16]()  # force elaboration for repr test
         O0 @= m.zext_to(m.mux([m.zext_to(io.I0, 12), io.I1], io.S[0]), 16)
         io.O0 @= O0
 

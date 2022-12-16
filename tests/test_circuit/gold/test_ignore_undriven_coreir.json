@@ -37,14 +37,14 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
+          "Foo_inst0":{
+            "modref":"global.Foo"
+          },
           "corebit_term_inst0":{
             "modref":"corebit.term"
           },
           "corebit_undriven_inst0":{
             "modref":"corebit.undriven"
-          },
-          "foo":{
-            "modref":"global.Foo"
           },
           "magma_Bits_2_eq_inst0":{
             "genref":"coreir.eq",
@@ -52,11 +52,11 @@
           }
         },
         "connections":[
-          ["foo.O1","corebit_term_inst0.in"],
+          ["self.CLK","Foo_inst0.CLK"],
+          ["magma_Bits_2_eq_inst0.out","Foo_inst0.I0"],
+          ["self.O0","Foo_inst0.O0"],
+          ["corebit_term_inst0.in","Foo_inst0.O1"],
           ["self.O1","corebit_undriven_inst0.out"],
-          ["self.CLK","foo.CLK"],
-          ["magma_Bits_2_eq_inst0.out","foo.I0"],
-          ["self.O0","foo.O0"],
           ["self.I0","magma_Bits_2_eq_inst0.in0"],
           ["self.I1","magma_Bits_2_eq_inst0.in1"]
         ]

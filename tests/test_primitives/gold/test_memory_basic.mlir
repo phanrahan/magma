@@ -32,7 +32,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %9, %0 : i1
             }
         }
-        %10 = hw.instance "Mem4x5" @Memory(RADDR: %raddr: i2, CLK: %clk: i1, WADDR: %4: i2, WDATA: %5: i5, WE: %6: i1) -> (RDATA: i5)
+        %10 = hw.instance "Memory_inst0" @Memory(RADDR: %raddr: i2, CLK: %clk: i1, WADDR: %4: i2, WDATA: %5: i5, WE: %6: i1) -> (RDATA: i5)
         hw.output %10 : i5
     }
 }

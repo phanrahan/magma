@@ -80,7 +80,7 @@ module test_memory_product (
     input [4:0] wdata_Y,
     input wen
 );
-Memory Mem4xT (
+Memory Memory_inst0 (
     .CLK(clk),
     .RADDR(raddr),
     .RDATA_X(rdata_X),

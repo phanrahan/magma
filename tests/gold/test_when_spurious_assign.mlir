@@ -35,7 +35,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %15, %11 : i1
             }
         }
-        %20 = sv.reg {name = "reg"} : !hw.inout<i8>
+        %20 = sv.reg {name = "Register_inst0"} : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.if %0 {
                 sv.passign %20, %x : i8
@@ -46,7 +46,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %20, %21 : i8
         }
         %17 = sv.read_inout %20 : !hw.inout<i8>
-        %22 = sv.reg {name = "reg"} : !hw.inout<i8>
+        %22 = sv.reg {name = "Register_inst0"} : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.if %0 {
                 sv.passign %22, %6 : i8
@@ -57,7 +57,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %22, %23 : i8
         }
         %18 = sv.read_inout %22 : !hw.inout<i8>
-        %24 = sv.reg {name = "reg"} : !hw.inout<i1>
+        %24 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
         sv.alwaysff(posedge %CLK) {
             sv.if %0 {
                 sv.passign %24, %13 : i1

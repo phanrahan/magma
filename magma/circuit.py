@@ -8,13 +8,14 @@ import functools
 import operator
 from collections import namedtuple, Counter
 import os
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Union
 
 from . import cache_definition
 from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
 from .wire import *
-from .debug import get_callee_frame_info, debug_info
+from .config import get_debug_mode, set_debug_mode
+from .debug import get_debug_info, debug_info
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
@@ -26,7 +27,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
-from magma.config import get_debug_mode, set_debug_mode, config
+from magma.config import get_debug_mode, set_debug_mode, config, RuntimeConfig
 from magma.definition_context import (
     DefinitionContext,
     definition_context_manager,
@@ -36,7 +37,7 @@ from magma.definition_context import (
 )
 from magma.find_unconnected_ports import find_and_log_unconnected_ports
 from magma.logging import root_logger, capture_logs
-from magma.protocol_type import magma_value
+from magma.protocol_type import MagmaProtocol
 from magma.ref import TempNamedRef, AnonRef
 from magma.t import In, Type
 from magma.view import PortView
@@ -204,50 +205,64 @@ def _get_intermediate_values(value):
     return values
 
 
-class LazyNamedValue:
-    pass
-
-
 class NamerDict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._inferred_names = {}
 
     def _set_name(self, key, value):
-        if isinstance(value, Type):
+        if isinstance(value, (Type, MagmaProtocol)):
             key = TempNamedRef(key, value)
         value.name = key
 
-    def __setitem__(self, key, value):
-        orig_value = value
-        if isinstance(value, LazyNamedValue):
-            try:
-                value = magma_value(value)
-            except NotImplementedError:
-                # SmartExpr doesn't have a magma_value
-                # TODO: This probably shouldn't be a protocol type then
-                pass
-        if (
-            (isinstance(value, Type) and hasattr(value, "name") and
-             isinstance(value.name, AnonRef)) or
-            (isinstance(value, LazyNamedValue) and not value.name) or
-            (isinstance(type(value), CircuitKind) and not value.name)
-        ):
-            values = self._inferred_names.setdefault(key, [])
-            if len(values) == 0:
-                self._set_name(key, value)
-            else:
-                if len(values) == 1:
-                    self._set_name(f"{key}_0", values[0])
-                self._set_name(f"{key}_{len(values)}", value)
-            values.append(value)
-        # TODO: Should we handle name collisions between explicitly named values
-        # and inferred names?
+    def _check_unique_name(
+        self,
+        key: str,
+        value: Union[Type, 'Circuit'],
+    ):
+        """If key has been seen more than once, "uniquify" the names by append
+           _{i} to them."""
+        values = self._inferred_names.setdefault(key, [])
+        if len(values) == 0:
+            self._set_name(key, value)
+        elif any(value is x for x in values):
+            # Already uniquified
+            return
+        else:
+            if len(values) == 1:
+                # Make the first value consistent by append _0
+                self._set_name(f"{key}_0", values[0])
+            self._set_name(f"{key}_{len(values)}", value)
+        values.append(value)
 
-        super().__setitem__(key, orig_value)
+    def _set_value_name(self, key: str, value: Type):
+        if not hasattr(value, "name"):
+            return  # Interface object is a Type without a name.
+        if isinstance(value.name, AnonRef):
+            self._check_unique_name(key, value)
+        elif isinstance(value.name, TempNamedRef):
+            self._check_unique_name(value.name.name, value)
+
+    def _set_inst_name(self, key: str, value: 'Circuit'):
+        if not value.name:
+            self._check_unique_name(key, value)
+        else:
+            self._check_unique_name(value.name, value)
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        if isinstance(value, (Type, MagmaProtocol)):
+            self._set_value_name(key, value)
+        elif isinstance(type(value), CircuitKind):
+            # NOTE: we check type(value) because this code is run in the Circuit
+            # class creation pipeline (so Circuit may not be defined yet).
+            self._set_inst_name(key, value)
 
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
+
+
+config.register(use_namer_dict=RuntimeConfig(False))
 
 
 class CircuitKind(type):
@@ -314,9 +329,7 @@ class CircuitKind(type):
         return cls
 
     def __call__(cls, *largs, **kwargs):
-        if get_debug_mode():
-            debug_info = get_callee_frame_info()
-            kwargs["debug_info"] = debug_info
+        kwargs["debug_info"] = get_debug_info(3)
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
         if hasattr(cls, 'IO'):
             interface = cls.IO(inst=self, renamed_ports=cls.renamed_ports)
@@ -515,9 +528,7 @@ class AnonymousCircuitType(object, metaclass=CircuitKind):
         return f"{defn_str}.{self.name}"
 
     def __call__(input, *outputs, **kw):
-        debug_info = None
-        if get_debug_mode():
-            debug_info = get_callee_frame_info()
+        debug_info = get_debug_info(3)
 
         no = len(outputs)
         if len(outputs) == 1:
@@ -631,9 +642,7 @@ class CircuitType(AnonymousCircuitType):
     msg="DeclareCircuit factory method is deprecated, subclass Circuit instead")
 def DeclareCircuit(name, *decl, **args):
     """DeclareCircuit Factory"""
-    debug_info = None
-    if get_debug_mode():
-        debug_info = get_callee_frame_info()
+    debug_info = get_debug_info(4)
     metacls = CircuitKind
     bases = (CircuitType,)
     dct = metacls.__prepare__(name, bases)
@@ -754,9 +763,7 @@ class Circuit(CircuitType, metaclass=DefineCircuitKind):
     msg="DefineCircuit factory method is deprecated, subclass Circuit instead")
 def DefineCircuit(name, *decl, **args):
     """DefineCircuit Factory"""
-    debug_info = None
-    if get_debug_mode():
-        debug_info = get_callee_frame_info()
+    debug_info = get_debug_info(4)
     metacls = DefineCircuitKind
     bases = (Circuit,)
     dct = metacls.__prepare__(name, bases)
@@ -789,9 +796,9 @@ def EndDefine():
         raise Exception("EndDefine not matched to DefineCircuit")
     placer = context.placer
     find_and_log_unconnected_ports(placer._defn)
-    debug_info = get_callee_frame_info()
-    placer._defn.end_circuit_filename = debug_info[0]
-    placer._defn.end_circuit_lineno = debug_info[1]
+    debug_info = get_debug_info(3)
+    placer._defn.end_circuit_filename = debug_info.filename
+    placer._defn.end_circuit_lineno = debug_info.lineno
     pop_definition_context()
 
 

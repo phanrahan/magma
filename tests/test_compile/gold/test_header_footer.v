@@ -9,12 +9,12 @@ module Main (
     input I,
     output O
 );
-wire foo_y;
-Foo foo (
+wire Foo_inst0_y;
+Foo Foo_inst0 (
     .x(I),
-    .y(foo_y)
+    .y(Foo_inst0_y)
 );
-assign O = foo_y;
+assign O = Foo_inst0_y;
 endmodule
 
 

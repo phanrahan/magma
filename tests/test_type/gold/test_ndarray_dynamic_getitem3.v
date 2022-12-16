@@ -97,35 +97,35 @@ module Main (
 );
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst0_O [1:0][2:0];
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst1_O [1:0][2:0];
-wire [1:0] mem_O [3:0][1:0][2:0];
+wire [1:0] Register_inst0_O [3:0][1:0][2:0];
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst0_I0 [1:0][2:0];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[1][2] = mem_O[0][1][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[1][1] = mem_O[0][1][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[1][0] = mem_O[0][1][0];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[0][2] = mem_O[0][0][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[0][1] = mem_O[0][0][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[0][0] = mem_O[0][0][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[1][2] = Register_inst0_O[0][1][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[1][1] = Register_inst0_O[0][1][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[1][0] = Register_inst0_O[0][1][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[0][2] = Register_inst0_O[0][0][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[0][1] = Register_inst0_O[0][0][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I0[0][0] = Register_inst0_O[0][0][0];
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst0_I1 [1:0][2:0];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[1][2] = mem_O[1][1][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[1][1] = mem_O[1][1][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[1][0] = mem_O[1][1][0];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[0][2] = mem_O[1][0][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[0][1] = mem_O[1][0][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[0][0] = mem_O[1][0][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[1][2] = Register_inst0_O[1][1][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[1][1] = Register_inst0_O[1][1][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[1][0] = Register_inst0_O[1][1][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[0][2] = Register_inst0_O[1][0][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[0][1] = Register_inst0_O[1][0][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I1[0][0] = Register_inst0_O[1][0][0];
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst0_I2 [1:0][2:0];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[1][2] = mem_O[2][1][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[1][1] = mem_O[2][1][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[1][0] = mem_O[2][1][0];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[0][2] = mem_O[2][0][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[0][1] = mem_O[2][0][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[0][0] = mem_O[2][0][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[1][2] = Register_inst0_O[2][1][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[1][1] = Register_inst0_O[2][1][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[1][0] = Register_inst0_O[2][1][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[0][2] = Register_inst0_O[2][0][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[0][1] = Register_inst0_O[2][0][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I2[0][0] = Register_inst0_O[2][0][0];
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst0_I3 [1:0][2:0];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[1][2] = mem_O[3][1][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[1][1] = mem_O[3][1][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[1][0] = mem_O[3][1][0];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[0][2] = mem_O[3][0][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[0][1] = mem_O[3][0][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[0][0] = mem_O[3][0][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[1][2] = Register_inst0_O[3][1][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[1][1] = Register_inst0_O[3][1][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[1][0] = Register_inst0_O[3][1][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[0][2] = Register_inst0_O[3][0][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[0][1] = Register_inst0_O[3][0][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst0_I3[0][0] = Register_inst0_O[3][0][0];
 Mux4xArray2_Array3_Array2_Bit Mux4xArray2_Array3_Array2_Bit_inst0 (
     .I0(Mux4xArray2_Array3_Array2_Bit_inst0_I0),
     .I1(Mux4xArray2_Array3_Array2_Bit_inst0_I1),
@@ -135,33 +135,33 @@ Mux4xArray2_Array3_Array2_Bit Mux4xArray2_Array3_Array2_Bit_inst0 (
     .O(Mux4xArray2_Array3_Array2_Bit_inst0_O)
 );
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst1_I0 [1:0][2:0];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[1][2] = mem_O[0][1][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[1][1] = mem_O[0][1][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[1][0] = mem_O[0][1][0];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[0][2] = mem_O[0][0][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[0][1] = mem_O[0][0][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[0][0] = mem_O[0][0][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[1][2] = Register_inst0_O[0][1][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[1][1] = Register_inst0_O[0][1][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[1][0] = Register_inst0_O[0][1][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[0][2] = Register_inst0_O[0][0][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[0][1] = Register_inst0_O[0][0][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I0[0][0] = Register_inst0_O[0][0][0];
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst1_I1 [1:0][2:0];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[1][2] = mem_O[1][1][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[1][1] = mem_O[1][1][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[1][0] = mem_O[1][1][0];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[0][2] = mem_O[1][0][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[0][1] = mem_O[1][0][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[0][0] = mem_O[1][0][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[1][2] = Register_inst0_O[1][1][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[1][1] = Register_inst0_O[1][1][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[1][0] = Register_inst0_O[1][1][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[0][2] = Register_inst0_O[1][0][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[0][1] = Register_inst0_O[1][0][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I1[0][0] = Register_inst0_O[1][0][0];
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst1_I2 [1:0][2:0];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[1][2] = mem_O[2][1][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[1][1] = mem_O[2][1][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[1][0] = mem_O[2][1][0];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[0][2] = mem_O[2][0][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[0][1] = mem_O[2][0][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[0][0] = mem_O[2][0][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[1][2] = Register_inst0_O[2][1][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[1][1] = Register_inst0_O[2][1][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[1][0] = Register_inst0_O[2][1][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[0][2] = Register_inst0_O[2][0][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[0][1] = Register_inst0_O[2][0][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I2[0][0] = Register_inst0_O[2][0][0];
 wire [1:0] Mux4xArray2_Array3_Array2_Bit_inst1_I3 [1:0][2:0];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[1][2] = mem_O[3][1][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[1][1] = mem_O[3][1][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[1][0] = mem_O[3][1][0];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[0][2] = mem_O[3][0][2];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[0][1] = mem_O[3][0][1];
-assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[0][0] = mem_O[3][0][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[1][2] = Register_inst0_O[3][1][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[1][1] = Register_inst0_O[3][1][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[1][0] = Register_inst0_O[3][1][0];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[0][2] = Register_inst0_O[3][0][2];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[0][1] = Register_inst0_O[3][0][1];
+assign Mux4xArray2_Array3_Array2_Bit_inst1_I3[0][0] = Register_inst0_O[3][0][0];
 Mux4xArray2_Array3_Array2_Bit Mux4xArray2_Array3_Array2_Bit_inst1 (
     .I0(Mux4xArray2_Array3_Array2_Bit_inst1_I0),
     .I1(Mux4xArray2_Array3_Array2_Bit_inst1_I1),
@@ -170,34 +170,34 @@ Mux4xArray2_Array3_Array2_Bit Mux4xArray2_Array3_Array2_Bit_inst1 (
     .S(raddr1),
     .O(Mux4xArray2_Array3_Array2_Bit_inst1_O)
 );
-wire [1:0] mem_I [3:0][1:0][2:0];
-assign mem_I[3][1][2] = mem_O[3][1][2];
-assign mem_I[3][1][1] = mem_O[3][1][1];
-assign mem_I[3][1][0] = mem_O[3][1][0];
-assign mem_I[3][0][2] = mem_O[3][0][2];
-assign mem_I[3][0][1] = mem_O[3][0][1];
-assign mem_I[3][0][0] = mem_O[3][0][0];
-assign mem_I[2][1][2] = mem_O[2][1][2];
-assign mem_I[2][1][1] = mem_O[2][1][1];
-assign mem_I[2][1][0] = mem_O[2][1][0];
-assign mem_I[2][0][2] = mem_O[2][0][2];
-assign mem_I[2][0][1] = mem_O[2][0][1];
-assign mem_I[2][0][0] = mem_O[2][0][0];
-assign mem_I[1][1][2] = mem_O[1][1][2];
-assign mem_I[1][1][1] = mem_O[1][1][1];
-assign mem_I[1][1][0] = mem_O[1][1][0];
-assign mem_I[1][0][2] = mem_O[1][0][2];
-assign mem_I[1][0][1] = mem_O[1][0][1];
-assign mem_I[1][0][0] = mem_O[1][0][0];
-assign mem_I[0][1][2] = mem_O[0][1][2];
-assign mem_I[0][1][1] = mem_O[0][1][1];
-assign mem_I[0][1][0] = mem_O[0][1][0];
-assign mem_I[0][0][2] = mem_O[0][0][2];
-assign mem_I[0][0][1] = mem_O[0][0][1];
-assign mem_I[0][0][0] = mem_O[0][0][0];
-Register mem (
-    .I(mem_I),
-    .O(mem_O),
+wire [1:0] Register_inst0_I [3:0][1:0][2:0];
+assign Register_inst0_I[3][1][2] = Register_inst0_O[3][1][2];
+assign Register_inst0_I[3][1][1] = Register_inst0_O[3][1][1];
+assign Register_inst0_I[3][1][0] = Register_inst0_O[3][1][0];
+assign Register_inst0_I[3][0][2] = Register_inst0_O[3][0][2];
+assign Register_inst0_I[3][0][1] = Register_inst0_O[3][0][1];
+assign Register_inst0_I[3][0][0] = Register_inst0_O[3][0][0];
+assign Register_inst0_I[2][1][2] = Register_inst0_O[2][1][2];
+assign Register_inst0_I[2][1][1] = Register_inst0_O[2][1][1];
+assign Register_inst0_I[2][1][0] = Register_inst0_O[2][1][0];
+assign Register_inst0_I[2][0][2] = Register_inst0_O[2][0][2];
+assign Register_inst0_I[2][0][1] = Register_inst0_O[2][0][1];
+assign Register_inst0_I[2][0][0] = Register_inst0_O[2][0][0];
+assign Register_inst0_I[1][1][2] = Register_inst0_O[1][1][2];
+assign Register_inst0_I[1][1][1] = Register_inst0_O[1][1][1];
+assign Register_inst0_I[1][1][0] = Register_inst0_O[1][1][0];
+assign Register_inst0_I[1][0][2] = Register_inst0_O[1][0][2];
+assign Register_inst0_I[1][0][1] = Register_inst0_O[1][0][1];
+assign Register_inst0_I[1][0][0] = Register_inst0_O[1][0][0];
+assign Register_inst0_I[0][1][2] = Register_inst0_O[0][1][2];
+assign Register_inst0_I[0][1][1] = Register_inst0_O[0][1][1];
+assign Register_inst0_I[0][1][0] = Register_inst0_O[0][1][0];
+assign Register_inst0_I[0][0][2] = Register_inst0_O[0][0][2];
+assign Register_inst0_I[0][0][1] = Register_inst0_O[0][0][1];
+assign Register_inst0_I[0][0][0] = Register_inst0_O[0][0][0];
+Register Register_inst0 (
+    .I(Register_inst0_I),
+    .O(Register_inst0_O),
     .CLK(CLK)
 );
 assign rdata0[2] = Mux4xArray2_Array3_Array2_Bit_inst0_O[0][2];

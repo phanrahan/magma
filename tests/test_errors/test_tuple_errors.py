@@ -3,6 +3,7 @@ import pytest
 import magma as m
 from magma.common import wrap_with_context_manager
 from magma.logging import logging_level
+from magma.testing.utils import has_error
 
 
 @wrap_with_context_manager(logging_level("DEBUG"))
@@ -116,12 +117,14 @@ def test_product_width_mismatch(caplog):
         m.compile("build/Foo", Foo)
 
     assert str(e.value) == "Found circuit with errors: Foo"
-    assert caplog.messages[0] == """\
-Cannot wire Bits[1](1) (Out(Bits[1])) to Foo.A.x (In(Bits[2]))\
-"""
-    assert caplog.messages[1] == """\
-Cannot wire Bits[3](2) (Out(Bits[3])) to Foo.A.y (In(Bits[4]))\
-"""
+    assert has_error(caplog, """\
+tests/test_errors/test_tuple_errors.py:109: Cannot wire Bits[1](1) (Out(Bits[1])) to Foo.A.x (In(Bits[2]))
+>>         io.A.x @= m.bits(1, 1)\
+""")
+    assert has_error(caplog, """\
+tests/test_errors/test_tuple_errors.py:110: Cannot wire Bits[3](2) (Out(Bits[3])) to Foo.A.y (In(Bits[4]))
+>>         io.A.y @= m.bits(2, 3)\
+""")
     assert caplog.messages[2] == "Foo.A not driven"
     assert caplog.messages[3] == "Foo.A: Unconnected"
 
@@ -140,9 +143,10 @@ def test_product_width_mismatch2(caplog):
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
     assert str(e.value) == "Found circuit with errors: Foo"
-    assert caplog.messages[0] == """\
-Cannot wire Foo.A.x (Out(Bits[4])) to Foo.A.y (In(Bits[2]))\
-"""
+    assert has_error(caplog, """\
+tests/test_errors/test_tuple_errors.py:139: Cannot wire Foo.A.x (Out(Bits[4])) to Foo.A.y (In(Bits[2]))
+>>         io.A.y @= io.A.x\
+""")
 
 
 def test_product_width_mismatch3(caplog):
@@ -184,9 +188,10 @@ def test_unwired_mixed(caplog):
         foo.I @= io.I
         io.O @= foo.z.x
 
-
     assert caplog.messages[0] == "Bar.z.x not driven"
     assert caplog.messages[1] == "Bar.z.x: Unconnected"
 
-    assert caplog.messages[2] == "foo.z.y not driven"
-    assert caplog.messages[3] == "foo.z.y: Unconnected"
+    assert has_error(caplog, """\
+tests/test_errors/test_tuple_errors.py:187: Foo_inst0.z.y not driven
+>>         foo = Foo()\
+""")

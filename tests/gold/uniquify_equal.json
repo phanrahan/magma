@@ -17,17 +17,17 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "inst_0":{
+          "foo_inst0":{
             "modref":"global.foo"
           },
-          "inst_1":{
+          "foo_inst1":{
             "modref":"global.foo"
           }
         },
         "connections":[
-          ["self.I","inst_0.I"],
-          ["inst_1.I","inst_0.O"],
-          ["self.O","inst_1.O"]
+          ["self.I","foo_inst0.I"],
+          ["foo_inst1.I","foo_inst0.O"],
+          ["self.O","foo_inst1.O"]
         ]
       }
     }

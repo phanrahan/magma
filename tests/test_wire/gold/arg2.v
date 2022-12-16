@@ -1,6 +1,6 @@
 module main (input [1:0] I, output  O);
-wire  a_O;
-And2 a (.I0(I[0]), .I1(I[1]), .O(a_O));
-assign O = a_O;
+wire  And2_inst0_O;
+And2 And2_inst0 (.I0(I[0]), .I1(I[1]), .O(And2_inst0_O));
+assign O = And2_inst0_O;
 endmodule
 

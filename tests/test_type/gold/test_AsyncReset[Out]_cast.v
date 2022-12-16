@@ -19,6 +19,7 @@ module AsyncResetTest (
     input T_Tuple_in_T,
     input T_in
 );
+wire Inst_inst0_O;
 wire coreir_wrapInAsyncReset_inst0_out;
 wire coreir_wrapInAsyncReset_inst1_out;
 wire coreir_wrapInAsyncReset_inst2_out;
@@ -30,7 +31,10 @@ wire coreir_wrapOutAsyncReset_inst1_out;
 wire coreir_wrapOutAsyncReset_inst2_out;
 wire coreir_wrapOutAsyncReset_inst3_out;
 wire coreir_wrapOutAsyncReset_inst4_out;
-wire inst_O;
+Inst Inst_inst0 (
+    .O(Inst_inst0_O),
+    .I(coreir_wrapOutAsyncReset_inst0_out)
+);
 coreir_wrap coreir_wrapInAsyncReset_inst0 (
     .in(T_Tuple_in_T),
     .out(coreir_wrapInAsyncReset_inst0_out)
@@ -52,7 +56,7 @@ coreir_wrap coreir_wrapInAsyncReset_inst4 (
     .out(coreir_wrapInAsyncReset_inst4_out)
 );
 coreir_wrap coreir_wrapInAsyncReset_inst5 (
-    .in(inst_O),
+    .in(Inst_inst0_O),
     .out(coreir_wrapInAsyncReset_inst5_out)
 );
 coreir_wrap coreir_wrapOutAsyncReset_inst0 (
@@ -74,10 +78,6 @@ coreir_wrap coreir_wrapOutAsyncReset_inst3 (
 coreir_wrap coreir_wrapOutAsyncReset_inst4 (
     .in(I_Arr[2]),
     .out(coreir_wrapOutAsyncReset_inst4_out)
-);
-Inst inst (
-    .O(inst_O),
-    .I(coreir_wrapOutAsyncReset_inst0_out)
 );
 assign Bit_Arr_out = {coreir_wrapInAsyncReset_inst5_out,coreir_wrapInAsyncReset_inst4_out,coreir_wrapInAsyncReset_inst3_out,coreir_wrapInAsyncReset_inst2_out};
 assign Bit_out = coreir_wrapInAsyncReset_inst1_out;

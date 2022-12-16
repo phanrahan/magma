@@ -12,6 +12,9 @@
           "ASSERT_ON_compile_guard_inline_verilog_inst_0":{
             "modref":"global.ASSERT_ON_compile_guard_inline_verilog_0"
           },
+          "Register_inst0":{
+            "modref":"global.Register_unq1"
+          },
           "const_1_2":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",2]},
@@ -26,9 +29,6 @@
             "genref":"coreir.const",
             "genargs":{"width":["Int",4]},
             "modargs":{"value":[["BitVector",4],"4'h3"]}
-          },
-          "count":{
-            "modref":"global.Register_unq1"
           },
           "magma_Bit_not_inst0":{
             "modref":"corebit.not"
@@ -51,14 +51,14 @@
         },
         "connections":[
           ["magma_Bit_or_inst0.out","ASSERT_ON_compile_guard_inline_verilog_inst_0.__magma_inline_value_0"],
+          ["self.port_0","Register_inst0.CE"],
+          ["self.port_1","Register_inst0.CLK"],
+          ["magma_UInt_2_add_inst0.out","Register_inst0.I"],
+          ["magma_UInt_2_add_inst0.in0","Register_inst0.O"],
+          ["magma_UInt_2_eq_inst0.in0","Register_inst0.O"],
           ["magma_UInt_2_add_inst0.in1","const_1_2.out"],
           ["magma_UInt_2_eq_inst0.in1","const_3_2.out"],
           ["magma_Bits_4_eq_inst0.in1","const_3_4.out"],
-          ["self.port_0","count.CE"],
-          ["self.port_1","count.CLK"],
-          ["magma_UInt_2_add_inst0.out","count.I"],
-          ["magma_UInt_2_add_inst0.in0","count.O"],
-          ["magma_UInt_2_eq_inst0.in0","count.O"],
           ["magma_UInt_2_eq_inst0.out","magma_Bit_not_inst0.in"],
           ["magma_Bit_or_inst0.in0","magma_Bit_not_inst0.out"],
           ["magma_Bits_4_eq_inst0.out","magma_Bit_or_inst0.in1"],

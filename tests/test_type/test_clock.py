@@ -4,6 +4,7 @@ import tempfile
 
 import magma as m
 from magma.testing import check_files_equal
+from magma.testing.utils import has_error, has_debug
 from magma import (IO, In, Out, Flip, Clock, Reset, reset, Enable, enable,
                    AsyncReset, Circuit, Bit, bit, wire, compile)
 from magma.digital import DigitalMeta
@@ -422,8 +423,10 @@ def test_wire_error(caplog):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Clock), O=m.Out(m.Reset))
         m.wire(io.I, io.O)
-    assert (caplog.messages[0] ==
-            "Cannot wire Foo.I (Out(Clock)) to Foo.O (In(Reset))")
+    assert has_error(caplog, """\
+tests/test_type/test_clock.py:425: Cannot wire Foo.I (Out(Clock)) to Foo.O (In(Reset))
+>>         m.wire(io.I, io.O)\
+""")
 
 
 def test_clock_undriven():
@@ -467,8 +470,14 @@ def test_implicit_clock_tuple(caplog):
 
 
     m.compile("build/Bar", Bar)
-    assert caplog.messages[0] == "Foo_inst0.clocks.clk not driven, will attempt to automatically wire"
-    assert caplog.messages[1] == "Foo_inst0.clocks.reset not driven, will attempt to automatically wire"
+    assert has_debug(caplog, """\
+tests/test_type/test_clock.py:469: Foo_inst0.clocks.clk not driven, will attempt to automatically wire
+>>             io.O @= Foo()(I=io.I)\
+""")
+    assert has_debug(caplog, """\
+tests/test_type/test_clock.py:469: Foo_inst0.clocks.reset not driven, will attempt to automatically wire
+>>             io.O @= Foo()(I=io.I)\
+""")
 
 
 def test_implicit_clock_mixed(caplog):
@@ -490,4 +499,7 @@ def test_implicit_clock_mixed(caplog):
 
 
     m.compile("build/Bar", Bar)
-    assert caplog.messages[0] == "foo.y.clk not driven, will attempt to automatically wire"
+    assert has_debug(caplog, """\
+tests/test_type/test_clock.py:495: Foo_inst0.y.clk not driven, will attempt to automatically wire
+>>             foo = Foo()\
+""")

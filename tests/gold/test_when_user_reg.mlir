@@ -9,7 +9,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %2, %I : i8
             }
         }
-        %0 = hw.instance "x" @Register(I: %1: i8, CLK: %CLK: i1) -> (O: i8)
+        %0 = hw.instance "Register_inst0" @Register(I: %1: i8, CLK: %CLK: i1) -> (O: i8)
         hw.output %0 : i8
     }
 }

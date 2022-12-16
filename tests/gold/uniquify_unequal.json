@@ -26,18 +26,18 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "bar_inst":{
-            "modref":"global.foo_unq1"
-          },
-          "foo_inst":{
+          "foo_inst0":{
             "modref":"global.foo"
+          },
+          "foo_inst1":{
+            "modref":"global.foo_unq1"
           }
         },
         "connections":[
-          ["foo_inst.O","bar_inst.I.0"],
-          ["foo_inst.O","bar_inst.I.1"],
-          ["self.O","bar_inst.O.0"],
-          ["self.I","foo_inst.I"]
+          ["self.I","foo_inst0.I"],
+          ["foo_inst1.I.0","foo_inst0.O"],
+          ["foo_inst1.I.1","foo_inst0.O"],
+          ["self.O","foo_inst1.O.0"]
         ]
       }
     }

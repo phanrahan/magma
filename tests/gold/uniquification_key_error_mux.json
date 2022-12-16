@@ -10,16 +10,16 @@
           ["O",["Array",6,"Bit"]]
         ]],
         "instances":{
-          "mux":{
+          "coreir_commonlib_mux2x6_inst0":{
             "genref":"commonlib.muxn",
             "genargs":{"N":["Int",2], "width":["Int",6]}
           }
         },
         "connections":[
-          ["self.I0","mux.in.data.0"],
-          ["self.I1","mux.in.data.1"],
-          ["self.S","mux.in.sel.0"],
-          ["self.O","mux.out"]
+          ["self.I0","coreir_commonlib_mux2x6_inst0.in.data.0"],
+          ["self.I1","coreir_commonlib_mux2x6_inst0.in.data.1"],
+          ["self.S","coreir_commonlib_mux2x6_inst0.in.sel.0"],
+          ["self.O","coreir_commonlib_mux2x6_inst0.out"]
         ]
       },
       "MuxWithDefaultWrapper_2_6_19_0":{

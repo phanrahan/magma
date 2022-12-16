@@ -17,18 +17,18 @@
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
           },
-          "foo_inst":{
-            "modref":"global.foo"
-          },
-          "wrap":{
+          "coreir_wrapBit_inst0":{
             "genref":"coreir.wrap",
             "genargs":{"type":["CoreIRType",["Named","coreir.clk"]]}
+          },
+          "foo_inst0":{
+            "modref":"global.foo"
           }
         },
         "connections":[
+          ["coreir_wrapBit_inst0.in","bit_const_0_None.out"],
           ["self.O","bit_const_0_None.out"],
-          ["wrap.in","bit_const_0_None.out"],
-          ["wrap.out","foo_inst.r"]
+          ["foo_inst0.r","coreir_wrapBit_inst0.out"]
         ]
       }
     }

@@ -59,18 +59,17 @@ module Main (
 );
 wire Mux2xBit_inst0_O;
 wire magma_Bit_not_inst0_out;
-wire reg_O;
 Mux2xBit Mux2xBit_inst0 (
     .I0(O),
     .I1(magma_Bit_not_inst0_out),
     .S(invert),
     .O(Mux2xBit_inst0_O)
 );
-assign magma_Bit_not_inst0_out = ~ O;
-Register reg (
+Register Register_inst0 (
     .I(Mux2xBit_inst0_O),
-    .O(reg_O),
+    .O(O),
     .CLK(CLK)
 );
+assign magma_Bit_not_inst0_out = ~ O;
 endmodule
 

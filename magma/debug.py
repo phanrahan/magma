@@ -1,23 +1,29 @@
-import inspect
+from dataclasses import dataclass
+import uinspect
 import collections
-from magma.config import get_debug_mode
+
+from magma.config import config, RuntimeConfig
 
 
-debug_info = collections.namedtuple("debug_info", ["filename", "lineno", "module"])
+@dataclass
+class _DebugInfo:
+    filename: str
+    lineno: int
+    module: str
 
 
-def get_callee_frame_info():
-    callee_frame = inspect.currentframe()
-    # FIXME: Right now we assume a max 10 frames deep
-    for i in range(0, 10):
-        module = inspect.getmodule(callee_frame)
-        # Go up until we're out of the magma module (assuming this is the user
-        # code)
-        if not module or module.__name__.split(".")[0] != "magma":
-            break
-        callee_frame = callee_frame.f_back
-    callee_frame = inspect.getframeinfo(callee_frame)
-    return debug_info(callee_frame.filename, callee_frame.lineno, module)
+debug_info = _DebugInfo
+
+
+config.register(use_uinspect=RuntimeConfig(True))
+
+
+def get_debug_info(frames_to_skip):
+    if config.use_uinspect:
+        filename, lineno = uinspect.get_location(frames_to_skip)
+    else:
+        filename, lineno = None, None
+    return debug_info(filename, lineno, None)
 
 
 def debug_wire(fn):
@@ -25,18 +31,16 @@ def debug_wire(fn):
     Automatically populates the `debug_info` argument for a wire call if it's
     not already passed as an argument
     """
-    # TODO: We could check that fn has the correct interface
-    #       wire(i, o, debug_info)
     def wire(i, o=None, debug_info=None):
-        if get_debug_mode() and debug_info is None:
-            debug_info = get_callee_frame_info()
+        if debug_info is None:
+            debug_info = get_debug_info(3)
         return fn(i, o, debug_info)
     return wire
 
 
 def debug_unwire(fn):
     def unwire(i, o=None, debug_info=None, keep_wired_when_contexts=False):
-        if get_debug_mode() and debug_info is None:
-            debug_info = get_callee_frame_info()
+        if debug_info is None:
+            debug_info = get_debug_info(3)
         return fn(i, o, debug_info, keep_wired_when_contexts)
     return unwire

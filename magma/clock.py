@@ -4,7 +4,7 @@ from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from magma.bit import Bit
 from magma.array import Array
-from magma.debug import get_debug_mode, get_callee_frame_info
+from magma.debug import get_debug_info
 from magma.tuple import Tuple
 
 
@@ -93,15 +93,15 @@ class Enable(Bit):
         return self._driven_implicitly_by_when
 
     def wire(self, o, debug_info=None, driven_implicitly_by_when=False):
-        if get_debug_mode() and debug_info is None:
-            debug_info = get_callee_frame_info()
+        if debug_info is None:
+            debug_info = get_debug_info(3)
         if self._driven_implicitly_by_when and not driven_implicitly_by_when:
             # In this case, the enable value was previously implicitly driven by
             # a when statement, but now the user is explicitly wiring the enable
             # When this happens, we choose the user's explicit wiring, and
             # discard the implicit logic (rather than forcing the user to call
             # rewire explicitly).
-            self.unwire(debug_info)
+            self.unwire(debug_info=debug_info)
         super().wire(o, debug_info)
         self._driven_implicitly_by_when = driven_implicitly_by_when
 

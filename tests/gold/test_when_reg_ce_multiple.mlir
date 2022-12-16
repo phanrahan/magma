@@ -23,7 +23,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
-        %11 = sv.reg {name = "x"} : !hw.inout<i8>
+        %11 = sv.reg {name = "Register_inst0"} : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.if %8 {
                 sv.passign %11, %7 : i8
