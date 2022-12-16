@@ -408,7 +408,7 @@ def evaluate_assignment(lhs: SmartBits, rhs: SmartExpr) -> SmartBits:
     result = _force_width(evaluated, len(lhs))
     if not rhs.name or isinstance(rhs, SmartBits):
         return result
-    # SmartExpr was given a lazy name, apply it now
+    # SmartExpr was given a lazy name, apply it now.
     temp = type(result).undirected_t(name=rhs.name)
     temp @= result
     return temp
