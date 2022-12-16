@@ -226,8 +226,7 @@ class NamerDict(dict):
         value: Union[Type, LazyNamedValue, 'Circuit'],
     ):
         """If key has been seen more than once, "uniquify" the names by append
-        _{i} to them.
-        """
+           _{i} to them."""
         values = self._inferred_names.setdefault(key, [])
         if len(values) == 0:
             self._set_name(key, value)
