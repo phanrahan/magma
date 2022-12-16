@@ -242,8 +242,7 @@ class NamerDict(dict):
 
     def _set_value_name(self, key: str, value: Type):
         if not hasattr(value, "name"):
-            # Interface object is a Type without a name
-            return
+            return  # Interface object is a Type without a name.
         if isinstance(value.name, AnonRef):
             self._check_unique_name(key, value)
         elif isinstance(value.name, TempNamedRef):
