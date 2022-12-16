@@ -36,7 +36,7 @@ from magma.definition_context import (
 )
 from magma.find_unconnected_ports import find_and_log_unconnected_ports
 from magma.logging import root_logger, capture_logs
-from magma.protocol_type import magma_value
+from magma.protocol_type import MagmaProtocol
 from magma.ref import TempNamedRef, AnonRef
 from magma.t import In, Type
 from magma.view import PortView
@@ -204,26 +204,20 @@ def _get_intermediate_values(value):
     return values
 
 
-class LazyNamedValue:
-    """Used for SmartExpr because it does not have a magma value until it's
-       resolved (stages the naming of the resolved value)"""
-    pass
-
-
 class NamerDict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._inferred_names = {}
 
     def _set_name(self, key, value):
-        if isinstance(value, Type):
+        if isinstance(value, (Type, MagmaProtocol)):
             key = TempNamedRef(key, value)
         value.name = key
 
     def _check_unique_name(
         self,
         key: str,
-        value: Union[Type, LazyNamedValue, 'Circuit'],
+        value: Union[Type, 'Circuit'],
     ):
         """If key has been seen more than once, "uniquify" the names by append
            _{i} to them."""
@@ -248,11 +242,7 @@ class NamerDict(dict):
         elif isinstance(value.name, TempNamedRef):
             self._check_unique_name(value.name.name, value)
 
-    def _set_lazy_value_or_inst_name(
-        self,
-        key: str,
-        value: Union[LazyNamedValue, 'Circuit']
-    ):
+    def _set_inst_name(self, key: str, value: 'Circuit'):
         if not value.name:
             self._check_unique_name(key, value)
         else:
@@ -260,19 +250,12 @@ class NamerDict(dict):
 
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
-        if isinstance(value, LazyNamedValue):
-            try:
-                value = magma_value(value)
-            except NotImplementedError:
-                pass  # SmartExpr doesn't have a magma_value yet
-        if isinstance(value, Type):
+        if isinstance(value, (Type, MagmaProtocol)):
             self._set_value_name(key, value)
-        elif isinstance(value, LazyNamedValue):
-            self._set_lazy_value_or_inst_name(key, value)
         elif isinstance(type(value), CircuitKind):
             # NOTE: we check type(value) because this code is run in the Circuit
             # class creation pipeline (so Circuit may not be defined yet).
-            self._set_lazy_value_or_inst_name(key, value)
+            self._set_inst_name(key, value)
 
     def __hash__(self):
         return hash(tuple(sorted(self.items())))

@@ -6,22 +6,22 @@ from typing import Callable, Union
 
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta, SInt, reduce as bits_reduce
-from magma.circuit import LazyNamedValue
 from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
+from magma.ref import AnonRef
 
 
 class SmartExprMeta(MagmaProtocolMeta):
     pass
 
 
-class SmartExpr(MagmaProtocol, LazyNamedValue, metaclass=SmartExprMeta):
+class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
     __hash__ = object.__hash__
 
     def __init__(self):
-        self._name = None
+        self._name = AnonRef()
 
     @property
     def name(self):
