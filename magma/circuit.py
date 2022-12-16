@@ -8,7 +8,7 @@ import functools
 import operator
 from collections import namedtuple, Counter
 import os
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Union
 
 from . import cache_definition
 from .common import deprecated, setattrs, OrderedIdentitySet
@@ -218,55 +218,65 @@ class NamerDict(dict):
             key = TempNamedRef(key, value)
         value.name = key
 
+    def _check_unique_name(
+        self,
+        key: str,
+        value: Union[Type, LazyNamedValue, 'Circuit'],
+    ):
+        """If key has been seen more than once, "uniquify" the names by append
+        _{i} to them.
+        """
+        values = self._inferred_names.setdefault(key, [])
+        if len(values) == 0:
+            self._set_name(key, value)
+        elif any(value is x for x in values):
+            # Already uniquified
+            return
+        else:
+            if len(values) == 1:
+                # Make the first value consistent by append _0
+                self._set_name(f"{key}_0", values[0])
+            self._set_name(f"{key}_{len(values)}", value)
+        values.append(value)
+
+    def _set_value_name(self, key: str, value: Type):
+        if not hasattr(value, "name"):
+            # Interface object is a Type without a name
+            return
+        if isinstance(value.name, AnonRef):
+            self._check_unique_name(key, value)
+        elif isinstance(value.name, TempNamedRef):
+            self._check_unique_name(value.name.name, value)
+
+    def _set_lazy_value_or_inst_name(
+        self,
+        key: str,
+        value: Union[LazyNamedValue, 'Circuit']
+    ):
+        if not value.name:
+            self._check_unique_name(key, value)
+        else:
+            # We do not expect a LazyNamedValue (SmartExpr) to be given an
+            # explicit name (since it can only be constructed by forming an
+            # anonymous expression).
+            assert not isinstance(value, LazyNamedValue)
+            self._check_unique_name(value.name, value)
+
     def __setitem__(self, key, value):
-        orig_value = value
+        super().__setitem__(key, value)
         if isinstance(value, LazyNamedValue):
             try:
                 value = magma_value(value)
             except NotImplementedError:
-                # SmartExpr doesn't have a magma_value yet
-                pass
-        # TODO: Refactor shared code between these cases
-        if (
-            (isinstance(value, Type) and hasattr(value, "name") and
-             isinstance(value.name, AnonRef)) or
-            (isinstance(value, LazyNamedValue) and not value.name) or
-            (isinstance(type(value), CircuitKind) and not value.name)
-        ):
-            values = self._inferred_names.setdefault(key, [])
-            if len(values) == 0:
-                self._set_name(key, value)
-            else:
-                if len(values) == 1:
-                    self._set_name(f"{key}_0", values[0])
-                self._set_name(f"{key}_{len(values)}", value)
-            values.append(value)
+                pass  # SmartExpr doesn't have a magma_value yet
+        if isinstance(value, Type):
+            self._set_value_name(key, value)
+        elif isinstance(value, LazyNamedValue):
+            self._set_lazy_value_or_inst_name(key, value)
         elif isinstance(type(value), CircuitKind):
-            values = self._inferred_names.setdefault(value.name, [])
-            if len(values) == 0:
-                pass
-            else:
-                if len(values) == 1:
-                    self._set_name(f"{value.name}_0", values[0])
-                self._set_name(f"{value.name}_{len(values)}", value)
-            values.append(value)
-        elif (
-            isinstance(value, Type) and
-            hasattr(value, "name") and
-            isinstance(value.name, TempNamedRef)
-        ):
-            values = self._inferred_names.setdefault(value.name.name, [])
-            if len(values) == 0:
-                values.append(value)
-            elif len(values) == 1 and values[0] is value:
-                pass
-            else:
-                if len(values) == 1:
-                    self._set_name(f"{value.name.name}_0", values[0])
-                self._set_name(f"{value.name.name}_{len(values)}", value)
-                values.append(value)
-
-        super().__setitem__(key, orig_value)
+            # NOTE: we check type(value) because this code is run in the Circuit
+            # class creation pipeline (so Circuit may not be defined yet).
+            self._set_lazy_value_or_inst_name(key, value)
 
     def __hash__(self):
         return hash(tuple(sorted(self.items())))

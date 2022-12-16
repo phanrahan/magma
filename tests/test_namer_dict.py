@@ -66,6 +66,36 @@ def test_namer_dict_smart_bits():
     assert check_gold(__file__, f"test_namer_dict_smart_bits.mlir")
 
 
+def test_namer_dict_smart_bits_lazy():
+
+    class test_namer_dict_smart_bits_lazy(m.Circuit):
+        io = m.IO(I0=m.In(m.smart.SmartBits[8]),
+                  I1=m.In(m.smart.SmartBits[8]),
+                  O=m.Out(m.smart.SmartBits[9]))
+        x = io.I0 + io.I1
+        io.O @= x
+
+    m.compile("build/test_namer_dict_smart_bits_lazy",
+              test_namer_dict_smart_bits_lazy,
+              output="mlir")
+    assert check_gold(__file__, f"test_namer_dict_smart_bits_lazy.mlir")
+
+
+def test_namer_dict_smart_bits_lazy_explicit():
+
+    class test_namer_dict_smart_bits_lazy(m.Circuit):
+        io = m.IO(I0=m.In(m.smart.SmartBits[8]),
+                  I1=m.In(m.smart.SmartBits[8]),
+                  O=m.Out(m.smart.SmartBits[9]))
+        x = io.I0 + io.I1
+        io.O @= x
+
+    m.compile("build/test_namer_dict_smart_bits_lazy",
+              test_namer_dict_smart_bits_lazy,
+              output="mlir")
+    assert check_gold(__file__, f"test_namer_dict_smart_bits_lazy.mlir")
+
+
 def test_namer_dict_already_named():
 
     class Foo(m.Circuit):
