@@ -152,6 +152,9 @@ class SmartExpr(MagmaProtocol, LazyNamedValue, metaclass=SmartExprMeta):
     def sext(self, width) -> 'SmartExtendOp':
         return SmartExtendOp(width, True, self)
 
+    def const(self) -> bool:
+        return False
+
 
 class SmartOp(SmartExpr, metaclass=SmartExprMeta):
     def __init__(self, op, *args):

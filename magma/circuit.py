@@ -256,10 +256,6 @@ class NamerDict(dict):
         if not value.name:
             self._check_unique_name(key, value)
         else:
-            # We do not expect a LazyNamedValue (SmartExpr) to be given an
-            # explicit name (since it can only be constructed by forming an
-            # anonymous expression).
-            assert not isinstance(value, LazyNamedValue)
             self._check_unique_name(value.name, value)
 
     def __setitem__(self, key, value):

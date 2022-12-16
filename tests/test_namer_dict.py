@@ -81,19 +81,20 @@ def test_namer_dict_smart_bits_lazy():
     assert check_gold(__file__, f"test_namer_dict_smart_bits_lazy.mlir")
 
 
-def test_namer_dict_smart_bits_lazy_explicit():
+def test_namer_dict_smart_bits_lazy_rename():
 
-    class test_namer_dict_smart_bits_lazy(m.Circuit):
+    class test_namer_dict_smart_bits_lazy_rename(m.Circuit):
         io = m.IO(I0=m.In(m.smart.SmartBits[8]),
                   I1=m.In(m.smart.SmartBits[8]),
                   O=m.Out(m.smart.SmartBits[9]))
         x = io.I0 + io.I1
-        io.O @= x
+        y = x
+        io.O @= y
 
-    m.compile("build/test_namer_dict_smart_bits_lazy",
-              test_namer_dict_smart_bits_lazy,
+    m.compile("build/test_namer_dict_smart_bits_lazy_rename",
+              test_namer_dict_smart_bits_lazy_rename,
               output="mlir")
-    assert check_gold(__file__, f"test_namer_dict_smart_bits_lazy.mlir")
+    assert check_gold(__file__, f"test_namer_dict_smart_bits_lazy_rename.mlir")
 
 
 def test_namer_dict_already_named():
