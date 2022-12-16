@@ -22,14 +22,20 @@ class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
 
     def __init__(self):
         self._name = AnonRef()
+        self._value = None
 
     @property
     def name(self):
-        return self._name
+        if self._value is None:
+            return self._name
+        return self._value.name
 
     @name.setter
     def name(self, value):
-        self._name = value
+        if self._value is None:
+            self._name = value
+        else:
+            self._value.name = value
 
     @property
     @abc.abstractmethod
@@ -467,14 +473,6 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
 
     def connection_iter(self):
         yield from zip(self, self.trace())
-
-    @property
-    def name(self):
-        return self._get_magma_value_().name
-
-    @name.setter
-    def name(self, value):
-        self._get_magma_value_().name = value
 
 
 SmartBit = SmartBits[1]

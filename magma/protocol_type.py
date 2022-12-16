@@ -140,6 +140,14 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def set_enclosing_when_context(self, ctx):
         self._get_magma_value_().set_enclosing_when_context(ctx)
 
+    @property
+    def name(self):
+        return self._get_magma_value_().name
+
+    @name.setter
+    def name(self, value):
+        self._get_magma_value_().name = value
+
 
 def magma_type(T):
     if issubclass(T, MagmaProtocol):
