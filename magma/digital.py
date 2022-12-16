@@ -3,7 +3,7 @@ import weakref
 from abc import ABCMeta
 import hwtypes as ht
 from .t import Kind, Direction, Type
-from .debug import debug_wire, get_callee_frame_info
+from .debug import debug_wire, get_debug_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
@@ -163,7 +163,7 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
         return False
 
     def __call__(self, output):
-        return self.wire(output, get_callee_frame_info())
+        return self.wire(output, get_debug_info(3))
 
     @debug_wire
     def wire(self, o, debug_info):

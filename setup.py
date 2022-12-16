@@ -1,5 +1,6 @@
 from setuptools import setup
 
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -42,6 +43,7 @@ setup(
         "ast_tools>=0.0.16",
         "staticfg",
         "networkx",
+        "uinspect"
     ],
     python_requires='>=3.6',
     long_description=long_description,

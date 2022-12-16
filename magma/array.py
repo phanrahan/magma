@@ -9,7 +9,7 @@ from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import Bit
 from .bitutils import int2seq
-from .debug import debug_wire, get_callee_frame_info, debug_unwire
+from .debug import debug_wire, get_debug_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
@@ -504,7 +504,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         return type(self)[len(res_bits), self.T](res_bits)
 
     def __call__(self, o):
-        return self.wire(o, get_callee_frame_info())
+        return self.wire(o, get_debug_info(3))
 
     def as_list(self):
         return [self[i] for i in range(len(self))]

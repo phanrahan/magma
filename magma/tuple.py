@@ -15,7 +15,7 @@ from .common import deprecated
 from .ref import TupleRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
-from .debug import debug_wire, get_callee_frame_info, debug_unwire
+from .debug import debug_wire, get_debug_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
@@ -306,7 +306,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
         return sum(magma_type(T).flat_length() for T in cls.types())
 
     def __call__(self, o):
-        return self.wire(o, get_callee_frame_info())
+        return self.wire(o, get_debug_info(3))
 
     @debug_wire
     def wire(self, o, debug_info):
