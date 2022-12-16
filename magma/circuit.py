@@ -205,6 +205,8 @@ def _get_intermediate_values(value):
 
 
 class LazyNamedValue:
+    """Used for SmartExpr because it does not have a magma value until it's
+       resolved (stages the naming of the resolved value)"""
     pass
 
 
