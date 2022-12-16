@@ -453,13 +453,13 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
         MagmaProtocol.wire(self, other, debug_info)
 
     @staticmethod
-    def from_bits(value, name=None):
+    def from_bits(value):
         if isinstance(value, Bit):
             value = bits(value)
         if not isinstance(value, Bits):
             raise TypeError(value)
         signed = isinstance(value, SInt)
-        return SmartBits[len(value), signed](value, name=name)
+        return SmartBits[len(value), signed](value)
 
     def __str__(self):
         signed = type(self)._signed_

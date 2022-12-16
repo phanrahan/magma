@@ -404,7 +404,7 @@ def evaluate_assignment(lhs: SmartBits, rhs: SmartExpr) -> SmartBits:
     signednesses = _determine_result_signednesses(root)
     root = _insert_signednesses(root, widths, signednesses)
     root = _push_down_extensions(root, widths, signednesses)
-    evaluated = SmartBits.from_bits(_evaluate(root), rhs.name)
+    evaluated = SmartBits.from_bits(_evaluate(root))
     result = _force_width(evaluated, len(lhs))
     if not rhs.name or isinstance(rhs, SmartBits):
         return result
