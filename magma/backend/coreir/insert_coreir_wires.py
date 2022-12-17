@@ -1,6 +1,8 @@
 from magma.array import Array
+from magma.bits import Bits
+from magma.digital import Digital
 from magma.clock import AsyncReset, AsyncResetN, Clock, _ClockType
-from magma.conversions import as_bits, from_bits, bit, convertbit
+from magma.conversions import as_bits, from_bits, bit, convertbit, convertbits
 from magma.digital import Digital
 from magma.generator import Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
@@ -63,17 +65,18 @@ class InsertCoreIRWires(DefinitionPass):
         # Could be already wired for fanout cases
         if not wire_input.driven():
             wire_input @= driver
-        recast = (
-            self._flatten
-            and (
-                isinstance(value, _ClockType)
-                and not isinstance(wire_output, type(value))
-            )
-        )
-        if recast:
+
+        value_T = type(value)
+        if not isinstance(wire_output, value_T):
             # This mean it was cast by the user (e.g. m.clock(value)), so we
             # need to "recast" the wire output
-            wire_output = convertbit(wire_output, type(value))
+            if isinstance(value, Digital):
+                wire_output = convertbit(wire_output, value_T)
+            elif isinstance(value, Array):
+                wire_output = convertbits(
+                    wire_output, len(value_T), value_T,
+                    issubclass(value_T, Bits)
+                )
         value @= wire_output
 
     def _insert_wire(self, value, definition):
