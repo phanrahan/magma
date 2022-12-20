@@ -43,3 +43,11 @@ def test_reserved():
         class MyEnum(m.Enum):
             a = 0
             N = 2
+
+
+def test_enum_fields():
+    class MyEnum(m.Enum):
+        x = 0
+        y = 1
+
+    assert len(MyEnum.fields) == 2

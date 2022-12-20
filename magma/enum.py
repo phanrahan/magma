@@ -24,6 +24,7 @@ class EnumMeta(BitsMeta):
         num_bits = max(max_value.bit_length(), 1)
         type_ = cls[num_bits]
         type_._is_magma_enum = True
+        type_.fields = fields
         for key, value in fields.items():
             setattr(type_, key, BitVector[num_bits](value))
         return type_
