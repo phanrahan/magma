@@ -58,7 +58,7 @@ from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
-from magma.value_utils import make_selector
+from magma.value_utils import make_selector, TupleSelector, ArraySelector
 from magma.view import PortView
 
 
@@ -391,13 +391,35 @@ class ModuleVisitor:
     @wrap_with_not_implemented_error
     def visit_coreir_wire(self, module: ModuleWrapper) -> bool:
         inst = module.module
-        mlir_type = hw.InOutType(module.operands[0].type)
-        wire = self._ctx.new_value(mlir_type)
-        sym = self._ctx.parent.get_or_make_mapped_symbol(
-            inst, name=f"{self._ctx.name}.{inst.name}", force=True)
-        sv.WireOp(results=[wire], name=inst.name, sym=sym)
-        sv.AssignOp(operands=[wire, module.operands[0]])
-        sv.ReadInOutOp(operands=[wire], results=module.results)
+
+        def _visit(value, counter):
+            index = next(counter)
+            mlir_type = hw.InOutType(module.operands[index].type)
+            wire = self._ctx.new_value(mlir_type)
+            name = inst.name
+            # TODO(rsetaluri): Making a selector and inspecting it in order to
+            # find the name is a kind of hacky way to get the qualified name of
+            # the sub-field of the value. Instead we should have a common API
+            # (what "qualifiedname" really should be...) to obtain this name.
+            selector = make_selector(value)
+            if isinstance(selector, (TupleSelector, ArraySelector)):
+                name += str(selector).replace(".", "_")
+            else:
+                assert index == 0
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                value, name=f"{self._ctx.name}.{name}", force=True
+            )
+            sv.WireOp(results=[wire], name=name, sym=sym)
+            sv.AssignOp(operands=[wire, module.operands[index]])
+            sv.ReadInOutOp(operands=[wire], results=[module.results[index]])
+
+        counter = itertools.count()
+        visit_magma_value_or_value_wrapper_by_direction(
+            inst.I,
+            lambda v: _visit(v, counter),
+            _assert_false,
+            flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+        )
         return True
 
     @wrap_with_not_implemented_error

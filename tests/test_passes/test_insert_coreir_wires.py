@@ -265,3 +265,23 @@ def test_insert_coreir_wires_recast():
 
     # Check that compilation succeeds without error.
     m.compile(f"build/insert_coreir_wires_recast", Main, output="mlir")
+
+
+def test_insert_coreir_wires_product():
+
+    class T(m.Product):
+        x = m.Bit
+        y = m.Bit
+
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(T), O=m.Out(T))
+
+        x = T(name="x")
+        x @= io.I
+        io.O @= x
+
+    m.compile(f"build/insert_coreir_wires_product", Main, output="mlir",
+              flatten_all_tuples=True)
+    assert check_files_equal(__file__,
+                             "build/insert_coreir_wires_product.mlir",
+                             "gold/insert_coreir_wires_product.mlir")
