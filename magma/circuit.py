@@ -6,7 +6,7 @@ import itertools
 from functools import wraps
 import functools
 import operator
-from collections import namedtuple, Counter
+from collections import namedtuple, Counter, UserDict
 import os
 from typing import Callable, Dict, List, Union
 
@@ -62,6 +62,8 @@ __all__ += ['register_instance_callback', 'get_instance_callback']
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 _logger = root_logger()
+
+config.register(use_namer_dict=RuntimeConfig(False))
 
 
 class _SyntaxStyle(enum.Enum):
@@ -205,7 +207,7 @@ def _get_intermediate_values(value):
     return values
 
 
-class NamerDict(dict):
+class NamerDict(UserDict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._inferred_names = {}
@@ -226,18 +228,17 @@ class NamerDict(dict):
         if len(values) == 0:
             self._set_name(key, value)
         elif any(value is x for x in values):
-            # Already uniquified
-            return
+            return  # already uniquified
         else:
             if len(values) == 1:
-                # Make the first value consistent by append _0
+                # Make the first value consistent by appending _0.
                 self._set_name(f"{key}_0", values[0])
             self._set_name(f"{key}_{len(values)}", value)
         values.append(value)
 
     def _set_value_name(self, key: str, value: Type):
         if not hasattr(value, "name"):
-            return  # Interface object is a Type without a name.
+            return  # interface object is a Type without a name
         if isinstance(value.name, AnonRef):
             self._check_unique_name(key, value)
         elif isinstance(value.name, TempNamedRef):
@@ -254,15 +255,13 @@ class NamerDict(dict):
         if isinstance(value, (Type, MagmaProtocol)):
             self._set_value_name(key, value)
         elif isinstance(type(value), CircuitKind):
-            # NOTE: we check type(value) because this code is run in the Circuit
-            # class creation pipeline (so Circuit may not be defined yet).
+            # NOTE(leonardt): we check type(value) because this code is run in
+            # the Circuit class creation pipeline (so Circuit may not be defined
+            # yet).
             self._set_inst_name(key, value)
 
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
-
-
-config.register(use_namer_dict=RuntimeConfig(False))
 
 
 class CircuitKind(type):
