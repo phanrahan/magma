@@ -29,14 +29,6 @@ class _simple_coreir_common_lib_mux_n_wrapper(m.Circuit):
     io.O @= CoreIRCommonLibMuxN(8, 6)()(io.I)
 
 
-@contextlib.contextmanager
-def _set_debug_info(obj, debug_info):
-    old_debug_info = obj.debug_info
-    obj.debug_info = debug_info
-    yield
-    obj.debug_info = old_debug_info
-
-
 @pytest.mark.parametrize("ckt", get_local_examples())
 def test_compile_to_mlir(ckt):
     kwargs = {
@@ -166,28 +158,36 @@ def test_compile_to_mlir_disallow_duplicate_symbols(
 
 
 @pytest.mark.parametrize(
-    "ckt,location_info_style",
-    itertools.product(
-        (simple_comb,),
-        ("plain", "wrapInAtSquareBracket", "none"),
-    )
+    "location_info_style",
+    ("plain", "wrapInAtSquareBracket", "none"),
 )
-def test_compile_to_mlir_location_info_style(ckt, location_info_style: str):
+def test_compile_to_mlir_location_info_style(location_info_style: str):
+
+    class _top(m.Circuit):
+        name = "simple_structural"
+        T = m.Bits[16]
+        io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T), z=m.Out(T))
+        io += m.ClockIO()
+        a_reg = m.Register(T)(name="a_reg")
+        a_reg.I @= io.a
+        a = a_reg.O
+        io.y @= a & io.c
+        io.z @= a | io.b
+
+    ckt = _top
     gold_name = f"{ckt.name}_location_info_style_{location_info_style}"
     kwargs = {
         "location_info_style": location_info_style,
         "gold_name": gold_name,
     }
     kwargs.update({"check_verilog": False})
-    with contextlib.ExitStack() as exit_stack:
-        exit_stack.enter_context(
-            _set_debug_info(ckt, debug_info("file.py", 100, ""))
-        )
-        for i, inst in enumerate(ckt.instances):
-            exit_stack.enter_context(
-                _set_debug_info(inst, debug_info("file.py", 100 + i, ""))
-            )
-        run_test_compile_to_mlir(ckt, **kwargs)
+    # Attach dummy debug info to ckt.
+    ckt.debug_info = debug_info("file.py", 100, "")
+    for i, inst in enumerate(ckt.instances):
+        inst.debug_info = debug_info("file.py", 100 + i, "")
+    ckt.a_reg.I.debug_info = debug_info("file.py", 200, "")
+    ckt.a_reg.O.debug_info = debug_info("file.py", 201, "")
+    run_test_compile_to_mlir(ckt, **kwargs)
 
 
 @pytest.mark.parametrize(
