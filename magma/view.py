@@ -23,9 +23,9 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
     def _get_magma_value_(self):
         return self._magma_value
 
-    def __init__(self, port, parent):
+    def __init__(self, port, parent_view):
         self.port = port
-        self.parent = parent
+        self.parent_view = parent_view
         self._magma_value = Out(type(port))(name=PortViewRef(self))
 
     def __getitem__(self, key):
@@ -35,7 +35,7 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
         except KeyError:
             raise Exception(f"Can only use getitem with arrays and "
                             f"tuples not {type(self.port)}")
-        return PortView[type(item)](item, self.parent)
+        return PortView[type(item)](item, self.parent_view)
 
     def __getattr__(self, key):
         port = self.port
@@ -43,25 +43,25 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
             attr = getattr(port, key)
         except AttributeError:
             return object.__getattribute__(self, key)
-        return PortView[type(attr)](attr, self.parent)
+        return PortView[type(attr)](attr, self.parent_view)
 
     def path(self) -> Tuple[str]:
         path = (self.port.name.name,)
-        curr = self.parent
+        curr = self.parent_view
         while isinstance(curr, InstView):
             path = (curr.inst.name,) + path
-            curr = curr.parent
+            curr = curr.parent_view
         return path
 
     def get_hierarchical_coreir_select(self):
-        if self.parent is None:
+        if self.parent_view is None:
             return ";"
-        return ";".join(self.parent.path()) + ";"
+        return ";".join(self.parent_view.path()) + ";"
 
     def root(self):
-        curr = self.parent
-        while isinstance(curr.parent, InstView):
-            curr = curr.parent
+        curr = self.parent_view
+        while isinstance(curr.parent_view, InstView):
+            curr = curr.parent_view
         return curr
 
     def __str__(self):
@@ -77,18 +77,18 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
 
     def __next__(self):
         n = next(self.__iter)
-        return PortView[type(n)](n, self.parent)
+        return PortView[type(n)](n, self.parent_view)
 
 
 class InstView:
-    def __init__(self, inst, parent=None):
+    def __init__(self, inst, parent_view=None):
         self.inst = inst
         self.circuit = type(inst)
         self.instance_map = None
         if hasattr(self.circuit, "instances"):
             self.instance_map = {instance.name: instance for instance in
                                  self.circuit.instances}
-        self.parent = parent
+        self.parent_view = parent_view
 
     def __getattr__(self, attr):
         try:
@@ -102,6 +102,6 @@ class InstView:
 
     def path(self) -> Tuple[str]:
         path = (self.inst.name,)
-        if self.parent is None:
+        if self.parent_view is None:
             return path
-        return self.parent.path() + path
+        return self.parent_view.path() + path

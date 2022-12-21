@@ -182,6 +182,25 @@ class Wire:
         return self._bit
 
 
+def lazy_resolve_wireable_method(fn, process_result=None):
+    """If parent is not resolved, invoke on parent, else invoke on ._wire"""
+
+    @functools.wraps(fn)
+    def wrapper(self, *args, **kwargs):
+        if self._parent and not self._parent._resolved:
+            result = getattr(self._parent, fn.__name__)(*args, **kwargs)
+            if result is not None and process_result is not None:
+                result = process_result(self, result)
+            return result
+        return getattr(self._wire, fn.__name__)(*args, **kwargs)
+
+    return wrapper
+
+
+def _get_index(self, result):
+    return result[self.name.index]
+
+
 class Wireable:
     def __init__(self):
         """
@@ -197,6 +216,15 @@ class Wireable:
         self._wire = Wire(self)
         self._enclosing_when_context = get_curr_when_block()
         self._wired_when_contexts = []
+        self._parent = None
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, value):
+        self._parent = value
 
     def set_enclosing_when_context(self, ctx):
         self._enclosing_when_context = ctx
@@ -205,33 +233,53 @@ class Wireable:
     def enclosing_when_context(self):
         return self._enclosing_when_context
 
+    @lazy_resolve_wireable_method
     def wired(self):
-        return self._wire.wired()
+        pass
 
     # return the input or output Bit connected to this Bit
     def trace(self, skip_self=True):
+        # We don't use the decorator here since we want the special exception
+        # handler.
+        if self._parent and not self._parent._resolved:
+            result = self._parent.trace(skip_self)
+            if result is not None:
+                return result[self.name.index]
+            return None
         try:
             return self._wire.trace(skip_self)
         except RecursionError:
             raise TraceRecursionError(self)
 
     # return the output Bit connected to this input Bit
+    @functools.partial(lazy_resolve_wireable_method, process_result=_get_index)
     def value(self):
-        return self._wire.value()
+        pass
 
+    @lazy_resolve_wireable_method
     def driven(self):
-        return self._wire.driven()
+        pass
 
+    @functools.partial(
+        lazy_resolve_wireable_method,
+        process_result=lambda self, result: [x[self.name.index] for x in result]
+    )
     def driving(self):
-        return self._wire.driving()
+        pass
 
     def _remove_from_wired_when_contexts(self):
         for ctx in self._wired_when_contexts:
             ctx.remove_conditional_wire(self)
         self._wired_when_contexts = []
 
+    def _check_resolve_parent(self):
+        """Parent must be resolved before wire/unwire"""
+        if self._parent and not self._parent._resolved:
+            self._parent._resolve_bulk_wire()
+
     @debug_unwire
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
+        self._check_resolve_parent()
         if o is not None:
             o = o._wire
         self._wire.unwire(o, debug_info)
@@ -244,6 +292,8 @@ class Wireable:
         o.debug_info = debug_info
 
     def wire(self, o, debug_info):
+        self._check_resolve_parent()
+        o._check_resolve_parent()
         curr_when_block = get_curr_when_block()
         is_conditional = (
             curr_when_block is not None
@@ -264,10 +314,7 @@ class Wireable:
 class AggregateWireable(Wireable):
     def __init__(self):
         super().__init__()
-        # Flag used to mark a value that is currently being
-        # resolved, and therefor it doesn't need to repeat the
-        # resolution logic that is being done in the calling code
-        self._should_resolve = True
+        self._resolved = False
 
     @abc.abstractmethod
     def has_elaborated_children(self):
@@ -342,29 +389,39 @@ class AggregateWireable(Wireable):
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
-        if not self._should_resolve:
+        if self._parent and not self._parent._resolved:
+            self._parent._resolve_bulk_wire()
+        if self._resolved:
             return
         # Trace as far back as possible to know where to start
         source = self._wire.trace()
         if source is None:
             source = self
-        source._should_resolve = False
+        source._resolved = True
 
         # Process values one at a time so that we avoid recursion
         # error for large wire chains
         to_process = source._wire.driving()
         while to_process:
             next = to_process.pop()
-            next._should_resolve = False
+            next._resolved = True
             next._resolve_driven_bulk_wire()
             to_process.extend(next._wire.driving())
+
+    def _should_wire_children(self, o):
+        return (
+            self._resolved or
+            o._resolved or
+            self.is_mixed() or
+            o.is_mixed()
+        )
 
 
 def aggregate_wireable_method(fn):
 
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
-        if self.has_elaborated_children():
+        if self._resolved:
             return fn(self, *args, **kwargs)
         wireable_fn = getattr(AggregateWireable, fn.__name__)
         return wireable_fn(self, *args, **kwargs)

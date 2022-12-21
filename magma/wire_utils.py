@@ -28,7 +28,7 @@ def wire_value_or_driver(drivee: Type, driver: Type):
 
 def wire_value_or_port_view(drivee: Type, value_or_port_view: ValueOrPortView):
     if isinstance(value_or_port_view, PortView):
-        defn = value_or_port_view.parent.inst.defn
+        defn = value_or_port_view.parent_view.inst.defn
         with defn.open():
             xmr_sink = XMRSink(value_or_port_view)()
             wire_value_or_driver(xmr_sink.I, value_or_port_view.port)

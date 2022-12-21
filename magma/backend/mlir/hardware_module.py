@@ -811,7 +811,7 @@ class ModuleVisitor:
         xmr = defn.value
         paths = self._ctx.parent.xmr_paths[xmr]
         assert len(paths) == len(module.results)
-        base = defn.value.parent.path()
+        base = defn.value.parent_view.path()
         for result, path in zip(module.results, paths):
             in_out = self._ctx.new_value(hw.InOutType(result.type))
             path = base + path

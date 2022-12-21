@@ -1,6 +1,6 @@
 from typing import Union
 
-from magma.array import ArrayMeta
+from magma.array import ArrayMeta, Array
 from magma.backend.mlir.magma_common import (
     InstanceWrapper, value_or_type_to_string)
 from magma.bits import BitsMeta
@@ -45,11 +45,17 @@ def MagmaArraySliceOp(T: ArrayMeta, lo: int, hi: int):
     return InstanceWrapper(name, ports, attrs)
 
 
-def MagmaArrayCreateOp(T: ArrayMeta):
+def MagmaArrayCreateOp(value: Array):
+    T = type(value)
     assert isinstance(T, ArrayMeta)
     T = T.undirected_t
     name = f"magma_array_create_op_{value_or_type_to_string(T)}"
-    ports = {f"I{i}": In(T.T) for i in range(T.N)}
+    ports = {}
+    for i, _ in value._enumerate_children():
+        if isinstance(i, slice):
+            ports[f"I{i}"] = In(Array[i.stop - i.start, T.T])
+        else:
+            ports[f"I{i}"] = In(T.T)
     ports.update(dict(O=Out(T)))
     attrs = dict(T=T)
     return InstanceWrapper(name, ports, attrs)
