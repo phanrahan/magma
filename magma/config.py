@@ -59,8 +59,7 @@ class ConfigManager:
     __entries = {}
 
     def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            ConfigManager.__entries[key] = value
+        self._register(**kwargs)
 
     def _register(self, **kwargs):
         for key, value in kwargs.items():

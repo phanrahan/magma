@@ -6,11 +6,10 @@ import itertools
 from functools import wraps
 import functools
 import operator
-from collections import namedtuple
+from collections import namedtuple, Counter, UserDict
 import os
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Union
 
-import six
 from . import cache_definition
 from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
@@ -28,6 +27,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
+from magma.config import get_debug_mode, set_debug_mode, config, RuntimeConfig
 from magma.definition_context import (
     DefinitionContext,
     definition_context_manager,
@@ -37,8 +37,9 @@ from magma.definition_context import (
 )
 from magma.find_unconnected_ports import find_and_log_unconnected_ports
 from magma.logging import root_logger, capture_logs
-from magma.ref import TempNamedRef
-from magma.t import In
+from magma.protocol_type import MagmaProtocol
+from magma.ref import TempNamedRef, AnonRef
+from magma.t import In, Type
 from magma.view import PortView
 from magma.wire_container import WiringLog, AggregateWireable
 
@@ -61,6 +62,8 @@ __all__ += ['register_instance_callback', 'get_instance_callback']
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 _logger = root_logger()
+
+config.register(use_namer_dict=RuntimeConfig(False))
 
 
 class _SyntaxStyle(enum.Enum):
@@ -204,14 +207,75 @@ def _get_intermediate_values(value):
     return values
 
 
+class NamerDict(UserDict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._inferred_names = {}
+
+    def _set_name(self, key, value):
+        if isinstance(value, (Type, MagmaProtocol)):
+            key = TempNamedRef(key, value)
+        value.name = key
+
+    def _check_unique_name(
+        self,
+        key: str,
+        value: Union[Type, 'Circuit'],
+    ):
+        """If key has been seen more than once, "uniquify" the names by append
+           _{i} to them."""
+        values = self._inferred_names.setdefault(key, [])
+        if len(values) == 0:
+            self._set_name(key, value)
+        elif any(value is x for x in values):
+            return  # already uniquified
+        else:
+            if len(values) == 1:
+                # Make the first value consistent by appending _0.
+                self._set_name(f"{key}_0", values[0])
+            self._set_name(f"{key}_{len(values)}", value)
+        values.append(value)
+
+    def _set_value_name(self, key: str, value: Type):
+        if not hasattr(value, "name"):
+            return  # interface object is a Type without a name
+        if isinstance(value.name, AnonRef):
+            self._check_unique_name(key, value)
+        elif isinstance(value.name, TempNamedRef):
+            self._check_unique_name(value.name.name, value)
+
+    def _set_inst_name(self, key: str, value: 'Circuit'):
+        if not value.name:
+            self._check_unique_name(key, value)
+        else:
+            self._check_unique_name(value.name, value)
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        if isinstance(value, (Type, MagmaProtocol)):
+            self._set_value_name(key, value)
+        elif isinstance(type(value), CircuitKind):
+            # NOTE(leonardt): we check type(value) because this code is run in
+            # the Circuit class creation pipeline (so Circuit may not be defined
+            # yet).
+            self._set_inst_name(key, value)
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
+
+
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         ctx = DefinitionContext(StagedPlacer(name))
         push_definition_context(ctx, use_staged_logger=True)
+        if config.use_namer_dict:
+            return NamerDict()
         return type.__prepare__(name, bases, **kwargs)
 
     """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
+        if isinstance(dct, NamerDict):
+            dct = dict(dct)  # resolve to dict, no longer need name logic
         # Override class name if supplied (and save class name).
         cls_name = dct.get("_cls_name_", name)
         name = dct.setdefault('name', name)
@@ -359,8 +423,7 @@ class CircuitKind(type):
             m_inline_verilog(inline_str, **kwargs)
 
 
-@six.add_metaclass(CircuitKind)
-class AnonymousCircuitType(object):
+class AnonymousCircuitType(object, metaclass=CircuitKind):
     """Abstract base class for circuits"""
 
     _circuit_base_ = True
@@ -390,12 +453,18 @@ class AnonymousCircuitType(object):
         self.debug_info = debug_info
 
     def __str__(self):
-        if self.name:
-            return f"{self.name}<{type(self)}>"
-        name = f"AnonymousCircuitInst{id(self)}"
-        interface = ", ".join(f"{name}: {type(value)}"
-                              for name, value in self.interface.ports.items())
-        return f"{name}<{interface}>"
+        name = self.name
+        if not name:
+            name = f"AnonymousCircuitInst{id(self)}"
+        if type(self) is AnonymousCircuitType:
+            interface = ", ".join(
+                f"{name}: {type(value)}"
+                for name, value in self.interface.ports.items()
+            )
+            name += f"<{interface}>"
+        else:
+            name += f"<{type(self)}>"
+        return name
 
     def __repr__(self):
         args = []
@@ -685,8 +754,7 @@ class DefineCircuitKind(CircuitKind):
         cls.bind_modules[monitor] = (args, compile_guard)
 
 
-@six.add_metaclass(DefineCircuitKind)
-class Circuit(CircuitType):
+class Circuit(CircuitType, metaclass=DefineCircuitKind):
     _circuit_base_ = True
 
 
