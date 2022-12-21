@@ -50,4 +50,4 @@ def test_enum_fields():
         x = 0
         y = 1
 
-    assert len(MyEnum.fields) == 2
+    assert MyEnum.fields == {"x": 0, "y": 1}
