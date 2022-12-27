@@ -6,6 +6,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=plain"} {
             sv.passign %1, %a : i16
             loc("file.py":100:0)
         }
+        loc("file.py":100:0)
         %2 = hw.constant 0 : i16
         loc("file.py":100:0)
         sv.initial {

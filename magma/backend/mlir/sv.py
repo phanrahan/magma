@@ -102,6 +102,8 @@ class AlwaysFFOp(MlirOp):
         printer.print("}")
         if self.reset_type is None:
             printer.flush()
+            if opts.print_locations:
+                printer.print_line(self.location.emit())
             return
         printer.print(f" ({self.reset_type} : {self.reset_edge} ")
         print_names(self.operands[1], printer)
@@ -111,6 +113,8 @@ class AlwaysFFOp(MlirOp):
         self.reset_block.print(printer, opts)
         printer.pop()
         printer.print_line("}")
+        if opts.print_locations:
+            printer.print_line(self.location.emit())
 
     def print_op(self, printer: PrinterBase):
         raise NotImplementedError()
@@ -132,6 +136,8 @@ class AlwaysCombOp(MlirOp):
         self.body_block.print(printer, opts)
         printer.pop()
         printer.print_line("}")
+        if opts.print_locations:
+            printer.print_line(self.location.emit())
 
     def print_op(self, printer: PrinterBase):
         raise NotImplementedError()
@@ -245,6 +251,8 @@ class IfDefOp(MlirOp):
         printer.print("}")
         if self._else_block is None:
             printer.flush()
+            if opts.print_locations:
+                printer.print_line(self.location.emit())
             return
         printer.print(" else {")
         printer.flush()
@@ -252,6 +260,8 @@ class IfDefOp(MlirOp):
         self._else_block.print(printer, opts)
         printer.pop()
         printer.print_line("}")
+        if opts.print_locations:
+            printer.print_line(self.location.emit())
 
     def print_op(self, printer: PrinterBase):
         raise NotImplementedError()
@@ -286,6 +296,8 @@ class IfOp(MlirOp):
         printer.print("}")
         if self._else_block is None:
             printer.flush()
+            if opts.print_locations:
+                printer.print_line(self.location.emit())
             return
         printer.print(" else {")
         printer.flush()
@@ -293,6 +305,8 @@ class IfOp(MlirOp):
         self._else_block.print(printer, opts)
         printer.pop()
         printer.print_line("}")
+        if opts.print_locations:
+            printer.print_line(self.location.emit())
 
     def print_op(self, printer: PrinterBase):
         raise NotImplementedError()
