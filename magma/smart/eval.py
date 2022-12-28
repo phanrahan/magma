@@ -237,6 +237,10 @@ class _ResultSignednessDeterminator(_Visitor):
         super().generic_visit(node)
         self._signednesses[node] = self._signednesses[node.children[0]]
 
+    def visit_SmartConcatOp(self, node: _Node):
+        super().generic_visit(node)
+        self._signednesses[node] = False
+
 
 class _SignednessInserter(_Transformer):
     def __init__(
