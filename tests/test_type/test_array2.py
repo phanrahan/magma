@@ -2,7 +2,7 @@ import pytest
 
 import magma as m
 from magma.testing import check_files_equal
-from magma.testing.utils import has_warning
+from magma.testing.utils import has_warning, check_gold
 
 
 def _check_compile(name, circ, nested=False, inline=False):
@@ -541,3 +541,19 @@ def test_array2_driving():
                 assert driving[0] is and_inst.I0[i]
             else:
                 assert len(driving) == 1
+
+
+def test_array2_mixed_direction_len_1(caplog):
+
+    class T(m.Product):
+        x = m.In(m.Bit)
+        y = m.Out(m.Bit)
+
+    class _Test(m.Circuit):
+        name = "test_array2_mixed_direction_len_1"
+        io = m.IO(I=m.Array[1, T], O=m.Array[1, m.Flip(T)])
+        io.O @= io.I
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+              flatten_all_tuples=True)
+    assert check_gold(__file__, f"{_Test.name}.mlir")
