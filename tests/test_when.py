@@ -1156,3 +1156,41 @@ def test_reg_ce_implicit_override():
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_tuple_bulk_resolve(caplog):
+
+    class V(m.Product):
+        x = m.Bits[8]
+        y = m.Bits[8]
+
+    class U(m.Product):
+        x = V
+        y = V
+
+    class T(m.Product):
+        x = m.Bits[8]
+        y = U
+
+    class _Test(m.Circuit):
+        name = "test_when_tuple_bulk_resolve"
+        io = m.IO(I=m.In(T), S=m.In(m.Bits[2]), O=m.Out(T))
+
+        x = m.Register(T)(name="x")
+        y = m.Register(T)(name="y")
+        with m.when(io.S[0]):
+            x.I @= x.O
+            y.I @= y.O
+        with m.otherwise():
+            with m.when(io.S[1]):
+                x.I.x @= io.I.x
+                x.I.y @= io.I.y
+            with m.otherwise():
+                x.I @= x.O
+            y.I @= x.O
+        io.O @= x.O
+
+    assert not caplog.messages
+    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+              flatten_all_tuples=True)
+    assert check_gold(__file__, f"{_Test.name}.mlir")

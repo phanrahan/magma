@@ -163,8 +163,8 @@ class WhenBuilder(CircuitBuilder):
             return
         value_to_index[value] = next(index_counter)
         port_name = f"{name_prefix}{next(name_counter)}"
-        self._add_port(port_name, type_qualifier(type(value).undirected_t))
         with no_when():
+            self._add_port(port_name, type_qualifier(type(value).undirected_t))
             port = getattr(self, port_name)
             if value.is_input() and isinstance(value, Enable):
                 value.wire(

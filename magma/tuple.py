@@ -478,7 +478,8 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
         return True
 
     def set_enclosing_when_context(self, ctx):
-        for value in self:
+        self._enclosing_when_context = ctx
+        for value in self._ts.values():
             value.set_enclosing_when_context(ctx)
 
 
