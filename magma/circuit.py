@@ -14,8 +14,7 @@ from . import cache_definition
 from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
 from .wire import *
-from .config import get_debug_mode, set_debug_mode
-from .debug import get_debug_info, debug_info
+from .debug import get_debug_info
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
@@ -293,12 +292,7 @@ class CircuitKind(type):
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
         dct.setdefault("debug_info", None)
-        if get_debug_mode() and not dct["debug_info"]:
-            callee_frame = inspect.getframeinfo(
-                inspect.currentframe().f_back.f_back)
-            module = inspect.getmodule(inspect.stack()[2][0])
-            dct["debug_info"] = debug_info(callee_frame.filename,
-                                           callee_frame.lineno, module)
+        dct["debug_info"] = get_debug_info(4)
 
         cls = type.__new__(metacls, name, bases, dct)
 
