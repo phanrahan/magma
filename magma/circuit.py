@@ -27,7 +27,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
-from magma.config import get_debug_mode, set_debug_mode, config, RuntimeConfig
+from magma.config import get_debug_mode, set_debug_mode, config, DebugConfig
 from magma.definition_context import (
     DefinitionContext,
     definition_context_manager,
@@ -63,7 +63,7 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 _logger = root_logger()
 
-config.register(use_namer_dict=RuntimeConfig(False))
+config.register(use_namer_dict=DebugConfig(False))
 
 
 class _SyntaxStyle(enum.Enum):

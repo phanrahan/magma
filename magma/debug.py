@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import uinspect
 import collections
 
-from magma.config import config, RuntimeConfig
+from magma.config import config, DebugConfig
 
 
 @dataclass
@@ -15,7 +15,7 @@ class _DebugInfo:
 debug_info = _DebugInfo
 
 
-config.register(use_uinspect=RuntimeConfig(True))
+config.register(use_uinspect=DebugConfig(True))
 
 
 def get_debug_info(frames_to_skip):

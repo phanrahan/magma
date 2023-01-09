@@ -55,8 +55,13 @@ class EnvConfig(RuntimeConfig):
         self.set(value)
 
 
+class DebugConfig(RuntimeConfig):
+    pass
+
+
 class ConfigManager:
     __entries = {}
+    __debug_entries = []
 
     def __init__(self, **kwargs):
         self._register(**kwargs)
@@ -66,6 +71,8 @@ class ConfigManager:
             if key in ConfigManager.__entries:
                 raise RuntimeError(f"Config with key '{key}' already exists")
             ConfigManager.__entries[key] = value
+            if isinstance(value, DebugConfig):
+                ConfigManager.__debug_entries.append(key)
 
     def register(self, **kwargs):
         self._register(**kwargs)
@@ -73,7 +80,13 @@ class ConfigManager:
     def __get(self, key):
         return ConfigManager.__entries[key].get()
 
+    def __set_debug_mode(self, value):
+        for key in self.__debug_entries:
+            self.__set(key, value)
+
     def __set(self, key, value):
+        if key == "debug_mode":
+            self.__set_debug_mode(value)
         ConfigManager.__entries[key].set(value)
 
     def __getattr__(self, key):
