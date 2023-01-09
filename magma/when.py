@@ -9,6 +9,13 @@ from magma.ref import get_ref_inst
 
 
 @functools.lru_cache(None)
+def _bit_type():
+    # NOTE(leonardt): Circular dependency.
+    from magma.bit import Bit
+    return Bit
+
+
+@functools.lru_cache(None)
 def _abstract_register_type():
     # NOTE(rsetaluri): Circular dependency.
     from magma.primitives.register import AbstractRegister
@@ -219,7 +226,9 @@ def get_all_blocks(
 
 @dataclasses.dataclass
 class _WhenBlockInfo:
-    condition: Any  # TODO(rsetaluri): Should actually be bit
+    # NOTE(leonardt): we can't use Bit here because of circular dependency, so
+    # instead we enforce it in the public constructors (e.g. m.when).
+    condition: Any
 
 
 @dataclasses.dataclass
@@ -508,6 +517,8 @@ def find_inferred_latches(block: _BlockBase) -> Set:
 
 
 def when(cond):
+    if not isinstance(cond, _bit_type()):
+        raise TypeError(f"Invalid when cond {cond}, should be Bit")
     info = _WhenBlockInfo(cond)
     curr_block = _get_curr_block()
     if curr_block is None:
@@ -516,6 +527,8 @@ def when(cond):
 
 
 def elsewhen(cond):
+    if not isinstance(cond, _bit_type()):
+        raise TypeError(f"Invalid elsewhen cond {cond}, should be Bit")
     info = _ElseWhenBlockInfo(cond)
     prev_block = _get_prev_block()
     if prev_block is None:
