@@ -9,7 +9,7 @@ from magma.testing.utils import (
 
 
 def test_input_as_output(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class Buf(Circuit):
         name = "Buf"
         io = IO(I=In(Bit), O=Out(Bit))
@@ -23,11 +23,11 @@ def test_input_as_output(caplog):
 \033[1mtests/test_wire/test_errors.py:21\033[0m: Cannot wire main.O (In(Bit)) to main.buf.I (In(Bit))
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 def test_output_as_input(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class A(Circuit):
         name = "A"
         io = IO(I=In(Bit), O=Out(Bit))
@@ -41,11 +41,11 @@ def test_output_as_input(caplog):
 \033[1mtests/test_wire/test_errors.py:39\033[0m: Cannot wire main.I (Out(Bit)) to main.a.O (Out(Bit))
 >>         wire(io.I, a.O)"""
     assert has_error(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 def test_multiple_outputs_to_input_warning(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class A(Circuit):
         name = "A"
         io = IO(I=In(Bit), O=Out(Bit))
@@ -60,11 +60,11 @@ def test_multiple_outputs_to_input_warning(caplog):
 \033[1mtests/test_wire/test_errors.py:58\033[0m: Wiring multiple outputs to same wire, using last connection. Input: main.a.I, Old Output: main.I[0], New Output: main.I[1]
 >>         wire(io.I[1], a.I)"""
     assert has_warning(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 def test_multiple_outputs_circuit(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class A(Circuit):
         name = "A"
         io = IO(I=In(Bit), O=Out(Bit), U=Out(Bit))
@@ -78,11 +78,11 @@ def test_multiple_outputs_circuit(caplog):
 \033[1mtests/test_wire/test_errors.py:76\033[0m: Can only wire circuits with one output; circuit `main.a` has outputs ['O', 'U']
 >>         wire(a, io.I)"""
     assert has_error(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 def test_mismatch_outputs_circuit(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class A(Circuit):
         name = "A"
         io = IO(I=In(Bit), J=In(Bit), O=Out(Bit), U=Out(Bit))
@@ -99,11 +99,11 @@ def test_mismatch_outputs_circuit(caplog):
 \033[1mtests/test_wire/test_errors.py:97\033[0m: Number of inputs is not equal to the number of outputs, expected 2 inputs, got 1. Only 1 will be wired.
 >>         a(main)"""
     assert has_warning(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 def test_no_inputs_circuit(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class A(Circuit):
         name = "A"
         io = IO(O=Out(Bit), U=Out(Bit))
@@ -117,11 +117,11 @@ def test_no_inputs_circuit(caplog):
 \033[1mtests/test_wire/test_errors.py:115\033[0m: Wiring an output to a circuit with no input arguments, skipping
 >>         wire(io.I, a)"""
     assert has_warning(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 def test_multiple_inputs_circuit(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class A(Circuit):
         name = "A"
         io = IO(I=In(Bit), J=In(Bit), O=Out(Bit), U=Out(Bit))
@@ -135,11 +135,11 @@ def test_multiple_inputs_circuit(caplog):
 \033[1mtests/test_wire/test_errors.py:133\033[0m: Wiring an output to a circuit with more than one input argument, using the first input main.a.I
 >>         wire(io.I, a)"""
     assert has_warning(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 def test_no_key(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class A(Circuit):
         name = "A"
         io = IO(I=In(Bit), J=In(Bit), O=Out(Bit), U=Out(Bit))
@@ -154,11 +154,11 @@ def test_no_key(caplog):
 >>         a(K=io.I)"""
 
     assert has_warning(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 def test_const_array_error(caplog):
-    magma.config.set_debug_mode(True)
+    magma.config.config.use_namer_dict = True
     class Buf(Circuit):
         name = "Buf"
         io = IO(I=In(Array[1, Bit]), O=Out(Array[1, Bit]))
@@ -176,7 +176,7 @@ def test_const_array_error(caplog):
 >>         wire(1, buf.I)"""
     assert caplog.records[0].msg == msg
     assert has_error(caplog, msg)
-    magma.config.set_debug_mode(False)
+    magma.config.config.use_namer_dict = False
 
 
 @wrap_with_context_manager(logging_level("DEBUG"))

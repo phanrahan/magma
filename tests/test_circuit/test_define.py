@@ -43,6 +43,7 @@ def test_simple_def(target, suffix):
     m.compile("build/test_simple_def_class", Main, output=target)
     m.set_codegen_debug_info(False)
     m.config.set_debug_mode(False)
+    m.config.config.use_uinspect = True
     assert check_files_equal(__file__, f"build/test_simple_def_class.{suffix}",
                              f"gold/test_simple_def_class.{suffix}")
 
@@ -73,6 +74,7 @@ def test_for_loop_def(target, suffix):
     m.compile("build/test_for_loop_def", main, output=target)
     m.set_codegen_debug_info(False)
     m.config.set_debug_mode(False)
+    m.config.config.use_uinspect = True
     assert check_files_equal(__file__, f"build/test_for_loop_def.{suffix}",
                              f"gold/test_for_loop_def.{suffix}")
 
@@ -103,6 +105,7 @@ def test_interleaved_instance_wiring(target, suffix):
     m.compile("build/test_interleaved_instance_wiring", main, output=target)
     m.set_codegen_debug_info(False)
     m.config.set_debug_mode(False)
+    m.config.config.use_uinspect = True
     assert check_files_equal(__file__, f"build/test_interleaved_instance_wiring.{suffix}",
                              f"gold/test_interleaved_instance_wiring.{suffix}")
 
