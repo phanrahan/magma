@@ -55,7 +55,10 @@ def test_old_style_override(caplog):
         io = None  # doesn't matter what the value of io is.
 
     _check_foo_interface(_Foo)
-    expected = "'IO' and 'io' should not both be specified, ignoring 'io'"
+    expected = """\
+tests/test_circuit/test_new_style_syntax.py:53: 'IO' and 'io' should not both be specified, ignoring 'io'
+>>     class _Foo(m.Circuit):\
+"""
     assert has_warning(caplog, expected)
 
 
@@ -75,7 +78,10 @@ def test_new_style_unconnected(caplog):
         io.x @= 0
 
     assert m.isdefinition(_Foo)
-    assert has_error(caplog, "_Foo.O not driven")
+    assert has_error(caplog, """\
+tests/test_circuit/test_new_style_syntax.py:74: _Foo.O not driven
+>>     class _Foo(m.Circuit):\
+""")
     assert has_error(caplog, "_Foo.O")
     assert has_error(caplog, "    _Foo.O[0]: Connected")
     assert has_error(caplog, "    _Foo.O[1]: Unconnected")
@@ -107,12 +113,12 @@ def test_defn_wiring_error(caplog):
     assert not m.isdefinition(_Foo)
     assert has_error(caplog,
                      """\
-tests/test_circuit/test_new_style_syntax.py:104: Cannot wire _Foo.I (Out(Bit)) to _Foo.O (Out(Bit))
+tests/test_circuit/test_new_style_syntax.py:110: Cannot wire _Foo.I (Out(Bit)) to _Foo.O (Out(Bit))
 >>         m.wire(io.I, io.O)\
 """)
     assert has_error(caplog,
                      """\
-tests/test_circuit/test_new_style_syntax.py:105: Cannot wire _Foo.I (Out(Bit)) to _Foo.O1 (In(Bits[1]))
+tests/test_circuit/test_new_style_syntax.py:111: Cannot wire _Foo.I (Out(Bit)) to _Foo.O1 (In(Bits[1]))
 >>         m.wire(io.I, io.O1)\
 """)
 
@@ -131,19 +137,22 @@ def test_inst_wiring_error(caplog):
 
     assert has_error(
         caplog, """\
-tests/test_circuit/test_new_style_syntax.py:129: Cannot wire _Foo.I (Out(Bit)) to _Foo._Bar_inst0.I (In(Bits[1]))
+tests/test_circuit/test_new_style_syntax.py:135: Cannot wire _Foo.I (Out(Bit)) to _Foo._Bar_inst0.I (In(Bits[1]))
 >>         m.wire(io.I, bar.I)\
 """)
     assert has_error(
         caplog,
         """\
-tests/test_circuit/test_new_style_syntax.py:130: Cannot wire _Foo._Bar_inst0.O (Out(Bits[1])) to _Foo.O (In(Bit))
+tests/test_circuit/test_new_style_syntax.py:136: Cannot wire _Foo._Bar_inst0.O (Out(Bits[1])) to _Foo.O (In(Bit))
 >>         m.wire(bar.O, io.O)\
 """)
-    assert has_error(caplog, "_Foo.O not driven")
+    assert has_error(caplog, """\
+tests/test_circuit/test_new_style_syntax.py:131: _Foo.O not driven
+>>     class _Foo(m.Circuit):\
+""")
     assert has_error(caplog, "_Foo.O: Unconnected")
     assert has_error(caplog, """\
-tests/test_circuit/test_new_style_syntax.py:128: _Foo._Bar_inst0.I not driven
+tests/test_circuit/test_new_style_syntax.py:134: _Foo._Bar_inst0.I not driven
 >>         bar = _Bar()\
 """)
     assert has_error(caplog, "_Foo._Bar_inst0.I: Unconnected")

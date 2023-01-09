@@ -5,7 +5,8 @@
       "MyCircuit":{
         "type":["Record",[
           ["IFC0",["Record",[["port0",["Array",5,"Bit"]],["port1",["Array",5,"Bit"]],["port2",["Array",5,["Array",2,"Bit"]]],["port3",["Array",5,"Bit"]],["port4","Bit"],["port5","Bit"],["port7","Bit"],["port8","Bit"],["port9","Bit"],["port10",["Array",3,"Bit"]]]]]
-        ]]
+        ]],
+        "metadata":{"filename":"tests/test_type/test_tuple.py","lineno":"264"}
       },
       "Top":{
         "type":["Record",[
@@ -13,12 +14,14 @@
         ]],
         "instances":{
           "MyCircuit_inst0":{
-            "modref":"global.MyCircuit"
+            "modref":"global.MyCircuit",
+            "metadata":{"filename":"tests/test_type/test_tuple.py","lineno":"271"}
           }
         },
         "connections":[
-          ["self.IFC1.port4","MyCircuit_inst0.IFC0.port4"]
-        ]
+          ["self.IFC1.port4","MyCircuit_inst0.IFC0.port4",{"filename":"tests/test_type/test_tuple.py","lineno":"271"}]
+        ],
+        "metadata":{"filename":"tests/test_type/test_tuple.py","lineno":"269"}
       }
     }
   }

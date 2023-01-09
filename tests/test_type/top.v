@@ -2,6 +2,7 @@
 module Top (
     output IFC1_port4
 );
+// Module `Top` defined at tests/test_type/test_tuple.py:269
 wire [4:0] MyCircuit_inst0_IFC0_port0;
 wire [4:0] MyCircuit_inst0_IFC0_port1;
 wire [2:0] MyCircuit_inst0_IFC0_port10;
@@ -12,6 +13,7 @@ wire MyCircuit_inst0_IFC0_port5;
 wire MyCircuit_inst0_IFC0_port7;
 wire MyCircuit_inst0_IFC0_port8;
 wire MyCircuit_inst0_IFC0_port9;
+// Instance `MyCircuit_inst0` created at tests/test_type/test_tuple.py:271
 MyCircuit MyCircuit_inst0 (
     .IFC0_port0(MyCircuit_inst0_IFC0_port0),
     .IFC0_port1(MyCircuit_inst0_IFC0_port1),

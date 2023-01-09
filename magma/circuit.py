@@ -292,7 +292,9 @@ class CircuitKind(type):
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
         dct.setdefault("debug_info", None)
-        dct["debug_info"] = get_debug_info(4)
+        if not dct["debug_info"]:
+            # Don't use setdefault to avoid get_debug_info call if possible
+            dct["debug_info"] = get_debug_info(4)
 
         cls = type.__new__(metacls, name, bases, dct)
 
