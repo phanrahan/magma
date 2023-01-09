@@ -9,3 +9,6 @@ def test_config_debug():
 
     for val in [True, False]:
         _check(val)
+
+    # Reset default
+    m.config.config.use_uinspect = True
