@@ -3,7 +3,7 @@ import pathlib
 import pytest
 
 import magma as m
-from magma.debug import get_debug_info, debug_info
+from magma.debug import get_debug_info, debug_info, magma_helper_function
 
 
 def test_magma_debug_ext():
@@ -25,3 +25,26 @@ def test_primitive_debug_info(T, name):
     filename = pathlib.Path(inst.debug_info.filename)
     filename = pathlib.Path("/".join(filename.parts[-2:]))
     assert str(filename) == f"magma/{name}.py"
+
+
+def test_helper_function():
+
+    class Foo(m.Circuit):
+        io = m.IO()
+
+    def _make_foo():  # no helper fn annotation
+        return Foo()
+
+    @magma_helper_function
+    def _make_foo_annotated():
+        return Foo()
+
+    class Bar(m.Circuit):
+        io = m.IO()
+        Foo()
+        _make_foo_annotated()
+        _make_foo()
+
+    instances = Bar.instances
+    assert instances[1].debug_info.lineno == instances[0].debug_info.lineno + 1
+    assert instances[2].debug_info.lineno == instances[0].debug_info.lineno - 8
