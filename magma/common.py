@@ -22,6 +22,12 @@ class Stack:
     def peek(self):
         return self._stack[-1]
 
+    def peek_default(self, default: Any) -> Any:
+        try:
+            return self._stack[-1]
+        except IndexError:
+            return default
+
     def __bool__(self) -> bool:
         return bool(self._stack)
 
