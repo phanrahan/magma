@@ -477,6 +477,10 @@ class ModuleVisitor:
             op_name = "shrs"
         if op_name == "lshr":
             op_name = "shru"
+        if op_name == "udiv":
+            op_name = "divu"
+        if op_name == "sdiv":
+            op_name = "divs"
         comb.BaseOp(
             op_name=op_name,
             operands=module.operands,
