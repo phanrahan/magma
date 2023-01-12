@@ -226,7 +226,7 @@ def get_all_blocks(
 
 @dataclasses.dataclass
 class _WhenBlockInfo:
-    # NOTE(leonardt): we can't use Bit here because of circular dependency, so
+    # NOTE(leonardt): We can't use Bit here because of circular dependency, so
     # instead we enforce it in the public constructors (e.g. m.when).
     condition: Any
 
