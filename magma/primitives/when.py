@@ -161,6 +161,21 @@ class WhenBuilder(CircuitBuilder):
     ):
         if value is None or value in value_to_index:
             return
+        root_value = value
+        while isinstance(root_value.name, DerivedRef):
+            root_value = root_value.name._parent
+        if value.is_input() and root_value in value_to_index:
+            root_port = getattr(self, value_to_name[root_value])
+            port = make_selector(value).select(root_port)
+            with no_when():
+                if value.is_input() and isinstance(value, Enable):
+                    value.wire(
+                        port,
+                        driven_implicitly_by_when=value.driven_implicitly_by_when
+                    )
+                else:
+                    wire(port, value)
+            return
         value_to_index[value] = next(index_counter)
         port_name = f"{name_prefix}{next(name_counter)}"
         with no_when():
