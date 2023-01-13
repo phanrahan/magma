@@ -56,6 +56,7 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
+from magma.ref import DerivedRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
@@ -636,7 +637,12 @@ class ModuleVisitor:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
                     operand = module.operands[input_to_index[driver_elt]]
-                    wire = wires[output_to_index[drivee_elt]]
+                    val = drivee_elt
+                    root_value = value
+                    while isinstance(root_value.name, DerivedRef):
+                        root_value = root_value.name._parent
+                    wire = wires[output_to_index[root_value]]
+                    wire = make_selector(val).select(wire)
                     sv.BPAssignOp(operands=[wire, operand])
 
         def _process_when_block(block):
