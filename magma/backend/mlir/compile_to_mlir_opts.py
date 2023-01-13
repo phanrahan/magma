@@ -16,3 +16,4 @@ class CompileToMlirOpts:
     location_info_style: str = "none"
     explicit_bitcast: bool = False
     disallow_expression_inlining_in_ports: bool = False
+    emit_muxes_as_if_then_else: bool = False

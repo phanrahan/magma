@@ -215,3 +215,14 @@ def test_compile_to_mlir_disallow_expression_inlining_in_ports(
     }
     kwargs.update({"check_verilog": False})
     run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize("ckt", (aggregate_mux_wrapper,))
+def test_compile_to_mlir_emit_muxes_as_if_then_else(ckt):
+    gold_name = f"{ckt.name}_emit_muxes_as_if_then_else"
+    kwargs = {
+        "extend_non_power_of_two_muxes": False,
+        "emit_muxes_as_if_then_else": True,
+        "gold_name": gold_name,
+    }
+    run_test_compile_to_mlir(ckt, **kwargs)
