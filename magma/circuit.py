@@ -328,7 +328,8 @@ class CircuitKind(type):
         return cls
 
     def __call__(cls, *largs, **kwargs):
-        kwargs["debug_info"] = get_debug_info(3)
+        if "debug_info" not in kwargs:
+            kwargs["debug_info"] = get_debug_info(3)
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
         if hasattr(cls, 'IO'):
             interface = cls.IO(inst=self, renamed_ports=cls.renamed_ports)
