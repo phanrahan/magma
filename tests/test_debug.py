@@ -15,11 +15,18 @@ def test_magma_debug_ext():
     )
 
 
-@pytest.mark.parametrize('T', (m.Bit, m.Bits[8],))
-def test_primitive_debug_info(T):
+@pytest.mark.parametrize(
+    'op',
+    (
+        lambda: ~(m.Bit()),
+        lambda: ~(m.Bits[8]()),
+        lambda: m.mux([m.Bit(), m.Bit()], m.Bit()),
+    )
+)
+def test_primitive_debug_info(op):
 
     class Foo(m.Circuit):
-        ~(T())  # just to instance some primitive
+        op()  # just to instance some primitive
 
     inst = Foo.instances[0]
     assert inst.debug_info.filename == __file__
