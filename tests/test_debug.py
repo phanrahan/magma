@@ -21,6 +21,7 @@ def test_magma_debug_ext():
         lambda: ~(m.Bit()),
         lambda: ~(m.Bits[8]()),
         lambda: m.mux([m.Bit(), m.Bit()], m.Bit()),
+        lambda: m.register(m.Bit()),
     )
 )
 def test_primitive_debug_info(op):
