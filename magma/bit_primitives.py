@@ -9,6 +9,7 @@ import operator
 import hwtypes as ht
 
 from magma.bit import Bit
+from magma.debug import magma_helper_function
 from magma.digital import Digital
 from magma.circuit import Circuit, coreir_port_mapping
 from magma.interface import IO
@@ -95,6 +96,7 @@ DefineUndriven = make_Define("undriven", "O", Out)
 DefineUnused = make_Define("term", "I", In)
 
 
+@magma_helper_function
 def unused(self):
     if self.is_input() or self.is_inout():
         raise TypeError("unused cannot be used with input/inout")
@@ -104,6 +106,7 @@ def unused(self):
         self._magma_unused_ = True
 
 
+@magma_helper_function
 def undriven(self):
     if self.is_output() or self.is_inout():
         raise TypeError("undriven cannot be used with output/inout")
