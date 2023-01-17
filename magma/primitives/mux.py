@@ -9,6 +9,7 @@ from magma.bits import Bits, UInt, SInt
 from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
 from magma.common import is_int
+from magma.debug import magma_helper_function
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.protocol_type import MagmaProtocol, magma_type
@@ -142,6 +143,7 @@ def _infer_mux_type(args):
 infer_mux_type = _infer_mux_type
 
 
+@magma_helper_function
 def mux(I: Union[Sequence, Array], S, **kwargs):
     """
     How type inference works on I:
@@ -180,6 +182,7 @@ Bit._mux = staticmethod(mux)
 # NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular
 # dependency between Mux and Array. See the discussion on
 # https://github.com/phanrahan/magma/pull/658.
+@magma_helper_function
 def _dynamic_mux_select(this, key):
     return mux(this.ts, key)
 
@@ -187,6 +190,7 @@ def _dynamic_mux_select(this, key):
 Array.dynamic_mux_select = _dynamic_mux_select
 
 
+@magma_helper_function
 def dict_lookup(dict_, select, default=0):
     """
     Use `select` as an index into `dict` (similar to a case statement)
@@ -200,6 +204,7 @@ def dict_lookup(dict_, select, default=0):
     return output
 
 
+@magma_helper_function
 def list_lookup(list_, select, default=0):
     """
     Use `select` as an index into `list` (similar to a case statement)
