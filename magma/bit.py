@@ -13,7 +13,7 @@ from .digital import Digital, DigitalMeta
 from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
 
 from magma.compatibility import IntegerTypes
-from magma.debug import debug_wire
+from magma.debug import debug_wire, magma_helper_function
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
@@ -66,10 +66,12 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     def direction(self):
         return type(self).direction
 
+    @magma_helper_function
     def __invert__(self):
         # CoreIR uses not instead of invert name
         return type(self).undirected_t._declare_unary_op("not")()(self)
 
+    @magma_helper_function
     @bit_cast
     @output_only("Cannot use == on an input")
     def __eq__(self, other):
@@ -78,36 +80,44 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         # CoreIR doesn't define an eq primitive for bits
         return ~(self ^ other)
 
+    @magma_helper_function
     @bit_cast
     @output_only("Cannot use != on an input")
     def __ne__(self, other):
         # CoreIR doesn't define an ne primitive for bits
         return self ^ other
 
+    @magma_helper_function
     @bit_cast
     def __and__(self, other):
         return type(self).undirected_t._declare_binary_op("and")()(self, other)
 
+    @magma_helper_function
     @bit_cast
     def __rand__(self, other):
         return type(self).undirected_t._declare_binary_op("and")()(other, self)
 
+    @magma_helper_function
     @bit_cast
     def __or__(self, other):
         return type(self).undirected_t._declare_binary_op("or")()(self, other)
 
+    @magma_helper_function
     @bit_cast
     def __ror__(self, other):
         return type(self).undirected_t._declare_binary_op("or")()(other, self)
 
+    @magma_helper_function
     @bit_cast
     def __xor__(self, other):
         return type(self).undirected_t._declare_binary_op("xor")()(self, other)
 
+    @magma_helper_function
     @bit_cast
     def __rxor__(self, other):
         return type(self).undirected_t._declare_binary_op("xor")()(other, self)
 
+    @magma_helper_function
     def ite(self, t_branch, f_branch):
         if isinstance(t_branch, list) and isinstance(f_branch, list):
             if not len(t_branch) == len(f_branch):

@@ -15,16 +15,14 @@ def test_magma_debug_ext():
     )
 
 
-@pytest.mark.parametrize('T,name', ((m.Bit, "bit"), (m.Bits[8], "bits")))
-def test_primitive_debug_info(T, name):
+@pytest.mark.parametrize('T', (m.Bit, m.Bits[8],))
+def test_primitive_debug_info(T):
 
     class Foo(m.Circuit):
         ~(T())  # just to instance some primitive
 
     inst = Foo.instances[0]
-    filename = pathlib.Path(inst.debug_info.filename)
-    filename = pathlib.Path("/".join(filename.parts[-2:]))
-    assert str(filename) == f"magma/{name}.py"
+    assert inst.debug_info.filename == __file__
 
 
 def test_helper_function():
