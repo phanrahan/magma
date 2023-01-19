@@ -4,6 +4,7 @@ import pytest
 
 import magma as m
 from magma.debug import debug_info
+from magma.passes.finalize_whens import finalize_whens
 from magma.primitives.mux import CoreIRCommonLibMuxN
 from magma.uniquification import uniquification_pass, reset_names
 
@@ -214,4 +215,34 @@ def test_compile_to_mlir_disallow_expression_inlining_in_ports(
         "gold_name": gold_name,
     }
     kwargs.update({"check_verilog": False})
+    run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize("disallow_local_variables", (False, True))
+def test_compile_to_mlir_disallow_local_variables(disallow_local_variables: bool):
+
+    class _Test(m.Circuit):
+        name = "simple_disallow_local_variables"
+        T = m.Bits[2]
+        io = m.IO(x=m.In(T), s=m.In(m.Bit), O=m.Out(T))
+        x0 = T()
+        with m.when(io.s):
+            x0 @= ~io.x
+        with m.otherwise():
+            x0 @= io.x
+        with m.when(~io.s):
+            io.O @= m.bits(list(reversed(x0)))
+        with m.otherwise():
+            io.O @= x0
+
+    ckt = _Test
+    finalize_whens(ckt)
+
+    gold_name = ckt.name
+    if disallow_local_variables:
+        gold_name += "_disallow_local_variables"
+    kwargs = {
+        "disallow_local_variables": disallow_local_variables,
+        "gold_name": gold_name,
+    }
     run_test_compile_to_mlir(ckt, **kwargs)
