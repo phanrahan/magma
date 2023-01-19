@@ -81,17 +81,24 @@ class _BlockBase(contextlib.AbstractContextManager):
     def add_conditional_wire(self, i, o):
         self._conditional_wires.append(ConditionalWire(i, o))
         builder = self.root.builder
-        if i.driven():
-            root_value = i
-            while isinstance(root_value.name, DerivedRef):
-                root_value = root_value.name._parent
-            if root_value not in builder.output_to_index:
-                driver = i.value()
-                # Keep wired when contexts because in this case, the driver could
-                # have been wired in a different when context (so the default value
-                # comes from the result of a previous when context)
-                i.unwire(driver, keep_wired_when_contexts=True)
-                self.root.add_default_driver(i, driver)
+        if i.driven() and i not in builder.output_to_index:
+            driver = i.value()
+            # Keep wired when contexts because in this case, the driver could
+            # have been wired in a different when context (so the default value
+            # comes from the result of a previous when context)
+            i.unwire(driver, keep_wired_when_contexts=True)
+            self.root.add_default_driver(i, driver)
+        # if i.driven():
+        #     root_value = i
+        #     while isinstance(root_value.name, DerivedRef):
+        #         root_value = root_value.name._parent
+        #     if root_value not in builder.output_to_index:
+        #         driver = i.value()
+        #         # Keep wired when contexts because in this case, the driver could
+        #         # have been wired in a different when context (so the default value
+        #         # comes from the result of a previous when context)
+        #         i.unwire(driver, keep_wired_when_contexts=True)
+        #         self.root.add_default_driver(i, driver)
         self.root.builder.add_drivee(i)
         self.root.builder.add_driver(o)
 

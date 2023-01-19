@@ -8,7 +8,7 @@ from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
-from magma.ref import DerivedRef
+from magma.ref import DerivedRef, ArrayRef
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -161,10 +161,15 @@ class WhenBuilder(CircuitBuilder):
     ):
         if value is None or value in value_to_index:
             return
+        value_to_index[value] = next(index_counter)
+        port_name = f"{name_prefix}{next(name_counter)}"
+        value_to_name[value] = port_name
+
         root_value = value
-        while isinstance(root_value.name, DerivedRef):
+        # TODO: will need to add tuple support
+        while isinstance(root_value.name, ArrayRef):
             root_value = root_value.name._parent
-        if value.is_input() and root_value in value_to_index:
+        if value.is_input() and root_value is not value and root_value in value_to_index:
             root_port = getattr(self, value_to_name[root_value])
             port = make_selector(value).select(root_port)
             if value.driven():
@@ -179,8 +184,7 @@ class WhenBuilder(CircuitBuilder):
                 else:
                     wire(port, value)
             return
-        value_to_index[value] = next(index_counter)
-        port_name = f"{name_prefix}{next(name_counter)}"
+
         with no_when():
             self._add_port(port_name, type_qualifier(type(value).undirected_t))
             port = getattr(self, port_name)
@@ -191,7 +195,6 @@ class WhenBuilder(CircuitBuilder):
                 )
             else:
                 wire(port, value)
-        value_to_name[value] = port_name
 
     def add_drivee(self, value: Type):
         self._generic_add(
@@ -251,7 +254,7 @@ class WhenBuilder(CircuitBuilder):
                 drivee.rewire(getattr(self, name))
 
     def _finalize(self):
-        self._update_resolved_refs()
+        # self._update_resolved_refs()
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)

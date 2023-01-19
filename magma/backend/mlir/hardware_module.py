@@ -56,7 +56,7 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import DerivedRef
+from magma.ref import ArrayRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
@@ -633,17 +633,42 @@ class ModuleVisitor:
             return fields
 
         def _make_assignments(connections):
+            print(output_to_index)
+            wire_map = {}
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
                     operand = module.operands[input_to_index[driver_elt]]
-                    val = drivee_elt
-                    root_value = value
-                    while isinstance(root_value.name, DerivedRef):
-                        root_value = root_value.name._parent
-                    wire = wires[output_to_index[root_value]]
-                    wire = make_selector(val).select(wire)
-                    sv.BPAssignOp(operands=[wire, operand])
+                    # TODO: Non-whole arrays need to be checked
+                    if isinstance(drivee_elt.name, ArrayRef):
+                        val = drivee_elt
+                        root_value = val
+                        while isinstance(root_value.name, ArrayRef):
+                            root_value = root_value.name._parent
+                        try:
+                            wire = wires[output_to_index[root_value]]
+                        except KeyError:
+                            wire = wires[output_to_index[drivee_elt]]
+                    else:
+                        wire = wires[output_to_index[drivee_elt]]
+                    wire_map.setdefault(wire, [])
+                    # TODO: Can we assume wire ordering here?
+                    wire_map[wire].append(operand)
+            for wire, value in wire_map.items():
+                if len(value) == 1:
+                    value = value[0]
+                else:
+                    result = self._ctx.new_value(wire.type.T)
+                    if isinstance(wire.type.T, builtin.IntegerType):
+                        comb.ConcatOp(
+                            operands=list(reversed(value)),
+                            results=[result])
+                    else:
+                        hw.ArrayCreateOp(
+                            operands=list(reversed(value)),
+                            results=[result])
+                    value = result
+                sv.BPAssignOp(operands=[wire, value])
 
         def _process_when_block(block):
             connections = (
