@@ -164,7 +164,6 @@ class WhenBuilder(CircuitBuilder):
         while isinstance(root_value.name, ArrayRef):
             root_value = root_value.name.parent_value
         if root_value not in value_to_index:
-            # TODO: Test this case
             return False
         root_port = getattr(self, value_to_name[root_value])
         port = make_selector(value).select(root_port)

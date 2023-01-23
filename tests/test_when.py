@@ -1211,3 +1211,19 @@ def test_when_type_error():
                 io.O @= 1
             with m.elsewhen(io.I):
                 assert False, "Should raise type error for non bit type"
+
+
+def test_when_partial_array_assign():
+    class test_when_partial_array_assign(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bits[2]))
+
+        io.O[0] @= io.I[1]
+        with m.when(io.S):
+            io.O[1] @= io.I[0]
+        with m.otherwise():
+            io.O[1] @= io.I[1]
+
+    m.compile("build/test_when_partial_array_assign",
+              test_when_partial_array_assign, output="mlir")
+
+    assert check_gold(__file__, "test_when_partial_array_assign.mlir")
