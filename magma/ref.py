@@ -216,6 +216,10 @@ class DerivedRef(Ref):
         return self._parent.name
 
     @property
+    def parent_value(self):
+        return self._parent
+
+    @property
     def index(self):
         return self._index
 

@@ -149,6 +149,35 @@ class WhenBuilder(CircuitBuilder):
     def output_to_index(self) -> Dict[Type, int]:
         return self._output_to_index.copy()
 
+    def _check_existing_array_child(self, value, value_to_name, value_to_index):
+        """If value is a child of an array that has already been added, we
+        return the child of the existing value, rather than adding a new port,
+        which allows us to maintain bulk assignments in the eventual generated
+        if statement, rather that elaborating into per-child assignments
+        """
+        if not value.is_input():
+            # TODO: Only inputs?
+            return False
+        if not isinstance(value.name, ArrayRef):
+            return False
+        root_value = value
+        while isinstance(root_value.name, ArrayRef):
+            root_value = root_value.name.parent_value
+        if root_value not in value_to_index:
+            # TODO: Test this case
+            return False
+        root_port = getattr(self, value_to_name[root_value])
+        port = make_selector(value).select(root_port)
+        with no_when():
+            if value.is_input() and isinstance(value, Enable):
+                value.wire(
+                    port,
+                    driven_implicitly_by_when=value.driven_implicitly_by_when
+                )
+            else:
+                wire(port, value)
+        return True
+
     def _generic_add(
             self,
             value,
@@ -165,24 +194,11 @@ class WhenBuilder(CircuitBuilder):
         port_name = f"{name_prefix}{next(name_counter)}"
         value_to_name[value] = port_name
 
-        root_value = value
-        # TODO: will need to add tuple support
-        while isinstance(root_value.name, ArrayRef):
-            root_value = root_value.name._parent
-        if value.is_input() and root_value is not value and root_value in value_to_index:
-            root_port = getattr(self, value_to_name[root_value])
-            port = make_selector(value).select(root_port)
-            if value.driven():
-                assert value.value() is port
-                return
-            with no_when():
-                if value.is_input() and isinstance(value, Enable):
-                    value.wire(
-                        port,
-                        driven_implicitly_by_when=value.driven_implicitly_by_when
-                    )
-                else:
-                    wire(port, value)
+        if self._check_existing_array_child(value, value_to_name,
+                                            value_to_index):
+            # NOTE(leonardt): when we add support for flatten_all_tuples=False,
+            # we should also add similar logic here to avoid flattening
+            # assignments
             return
 
         with no_when():
