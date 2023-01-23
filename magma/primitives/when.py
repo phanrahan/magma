@@ -157,7 +157,6 @@ class WhenBuilder(CircuitBuilder):
         if statement, rather that elaborating into per-child assignments
         """
         if not value.is_input():
-            # TODO: Only inputs?
             return
         if not isinstance(value.name, ArrayRef):
             return
