@@ -661,21 +661,23 @@ class ModuleVisitor:
                         wire_map[wire][key] = operand
             return wire_map
 
+        def _combine(wire, value):
+            operands = [
+                x[1] for x in sorted(value.items(),
+                                     key=lambda y: y[0],
+                                     reverse=True)
+            ]
+            result = self._ctx.new_value(wire.type.T)
+            if isinstance(wire.type.T, builtin.IntegerType):
+                comb.ConcatOp(operands=operands, results=[result])
+            else:
+                hw.ArrayCreateOp(operands=operands, results=[result])
+            return result
+
         def _make_assignments(connections):
             for wire, value in _build_wire_map(connections).items():
                 if isinstance(value, dict):
-                    value = [x[1]
-                             for x in sorted(value.items(), key=lambda y: y[0])]
-                    result = self._ctx.new_value(wire.type.T)
-                    if isinstance(wire.type.T, builtin.IntegerType):
-                        comb.ConcatOp(
-                            operands=list(reversed(value)),
-                            results=[result])
-                    else:
-                        hw.ArrayCreateOp(
-                            operands=list(reversed(value)),
-                            results=[result])
-                    value = result
+                    value = _combine(wire, value)
                 sv.BPAssignOp(operands=[wire, value])
 
         def _process_when_block(block):
