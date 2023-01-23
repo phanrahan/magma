@@ -158,27 +158,18 @@ class WhenBuilder(CircuitBuilder):
         """
         if not value.is_input():
             # TODO: Only inputs?
-            return False
+            return
         if not isinstance(value.name, ArrayRef):
-            return False
+            return
         root_value = value
         while isinstance(root_value.name, ArrayRef):
             root_value = root_value.name.parent_value
         if not isinstance(root_value, Array):
-            return False
+            return
         if root_value not in value_to_index:
-            return False
+            return
         root_port = getattr(self, value_to_name[root_value])
-        port = make_selector(value).select(root_port)
-        with no_when():
-            if value.is_input() and isinstance(value, Enable):
-                value.wire(
-                    port,
-                    driven_implicitly_by_when=value.driven_implicitly_by_when
-                )
-            else:
-                wire(port, value)
-        return True
+        return make_selector(value).select(root_port)
 
     def _generic_add(
             self,
@@ -196,16 +187,15 @@ class WhenBuilder(CircuitBuilder):
         port_name = f"{name_prefix}{next(name_counter)}"
         value_to_name[value] = port_name
 
-        if self._check_existing_array_child(value, value_to_name,
-                                            value_to_index):
-            # NOTE(leonardt): when we add support for flatten_all_tuples=False,
-            # we should also add similar logic here to avoid flattening
-            # assignments
-            return
-
-        with no_when():
+        port = self._check_existing_array_child(value, value_to_name,
+                                                value_to_index)
+        # NOTE(leonardt): when we add support for flatten_all_tuples=False, we
+        # should also add similar logic here to avoid flattening assignments
+        if port is None:
             self._add_port(port_name, type_qualifier(type(value).undirected_t))
             port = getattr(self, port_name)
+
+        with no_when():
             if value.is_input() and isinstance(value, Enable):
                 value.wire(
                     port,
