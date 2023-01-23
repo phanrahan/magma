@@ -652,16 +652,25 @@ class ModuleVisitor:
                     wire = _check_array_child_wire(drivee_elt)
                     if not wire:
                         wire = wires[output_to_index[drivee_elt]]
-                    wire_map.setdefault(wire, [])
-                    # TODO: Can we assume wire ordering here?
-                    wire_map[wire].append(operand)
+                        wire_map[wire] = operand
+                    else:
+                        wire_map.setdefault(wire, {})
+                        key = drivee_elt.name.index
+                        if isinstance(key, slice):
+                            key = (key.start, key.stop, key.step)
+                        wire_map[wire][key] = operand
             return wire_map
 
         def _make_assignments(connections):
             for wire, value in _build_wire_map(connections).items():
-                if len(value) == 1:
-                    value = value[0]
-                else:
+                if isinstance(value, dict):
+                    def key(x):
+                        x = x[0]
+                        if isinstance(x, tuple):
+                            x = x[0]
+                        return x
+                    value = [x[1]
+                             for x in sorted(value.items(), key=key)]
                     result = self._ctx.new_value(wire.type.T)
                     if isinstance(wire.type.T, builtin.IntegerType):
                         comb.ConcatOp(
