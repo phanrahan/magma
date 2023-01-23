@@ -356,7 +356,6 @@ class AggregateWireable(Wireable):
                     with no_when():
                         child.wire(default_driver[i])
 
-                print(child, child.value())
                 # Use original wired when context.
                 with temp_when(ctx):
                     for wire in wires:
@@ -365,7 +364,6 @@ class AggregateWireable(Wireable):
     def _resolve_conditional_children(self, value):
         # Save conditional wire info before unwire happens
         info = self._get_conditional_drivee_info()
-        print(self, info)
 
         AggregateWireable.unwire(self, value)
 
