@@ -657,20 +657,15 @@ class ModuleVisitor:
                         wire_map.setdefault(wire, {})
                         key = drivee_elt.name.index
                         if isinstance(key, slice):
-                            key = (key.start, key.stop, key.step)
+                            key = key.start
                         wire_map[wire][key] = operand
             return wire_map
 
         def _make_assignments(connections):
             for wire, value in _build_wire_map(connections).items():
                 if isinstance(value, dict):
-                    def key(x):
-                        x = x[0]
-                        if isinstance(x, tuple):
-                            x = x[0]
-                        return x
                     value = [x[1]
-                             for x in sorted(value.items(), key=key)]
+                             for x in sorted(value.items(), key=lambda y: y[0])]
                     result = self._ctx.new_value(wire.type.T)
                     if isinstance(wire.type.T, builtin.IntegerType):
                         comb.ConcatOp(

@@ -12,10 +12,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %8 = sv.read_inout %9 : !hw.inout<i4>
         sv.alwayscomb {
             sv.if %S {
-                %10 = comb.concat %3, %2, %6, %5 : i1, i1, i1, i1
+                %10 = comb.concat %6, %5, %3, %2 : i1, i1, i1, i1
                 sv.bpassign %9, %10 : i4
             } else {
-                %11 = comb.concat %6, %5, %3, %2 : i1, i1, i1, i1
+                %11 = comb.concat %3, %2, %6, %5 : i1, i1, i1, i1
                 sv.bpassign %9, %11 : i4
             }
         }
