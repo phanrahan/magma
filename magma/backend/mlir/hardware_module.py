@@ -632,23 +632,25 @@ class ModuleVisitor:
             )
             return fields
 
+        def _check_array_child_wire(val):
+            if not isinstance(val.name, ArrayRef):
+                return None
+            root_value = val
+            while isinstance(root_value.name, ArrayRef):
+                root_value = root_value.name.parent_value
+            try:
+                return wires[output_to_index[root_value]]
+            except KeyError:
+                return None
+
         def _build_wire_map(connections):
             wire_map = {}
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
                     operand = module.operands[input_to_index[driver_elt]]
-                    # TODO: Non-whole arrays need to be checked
-                    if isinstance(drivee_elt.name, ArrayRef):
-                        val = drivee_elt
-                        root_value = val
-                        while isinstance(root_value.name, ArrayRef):
-                            root_value = root_value.name._parent
-                        try:
-                            wire = wires[output_to_index[root_value]]
-                        except KeyError:
-                            wire = wires[output_to_index[drivee_elt]]
-                    else:
+                    wire = _check_array_child_wire(drivee_elt)
+                    if not wire:
                         wire = wires[output_to_index[drivee_elt]]
                     wire_map.setdefault(wire, [])
                     # TODO: Can we assume wire ordering here?
