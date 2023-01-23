@@ -633,6 +633,9 @@ class ModuleVisitor:
             return fields
 
         def _check_array_child_wire(val):
+            """If val is a child of an array, get the root wire
+            (so we add to a collection of drivers for a bulk assign)
+            """
             if not isinstance(val.name, ArrayRef):
                 return None
             root_value = val
@@ -641,27 +644,33 @@ class ModuleVisitor:
             try:
                 return wires[output_to_index[root_value]]
             except KeyError:
+                # Could be a partially assigned array
                 return None
 
         def _build_wire_map(connections):
+            """Collect a map of output wires to their drivers.
+            If it's an array that's been elaborated, we collect the drives in a
+            dictionary using their index as a key to sort.
+            """
             wire_map = {}
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
                     operand = module.operands[input_to_index[driver_elt]]
                     wire = _check_array_child_wire(drivee_elt)
-                    if not wire:
-                        wire = wires[output_to_index[drivee_elt]]
-                        wire_map[wire] = operand
-                    else:
+                    if wire:
                         wire_map.setdefault(wire, {})
                         key = drivee_elt.name.index
                         if isinstance(key, slice):
-                            key = key.start
+                            key = key.start  # for slices, sort by start
                         wire_map[wire][key] = operand
+                    else:
+                        wire = wires[output_to_index[drivee_elt]]
+                        wire_map[wire] = operand
             return wire_map
 
-        def _combine(wire, value):
+        def _combine_array_assign(wire, value):
+            """Sort drivers by index, use concat or create depending on type"""
             operands = [
                 x[1] for x in sorted(value.items(),
                                      key=lambda y: y[0],
@@ -677,7 +686,7 @@ class ModuleVisitor:
         def _make_assignments(connections):
             for wire, value in _build_wire_map(connections).items():
                 if isinstance(value, dict):
-                    value = _combine(wire, value)
+                    value = _combine_array_assign(wire, value)
                 sv.BPAssignOp(operands=[wire, value])
 
         def _process_when_block(block):
