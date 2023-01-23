@@ -9,7 +9,7 @@ from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
-from magma.ref import DerivedRef
+from magma.ref import ArrayRef
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -159,11 +159,10 @@ class WhenBuilder(CircuitBuilder):
         if not value.is_input():
             # TODO: Only inputs?
             return False
-        if not isinstance(value.name, DerivedRef):
+        if not isinstance(value.name, ArrayRef):
             return False
         root_value = value
-        # TODO: Array/tuple/array complex?
-        while isinstance(root_value.name, DerivedRef):
+        while isinstance(root_value.name, ArrayRef):
             root_value = root_value.name.parent_value
         if not isinstance(root_value, Array):
             return False
