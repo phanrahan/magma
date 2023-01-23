@@ -632,8 +632,7 @@ class ModuleVisitor:
             )
             return fields
 
-        def _make_assignments(connections):
-            print(output_to_index)
+        def _build_wire_map(connections):
             wire_map = {}
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
@@ -654,7 +653,10 @@ class ModuleVisitor:
                     wire_map.setdefault(wire, [])
                     # TODO: Can we assume wire ordering here?
                     wire_map[wire].append(operand)
-            for wire, value in wire_map.items():
+            return wire_map
+
+        def _make_assignments(connections):
+            for wire, value in _build_wire_map(connections).items():
                 if len(value) == 1:
                     value = value[0]
                 else:

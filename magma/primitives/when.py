@@ -2,13 +2,14 @@ import functools
 import itertools
 from typing import Dict, Optional, Union, Set
 
+from magma.array import Array
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
-from magma.ref import DerivedRef, ArrayRef
+from magma.ref import DerivedRef
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -158,11 +159,14 @@ class WhenBuilder(CircuitBuilder):
         if not value.is_input():
             # TODO: Only inputs?
             return False
-        if not isinstance(value.name, ArrayRef):
+        if not isinstance(value.name, DerivedRef):
             return False
         root_value = value
-        while isinstance(root_value.name, ArrayRef):
+        # TODO: Array/tuple/array complex?
+        while isinstance(root_value.name, DerivedRef):
             root_value = root_value.name.parent_value
+        if not isinstance(root_value, Array):
+            return False
         if root_value not in value_to_index:
             return False
         root_port = getattr(self, value_to_name[root_value])

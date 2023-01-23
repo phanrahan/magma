@@ -1227,3 +1227,39 @@ def test_when_partial_array_assign():
               test_when_partial_array_assign, output="mlir")
 
     assert check_gold(__file__, "test_when_partial_array_assign.mlir")
+
+
+def test_when_2d_array_assign():
+    class test_when_2d_array_assign(m.Circuit):
+        io = m.IO(I=m.In(m.Array[2, m.Bits[2]]), S=m.In(m.Bit),
+                  O=m.Out(m.Array[2, m.Bits[2]]))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[0] @= io.I[1]
+            io.O[1] @= io.I[0]
+
+    m.compile("build/test_when_2d_array_assign",
+              test_when_2d_array_assign, output="mlir-verilog")
+
+    assert check_gold(__file__, "test_when_2d_array_assign.mlir")
+
+
+# TODO: Pack these assignments?
+# def test_when_2d_array_assign():
+#     class test_when_2d_array_assign(m.Circuit):
+#         io = m.IO(I=m.In(m.Array[2, m.Bits[2]]), S=m.In(m.Bit),
+#                   O=m.Out(m.Array[2, m.Bits[2]]))
+
+#         with m.when(io.S):
+#             io.O[0] @= io.I[1]
+#             io.O[1] @= io.I[0]
+#         with m.otherwise():
+#             io.O[0] @= io.I[0]
+#             io.O[1] @= io.I[1]
+
+#     m.compile("build/test_when_2d_array_assign",
+#               test_when_2d_array_assign, output="mlir")
+
+#     assert check_gold(__file__, "test_when_2d_array_assign.mlir")
