@@ -1246,7 +1246,8 @@ def test_when_2d_array_assign():
     assert check_gold(__file__, "test_when_2d_array_assign.mlir")
 
 
-# TODO: Pack these assignments?
+# TODO: In this case, we'll generate elaborated assignments, but it should
+# be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():
 #     class test_when_2d_array_assign(m.Circuit):
 #         io = m.IO(I=m.In(m.Array[2, m.Bits[2]]), S=m.In(m.Bit),
