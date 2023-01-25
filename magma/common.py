@@ -310,3 +310,32 @@ class MroVisitor(abc.ABC):
     @abc.abstractmethod
     def generic_visit(self, node: Any, *args, **kwargs):
         raise NotImplementedError()
+
+
+def prologue(prologue_fn):
+
+    def decorator(fn):
+
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            prologue_fn(*args, **kwargs)
+            return fn(*args, **kwargs)
+
+        return wrapped
+
+    return decorator
+
+
+def epilogue(epilogue_fn):
+
+    def decorator(fn):
+
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            ret = fn(*args, **kwargs)
+            epilogue_fn(*args, **kwargs)
+            return ret
+
+        return wrapped
+
+    return decorator
