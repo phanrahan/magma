@@ -149,7 +149,7 @@ def _visit_driver(
             ctx.graph.add_edge(src_module, module, info=info)
             return
         getter = ctx.get_or_make_getter(
-            ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
+            to_visit, ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
         return
