@@ -4,7 +4,9 @@ from typing import List, Optional
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.mlir import (
     MlirDialect, MlirOp, MlirBlock, MlirValue, MlirSymbol,
-    begin_dialect, end_dialect)
+    begin_dialect, end_dialect,
+    print_location,
+)
 from magma.backend.mlir.mlir_printer_utils import print_names, print_types
 from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
@@ -91,6 +93,7 @@ class AlwaysFFOp(MlirOp):
     def reset_block(self) -> MlirBlock:
         return self._reset_block
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         printer.print(f"sv.alwaysff({self.clock_edge} ")
         print_names(self.operands[0], printer)
@@ -102,8 +105,6 @@ class AlwaysFFOp(MlirOp):
         printer.print("}")
         if self.reset_type is None:
             printer.flush()
-            if opts.print_locations:
-                printer.print_line(self.location.emit())
             return
         printer.print(f" ({self.reset_type} : {self.reset_edge} ")
         print_names(self.operands[1], printer)
@@ -113,8 +114,6 @@ class AlwaysFFOp(MlirOp):
         self.reset_block.print(printer, opts)
         printer.pop()
         printer.print_line("}")
-        if opts.print_locations:
-            printer.print_line(self.location.emit())
 
     def print_op(self, printer: PrinterBase):
         raise NotImplementedError()
@@ -129,6 +128,7 @@ class AlwaysCombOp(MlirOp):
     def body_block(self) -> MlirBlock:
         return self._body_block
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         printer.print("sv.alwayscomb {")
         printer.flush()
@@ -136,8 +136,6 @@ class AlwaysCombOp(MlirOp):
         self.body_block.print(printer, opts)
         printer.pop()
         printer.print_line("}")
-        if opts.print_locations:
-            printer.print_line(self.location.emit())
 
     def print_op(self, printer: PrinterBase):
         raise NotImplementedError()
@@ -242,6 +240,7 @@ class IfDefOp(MlirOp):
             self._else_block = self.new_region().new_block()
         return self._else_block
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         printer.print(f"sv.ifdef \"{self.cond}\" {{")
         printer.flush()
@@ -251,8 +250,6 @@ class IfDefOp(MlirOp):
         printer.print("}")
         if self._else_block is None:
             printer.flush()
-            if opts.print_locations:
-                printer.print_line(self.location.emit())
             return
         printer.print(" else {")
         printer.flush()
@@ -260,8 +257,6 @@ class IfDefOp(MlirOp):
         self._else_block.print(printer, opts)
         printer.pop()
         printer.print_line("}")
-        if opts.print_locations:
-            printer.print_line(self.location.emit())
 
     def print_op(self, printer: PrinterBase):
         raise NotImplementedError()
@@ -285,6 +280,7 @@ class IfOp(MlirOp):
             self._else_block = self.new_region().new_block()
         return self._else_block
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         printer.print(f"sv.if ")
         print_names(self.operands[0], printer)
@@ -296,8 +292,6 @@ class IfOp(MlirOp):
         printer.print("}")
         if self._else_block is None:
             printer.flush()
-            if opts.print_locations:
-                printer.print_line(self.location.emit())
             return
         printer.print(" else {")
         printer.flush()
@@ -305,8 +299,6 @@ class IfOp(MlirOp):
         self._else_block.print(printer, opts)
         printer.pop()
         printer.print_line("}")
-        if opts.print_locations:
-            printer.print_line(self.location.emit())
 
     def print_op(self, printer: PrinterBase):
         raise NotImplementedError()
