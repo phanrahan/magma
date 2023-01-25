@@ -162,7 +162,7 @@ def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
         raise UnconnectedPortException(value)
     to_visit = [(ctx, value, driver, module)]
     while to_visit:
-        _visit_driver(to_visit, *to_visit.pop())
+        _visit_driver(to_visit, *to_visit.pop(0))
 
 
 def _visit_inputs(
