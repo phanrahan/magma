@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, Callable, Tuple, List
+from typing import Any, Callable, Tuple
 
 from magma.array import Array
 from magma.backend.mlir.graph_lib import Graph
@@ -63,7 +63,6 @@ class ModuleContext:
 
     def get_or_make_getter(
             self,
-            to_visit: List,
             value: Type,
             index: Any,
             op_maker: Callable,
@@ -74,13 +73,12 @@ class ModuleContext:
         except KeyError:
             pass
         getter = op_maker(type(value), *args)
-        to_visit.append((self, getter.I, value, getter))
+        _visit_driver(self, getter.I, value, getter)
         self._getter_cache[key] = getter
         return getter
 
 
 def _visit_driver(
-        to_visit: List,
         ctx: ModuleContext, value: Type, driver: Type, module: ModuleLike):
     if driver.const():
         if isinstance(driver, Digital):
@@ -109,7 +107,7 @@ def _visit_driver(
             creator = MagmaArrayCreateOp(driver)
             for i, element in driver._enumerate_children():
                 creator_input = getattr(creator, f"I{i}")
-                to_visit.append((ctx, creator_input, element, creator))
+                _visit_driver(ctx, creator_input, element, creator)
             info = dict(src=creator.O, dst=value)
             ctx.graph.add_edge(creator, module, info=info)
             return
@@ -118,7 +116,7 @@ def _visit_driver(
             creator = MagmaTupleCreateOp(T)
             for k, element in driver.items():
                 creator_input = getattr(creator, f"I{k}")
-                to_visit.append((ctx, creator_input, element, creator))
+                _visit_driver(ctx, creator_input, element, creator)
             info = dict(src=creator.O, dst=value)
             ctx.graph.add_edge(creator, module, info=info)
             return
@@ -138,7 +136,7 @@ def _visit_driver(
         else:
             getter_cls, getter_args = MagmaArrayGetOp, (index,)
         getter = ctx.get_or_make_getter(
-            to_visit, ref.array, index, getter_cls, getter_args)
+            ref.array, index, getter_cls, getter_args)
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
         return
@@ -149,7 +147,7 @@ def _visit_driver(
             ctx.graph.add_edge(src_module, module, info=info)
             return
         getter = ctx.get_or_make_getter(
-            to_visit, ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
+            ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
         return
@@ -160,9 +158,7 @@ def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
     driver = value.trace()
     if driver is None:
         raise UnconnectedPortException(value)
-    to_visit = [(ctx, value, driver, module)]
-    while to_visit:
-        _visit_driver(to_visit, *to_visit.pop(0))
+    _visit_driver(ctx, value, driver, module)
 
 
 def _visit_inputs(

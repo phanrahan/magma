@@ -15,7 +15,7 @@ class WiringError(Exception):
 def wire_value_or_driver(drivee: Type, driver: Type):
     assert drivee.is_input()
     if driver.is_input():
-        value = driver.value()
+        value = driver.trace()
         if value is None:
             raise WiringError(drivee, driver)
         drivee @= value
