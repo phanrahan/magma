@@ -557,3 +557,16 @@ def test_array2_mixed_direction_len_1(caplog):
     m.compile(f"build/{_Test.name}", _Test, output="mlir",
               flatten_all_tuples=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_array2_resolve(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_array2_resolve"
+        io = m.IO(I=m.In(m.Bits[8]), O0=m.Out(m.Bits[8]), O1=m.Out(m.Bits[8]))
+        a = m.Bits[8]()
+        for i in range(8):
+            a[i] @= io.I[i]
+        io.O0 @= a
+        io.O1 @= io.O0.value()  # test creation of value
+        assert io.O1.trace() is io.I
