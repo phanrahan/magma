@@ -1194,3 +1194,20 @@ def test_when_tuple_bulk_resolve(caplog):
     m.compile(f"build/{_Test.name}", _Test, output="mlir",
               flatten_all_tuples=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_type_error():
+
+    with pytest.raises(TypeError):
+        class Foo(m.Circuit):
+            io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+            with m.when(io.I):
+                assert False, "Should raise type error for non bit type"
+
+    with pytest.raises(TypeError):
+        class Foo(m.Circuit):
+            io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+            with m.when(io.I[0]):
+                io.O @= 1
+            with m.elsewhen(io.I):
+                assert False, "Should raise type error for non bit type"

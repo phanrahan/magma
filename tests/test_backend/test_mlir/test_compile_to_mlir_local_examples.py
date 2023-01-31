@@ -4,6 +4,7 @@ import pytest
 
 import magma as m
 from magma.debug import debug_info
+from magma.passes.finalize_whens import finalize_whens
 from magma.primitives.mux import CoreIRCommonLibMuxN
 from magma.uniquification import uniquification_pass, reset_names
 
@@ -26,14 +27,6 @@ class _simple_coreir_common_lib_mux_n_wrapper(m.Circuit):
     )
     io = m.IO(I=m.In(T), O=m.Out(m.Bits[6]))
     io.O @= CoreIRCommonLibMuxN(8, 6)()(io.I)
-
-
-@contextlib.contextmanager
-def _set_debug_info(ckt, debug_info):
-    old_debug_info = ckt.debug_info
-    ckt.debug_info = debug_info
-    yield
-    ckt.debug_info = old_debug_info
 
 
 @pytest.mark.parametrize("ckt", get_local_examples())
@@ -165,21 +158,36 @@ def test_compile_to_mlir_disallow_duplicate_symbols(
 
 
 @pytest.mark.parametrize(
-    "ckt,location_info_style",
-    itertools.product(
-        (simple_comb,),
-        ("plain", "wrapInAtSquareBracket", "none"),
-    )
+    "location_info_style",
+    ("plain", "wrapInAtSquareBracket", "none"),
 )
-def test_compile_to_mlir_location_info_style(ckt, location_info_style: str):
+def test_compile_to_mlir_location_info_style(location_info_style: str):
+
+    class _top(m.Circuit):
+        name = "simple_structural"
+        T = m.Bits[16]
+        io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T), z=m.Out(T))
+        io += m.ClockIO()
+        a_reg = m.Register(T)(name="a_reg")
+        a_reg.I @= io.a
+        a = a_reg.O
+        io.y @= a & io.c
+        io.z @= a | io.b
+
+    ckt = _top
     gold_name = f"{ckt.name}_location_info_style_{location_info_style}"
     kwargs = {
         "location_info_style": location_info_style,
         "gold_name": gold_name,
     }
     kwargs.update({"check_verilog": False})
-    with _set_debug_info(ckt, debug_info("file.py", 100, "")):
-        run_test_compile_to_mlir(ckt, **kwargs)
+    # Attach dummy debug info to ckt.
+    ckt.debug_info = debug_info("file.py", 100, "")
+    for i, inst in enumerate(ckt.instances):
+        inst.debug_info = debug_info("file.py", 100 + i, "")
+    ckt.a_reg.I.debug_info = debug_info("file.py", 200, "")
+    ckt.a_reg.O.debug_info = debug_info("file.py", 201, "")
+    run_test_compile_to_mlir(ckt, **kwargs)
 
 
 @pytest.mark.parametrize(
@@ -214,4 +222,34 @@ def test_compile_to_mlir_disallow_expression_inlining_in_ports(
         "gold_name": gold_name,
     }
     kwargs.update({"check_verilog": False})
+    run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize("disallow_local_variables", (False, True))
+def test_compile_to_mlir_disallow_local_variables(disallow_local_variables: bool):
+
+    class _Test(m.Circuit):
+        name = "simple_disallow_local_variables"
+        T = m.Bits[2]
+        io = m.IO(x=m.In(T), s=m.In(m.Bit), O=m.Out(T))
+        x0 = T()
+        with m.when(io.s):
+            x0 @= ~io.x
+        with m.otherwise():
+            x0 @= io.x
+        with m.when(~io.s):
+            io.O @= m.bits(list(reversed(x0)))
+        with m.otherwise():
+            io.O @= x0
+
+    ckt = _Test
+    finalize_whens(ckt)
+
+    gold_name = ckt.name
+    if disallow_local_variables:
+        gold_name += "_disallow_local_variables"
+    kwargs = {
+        "disallow_local_variables": disallow_local_variables,
+        "gold_name": gold_name,
+    }
     run_test_compile_to_mlir(ckt, **kwargs)

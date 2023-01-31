@@ -1,11 +1,13 @@
-from dataclasses import dataclass
-import uinspect
 import collections
+import dataclasses
+import functools
+import uinspect
 
+from magma.common import Stack
 from magma.config import config, DebugConfig
 
 
-@dataclass
+@dataclasses.dataclass
 class _DebugInfo:
     filename: str
     lineno: int
@@ -18,7 +20,17 @@ debug_info = _DebugInfo
 config.register(use_uinspect=DebugConfig(True))
 
 
+_extra_frames_to_skip_stack = Stack()
+
+
+def _get_extra_frames_to_skip_stack():
+    global _extra_frames_to_skip_stack
+    return _extra_frames_to_skip_stack
+
+
 def get_debug_info(frames_to_skip):
+    extra_frames_to_skip = _get_extra_frames_to_skip_stack().peek_default(0)
+    frames_to_skip += extra_frames_to_skip
     if config.use_uinspect:
         filename, lineno = uinspect.get_location(frames_to_skip)
     else:
@@ -44,3 +56,30 @@ def debug_unwire(fn):
             debug_info = get_debug_info(3)
         return fn(i, o, debug_info, keep_wired_when_contexts)
     return unwire
+
+
+def _helper_function(fn):
+
+    @functools.wraps(fn)
+    def _wrapper(*args, **kwargs):
+        extra_frames_to_skip_stack = _get_extra_frames_to_skip_stack()
+        # We keep track of the previous frames_to_skip value since the stack is
+        # additive.
+        try:
+            offset = extra_frames_to_skip_stack.peek()
+        except IndexError:
+            offset = 0
+        # NOTE(rsetaluri): We need to skip an extra frame (1 + 1 = 2) since we
+        # are returning a wrapped function (decorated).
+        extra_frames_to_skip_stack.push(2 + offset)
+        try:
+            return fn(*args, **kwargs)
+        except:
+            raise
+        finally:
+            extra_frames_to_skip_stack.pop()
+
+    return _wrapper
+
+
+magma_helper_function = _helper_function

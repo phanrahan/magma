@@ -27,7 +27,8 @@ from magma.backend.mlir.magma_common import (
     visit_magma_value_or_value_wrapper_by_direction,
 )
 from magma.backend.mlir.mlir import (
-    MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block
+    MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block,
+    push_location,
 )
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
@@ -97,6 +98,12 @@ def _maybe_set_location_info(op, debug_info):
         return
     loc = builtin.FileLineColLoc(debug_info.filename, debug_info.lineno, 0)
     op.location = loc
+
+
+def _make_location_info(debug_info):
+    if debug_info is None:
+        return builtin.UnknownLoc()
+    return builtin.FileLineColLoc(debug_info.filename, debug_info.lineno, 0)
 
 
 @wrap_with_not_implemented_error
@@ -946,7 +953,8 @@ class ModuleVisitor:
         if isinstance(module.module, DefineCircuitKind):
             return True
         if isinstance(module.module, AnonymousCircuitType):
-            return self.visit_instance(module)
+            with push_location(_make_location_info(module.module.debug_info)):
+                return self.visit_instance(module)
         if isinstance(module.module, MagmaInstanceWrapper):
             return self.visit_instance_wrapper(module)
 
