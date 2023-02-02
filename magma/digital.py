@@ -136,12 +136,8 @@ class DigitalMeta(ABCMeta, Kind):
             return True
         rhs = magma_type(rhs)
         # allows undirected types to match (e.g. for temporary values)
-        return (
-            issubclass(rhs.flip(), cls) or
-            issubclass(cls, rhs.flip()) or
-            issubclass(rhs, cls.qualify(Direction.Undirected)) or
-            issubclass(cls, rhs.qualify(Direction.Undirected))
-        )
+        return (issubclass(rhs.undirected_t, cls.undirected_t) or
+                issubclass(cls.undirected_t, rhs.undirected_t))
 
     def is_bindable(cls, rhs):
         return issubclass(cls, magma_type(rhs))
