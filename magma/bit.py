@@ -21,8 +21,11 @@ from magma.protocol_type import magma_type, MagmaProtocol
 from magma.operator_utils import output_only
 
 
-def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
-        tp.Callable[['Bit', tp.Union['Bit', bool]], 'Bit']:
+def bit_cast(
+        fn: tp.Callable[['Bit', 'Bit'], 'Bit']
+) -> tp.Callable[['Bit', tp.Union['Bit', bool]], 'Bit']:
+
+    @magma_helper_function
     @functools.wraps(fn)
     def wrapped(self: 'Bit', other: tp.Union['Bit', bool]) -> 'Bit':
         if isinstance(other, Bit):
@@ -32,6 +35,7 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
         except TypeError:
             return NotImplemented
         return fn(self, other)
+
     return wrapped
 
 
