@@ -30,6 +30,8 @@ from magma.ref import ConstRef
 
 
 def _error_handler(fn):
+
+    @magma_helper_function
     @functools.wraps(fn)
     def _wrapper(*args, **kwargs):
         try:
@@ -38,6 +40,7 @@ def _error_handler(fn):
             raise e from None
         except TypeError:
             return NotImplemented
+
     return _wrapper
 
 
@@ -60,15 +63,19 @@ def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
     return val
 
 
-def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
-        tp.Callable[['Bits', tp.Any], tp.Any]:
-    @wraps(fn)
+def bits_cast(
+        fn: tp.Callable[['Bits', 'Bits'], tp.Any]
+) -> tp.Callable[['Bits', tp.Any], tp.Any]:
+
+    @magma_helper_function
+    @functools.wraps(fn)
     def wrapped(self: 'Bits', other: tp.Any) -> tp.Any:
         try:
             other = _coerce(type(self), other)
         except TypeError:
             return NotImplemented
         return fn(self, other)
+
     return wrapped
 
 
