@@ -18,8 +18,12 @@ def test_magma_debug_ext():
 @pytest.mark.parametrize(
     'op',
     (
-        lambda: ~(m.Bit()),
-        lambda: ~(m.Bits[8]()),
+        lambda: ~m.Bit(),
+        lambda: m.Bit() | m.Bit(),
+        lambda: m.Bit() == m.Bit(),
+        lambda: ~m.Bits[8](),
+        lambda: m.Bits[8]() | m.Bits[8](),
+        lambda: m.Bits[8]() == m.Bits[8](),
         lambda: m.mux([m.Bit(), m.Bit()], m.Bit()),
         lambda: m.register(m.Bit()),
     )
