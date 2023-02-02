@@ -15,7 +15,7 @@ def test_array_partial_unwired(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert caplog.messages[0] == "Foo.A not driven"
+    assert "Foo.A not driven" in caplog.messages[0]
     assert caplog.messages[1] == "Foo.A"
     assert caplog.messages[2] == "    Foo.A[0]: Connected"
     assert caplog.messages[3] == "    Foo.A[1]: Unconnected"
@@ -30,7 +30,7 @@ def test_array_partial_unwired_nested(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert caplog.messages[0] == "Foo.A not driven"
+    assert "Foo.A not driven" in caplog.messages[0]
     assert caplog.messages[1] == "Foo.A"
     assert caplog.messages[2] == "    Foo.A[0]: Connected"
     assert caplog.messages[3] == "    Foo.A[1]: Unconnected"
@@ -46,7 +46,7 @@ def test_array_partial_unwired_nested2(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert caplog.messages[0] == "Foo.A not driven"
+    assert "Foo.A not driven" in caplog.messages[0]
     assert caplog.messages[1] == "Foo.A"
     assert caplog.messages[2] == "    Foo.A[0]: Connected"
     assert caplog.messages[3] == "    Foo.A[1]"

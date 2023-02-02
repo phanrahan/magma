@@ -14,8 +14,7 @@ from . import cache_definition
 from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
 from .wire import *
-from .config import get_debug_mode, set_debug_mode
-from .debug import get_debug_info, debug_info
+from .debug import get_debug_info
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
@@ -27,7 +26,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
-from magma.config import get_debug_mode, set_debug_mode, config, RuntimeConfig
+from magma.config import get_debug_mode, set_debug_mode, config, DebugConfig
 from magma.definition_context import (
     DefinitionContext,
     definition_context_manager,
@@ -63,7 +62,7 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 _logger = root_logger()
 
-config.register(use_namer_dict=RuntimeConfig(False))
+config.register(use_namer_dict=DebugConfig(False))
 
 
 class _SyntaxStyle(enum.Enum):
@@ -293,12 +292,9 @@ class CircuitKind(type):
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
         dct.setdefault("debug_info", None)
-        if get_debug_mode() and not dct["debug_info"]:
-            callee_frame = inspect.getframeinfo(
-                inspect.currentframe().f_back.f_back)
-            module = inspect.getmodule(inspect.stack()[2][0])
-            dct["debug_info"] = debug_info(callee_frame.filename,
-                                           callee_frame.lineno, module)
+        if not dct["debug_info"]:
+            # Don't use setdefault to avoid get_debug_info call if possible
+            dct["debug_info"] = get_debug_info(4)
 
         cls = type.__new__(metacls, name, bases, dct)
 

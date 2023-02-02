@@ -19,7 +19,7 @@ def test_product_partial_unwired(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert caplog.messages[0] == "Foo.A not driven"
+    assert "Foo.A not driven" in caplog.messages[0]
     assert caplog.messages[1] == "Foo.A"
     assert caplog.messages[2] == "    Foo.A.x: Connected"
     assert caplog.messages[3] == "    Foo.A.y: Unconnected"
@@ -42,7 +42,7 @@ def test_product_partial_nested_unwired(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert caplog.messages[0] == "Foo.A not driven"
+    assert "Foo.A not driven" in caplog.messages[0]
     assert caplog.messages[1] == "Foo.A"
     assert caplog.messages[2] == "    Foo.A.x: Connected"
     assert caplog.messages[3] == "    Foo.A.y: Unconnected"
@@ -66,7 +66,7 @@ def test_product_partial_nested_unwired2(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert caplog.messages[0] == "Foo.A not driven"
+    assert "Foo.A not driven" in caplog.messages[0]
     assert caplog.messages[1] == "Foo.A"
     assert caplog.messages[2] == "    Foo.A.x: Connected"
     assert caplog.messages[3] == "    Foo.A.y"
@@ -88,7 +88,7 @@ def test_product_arr(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert caplog.messages[0] == "Foo.A not driven"
+    assert "Foo.A not driven" in caplog.messages[0]
     assert caplog.messages[1] == "Foo.A"
     assert caplog.messages[2] == "    Foo.A[0]"
     assert caplog.messages[3] == "        Foo.A[0].x: Connected"
@@ -125,7 +125,7 @@ tests/test_errors/test_tuple_errors.py:109: Cannot wire Bits[1](1) (Out(Bits[1])
 tests/test_errors/test_tuple_errors.py:110: Cannot wire Bits[3](2) (Out(Bits[3])) to Foo.A.y (In(Bits[4]))
 >>         io.A.y @= m.bits(2, 3)\
 """)
-    assert caplog.messages[2] == "Foo.A not driven"
+    assert "Foo.A not driven" in caplog.messages[2]
     assert caplog.messages[3] == "Foo.A: Unconnected"
 
 
@@ -164,7 +164,8 @@ def test_product_width_mismatch3(caplog):
         m.compile("build/Foo", Foo)
     assert str(e.value) == "Found circuit with errors: Foo"
     expected = """\
-Foo.A.y not driven
+\x1b[1mtests/test_errors/test_tuple_errors.py:157\x1b[0m: Foo.A.y not driven
+>>     class Foo(m.Circuit):
 Foo.A.y
     Foo.A.y[0]: Connected
     Foo.A.y[1]: Unconnected\
@@ -188,10 +189,10 @@ def test_unwired_mixed(caplog):
         foo.I @= io.I
         io.O @= foo.z.x
 
-    assert caplog.messages[0] == "Bar.z.x not driven"
+    assert "Bar.z.x not driven" in caplog.messages[0]
     assert caplog.messages[1] == "Bar.z.x: Unconnected"
 
     assert has_error(caplog, """\
-tests/test_errors/test_tuple_errors.py:187: Foo_inst0.z.y not driven
+tests/test_errors/test_tuple_errors.py:188: Foo_inst0.z.y not driven
 >>         foo = Foo()\
 """)

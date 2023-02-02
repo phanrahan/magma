@@ -9,6 +9,7 @@ def test_debug_circuit():
         io = m.IO(I=m.In(m.Bit))
 
     assert m.config.get_debug_mode() is False
+    m.config.config.use_uinspect = True
 
 
 def test_debug_generator():
@@ -21,3 +22,4 @@ def test_debug_generator():
 
     Foo(4)
     assert m.config.get_debug_mode() is False
+    m.config.config.use_uinspect = True

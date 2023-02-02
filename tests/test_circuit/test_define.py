@@ -13,7 +13,7 @@ class And2(m.Circuit):
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
 def test_simple_def(target, suffix):
-    m.config.set_debug_mode(True)
+    m.config.config.use_namer_dict = True
     m.set_codegen_debug_info(True)
 
     class main(m.Circuit):
@@ -42,7 +42,7 @@ def test_simple_def(target, suffix):
     # Create a fresh context for second compilation.
     m.compile("build/test_simple_def_class", Main, output=target)
     m.set_codegen_debug_info(False)
-    m.config.set_debug_mode(False)
+    m.config.config.use_namer_dict = False
     assert check_files_equal(__file__, f"build/test_simple_def_class.{suffix}",
                              f"gold/test_simple_def_class.{suffix}")
 
@@ -50,7 +50,7 @@ def test_simple_def(target, suffix):
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
 def test_for_loop_def(target, suffix):
-    m.config.set_debug_mode(True)
+    m.config.config.use_namer_dict = True
     m.set_codegen_debug_info(True)
 
     class main(m.Circuit):
@@ -72,7 +72,7 @@ def test_for_loop_def(target, suffix):
 
     m.compile("build/test_for_loop_def", main, output=target)
     m.set_codegen_debug_info(False)
-    m.config.set_debug_mode(False)
+    m.config.config.use_namer_dict = False
     assert check_files_equal(__file__, f"build/test_for_loop_def.{suffix}",
                              f"gold/test_for_loop_def.{suffix}")
 
@@ -80,7 +80,7 @@ def test_for_loop_def(target, suffix):
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
 def test_interleaved_instance_wiring(target, suffix):
-    m.config.set_debug_mode(True)
+    m.config.config.use_namer_dict = True
     m.set_codegen_debug_info(True)
 
     class main(m.Circuit):
@@ -102,7 +102,7 @@ def test_interleaved_instance_wiring(target, suffix):
 
     m.compile("build/test_interleaved_instance_wiring", main, output=target)
     m.set_codegen_debug_info(False)
-    m.config.set_debug_mode(False)
+    m.config.config.use_namer_dict = False
     assert check_files_equal(__file__, f"build/test_interleaved_instance_wiring.{suffix}",
                              f"gold/test_interleaved_instance_wiring.{suffix}")
 

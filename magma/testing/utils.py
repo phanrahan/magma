@@ -44,12 +44,14 @@ def check_files_equal(callee_file, file1_name, file2_name):
 class _MagmaDebugSection:
     def __init__(self):
         self.__restore = get_debug_mode()
+        self.__restore_uinspect = config.use_uinspect
 
     def __enter__(self):
         set_debug_mode(True)
 
     def __exit__(self, typ, value, traceback):
         set_debug_mode(self.__restore)
+        config.use_uinspect = self.__restore_uinspect
 
 
 def magma_debug_section():

@@ -16,6 +16,7 @@ def test():
 
     compile("build/dot", main, output='dot')
     m.config.set_debug_mode(False)
+    m.config.config.use_uinspect = True  # reset default
     # FIXME: Do equality check.
     # Let's not check for equality / check in gold until we've finalized this format.
     # assert magma_check_files_equal(__file__, "build/dot.dot", "gold/dot.dot")

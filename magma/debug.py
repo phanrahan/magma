@@ -4,7 +4,7 @@ import functools
 import uinspect
 
 from magma.common import Stack
-from magma.config import config, RuntimeConfig
+from magma.config import config, DebugConfig
 
 
 @dataclasses.dataclass
@@ -17,7 +17,7 @@ class _DebugInfo:
 debug_info = _DebugInfo
 
 
-config.register(use_uinspect=RuntimeConfig(True))
+config.register(use_uinspect=DebugConfig(True))
 
 
 _extra_frames_to_skip_stack = Stack()

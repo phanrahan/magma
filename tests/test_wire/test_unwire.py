@@ -29,10 +29,8 @@ def test_unwire_basic(T, func, caplog):
 @pytest.mark.parametrize('T', Ts)
 @pytest.mark.parametrize('func', funcs[2:4])
 def test_unwire_undriven(T, func, caplog):
-    m.config.set_debug_mode(True)
     x, y = T(name="Foo"), T()
     func(x, y)
-    m.config.set_debug_mode(False)
 
     def make_expcted_log(value_str):
         return f"""\

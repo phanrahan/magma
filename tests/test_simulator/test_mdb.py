@@ -16,7 +16,7 @@ def test(capsys):
 
     def FFs(n):
         return [PRIM_FF() for i in range(n)]
-    
+
     def Register(n):
         args = ["I", In(Array[n, Bit]), "O", Out(Array[n, Bit])] + ClockInterface(False, False, False)
 
@@ -26,23 +26,23 @@ def test(capsys):
             ffs = join(FFs(n))
             wire(io.I, ffs.D)
             wire(ffs.Q, io.O)
-    
+
         return RegCircuit()
-    
+
     def IncOne(n):
         def sim_inc_one(self, value_store, state_store):
             I = value_store.get_value(self.I)
             n = len(I)
             val = seq2int(I) + 1
-    
+
             cout = val > ((1 << n) - 1)
             val = val % (1 << n)
-    
+
             seq = int2seq(val, len(I))
             seq = [bool(s) for s in seq]
             value_store.set_value(self.O, seq)
             value_store.set_value(self.COUT, cout)
-    
+
         args = ["I", In(Array[n, Bit]), "O", Out(Array[n, Bit]), "COUT", Out(Bit)]
         class _Circuit(Circuit):
             name = 'IncOne' + str(n)
@@ -52,36 +52,36 @@ def test(capsys):
             simulate = sim_inc_one
 
         return _Circuit()
-    
+
     def TestCounter(n):
         args = []
-    
+
         args += ["O", Array[n, Out(Bit)]]
         args += ["COUT", Out(Bit)]
-    
+
         args += ClockInterface(False, False, False)
-    
+
         class Counter(m.Circuit):
             name = 'Counter' + str(n)
             io = m.IO(**dict(zip(args[::2], args[1::2])))
-    
+
             inc = IncOne(n)
             reg = Register(n)
             reg.name = "reg"
-    
+
             wire(reg.O, inc.I)
             wire(inc.O, reg.I)
             wire(reg.O, io.O)
-    
+
             wire(inc.COUT, io.COUT)
-    
+
         drive_undriven_other_clock_types_in_inst(Counter, Counter.reg)
-    
+
         return Counter()
-    
+
     args = ['O', Array[5, Out(Bit)], 'COUT', Out(Bit)]
     args += ClockInterface(False, False, False)
-    
+
     class testcircuit(Circuit):
         name = "Test"
         io = IO(**dict(zip(args[::2], args[1::2])))
@@ -124,3 +124,4 @@ def test(capsys):
     console.runcmd("p self.counter.reg.O")
     assert get_out(capsys) == "2"
     m.config.set_debug_mode(False)
+    m.config.config.use_uinspect = True
