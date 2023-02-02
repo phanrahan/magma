@@ -58,3 +58,22 @@ def test_helper_function():
     instances = Bar.instances
     assert instances[1].debug_info.lineno == instances[0].debug_info.lineno + 1
     assert instances[2].debug_info.lineno == instances[0].debug_info.lineno - 8
+
+
+def test_circuit_builder():
+
+    class Builder(m.CircuitBuilder):
+        def __init__(self, name):
+            super().__init__(name)
+            self._add_port("I", m.In(m.Bit))
+            self._add_port("O", m.Out(m.Bit))
+            m.wire(self._port("I"), self._port("O"))
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        b0 = Builder(name="b0")
+        b0.I @= io.I
+        io.O @= b0.O
+
+    assert Top.instances[0].debug_info.filename == __file__
+    assert Top.instances[0].debug_info == Top.b0.debug_info

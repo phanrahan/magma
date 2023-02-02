@@ -897,6 +897,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         self._inst_attrs = {}
         self._context = DefinitionContext(StagedPlacer(self._name))
         self._instance_name = None
+        self.debug_info = get_debug_info(4)
 
     def _port(self, name):
         return self._io.ports[name]
@@ -953,6 +954,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         bases = (AnonymousCircuitType,)
         dct = {"io": self._io, "_context_": self._context, "name": self._name}
         dct.update(self._dct)
+        dct.setdefault("debug_info", self.debug_info)
         DefineCircuitKind.__prepare__(self._name, bases)
         self._defn = DefineCircuitKind(self._name, bases, dct)
         self._context.finalize(self._defn)
@@ -960,6 +962,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         if dont_instantiate:
             return None
         inst = self._defn(name=self.instance_name)
+        inst.debug_info = self.debug_info
         for k, v in self._inst_attrs.items():
             setattr(inst, k, v)
         return inst
