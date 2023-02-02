@@ -4,6 +4,7 @@ import pytest
 
 import magma as m
 from magma.debug import get_debug_info, debug_info, magma_helper_function
+from magma.passes.finalize_whens import finalize_whens
 
 
 def test_magma_debug_ext():
@@ -77,3 +78,17 @@ def test_circuit_builder():
 
     assert Top.instances[0].debug_info.filename == __file__
     assert Top.instances[0].debug_info == Top.b0.debug_info
+
+
+def test_when():
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), S=m.In(m.Bit), O=m.Out(m.Bit))
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O @= 0
+
+    finalize_whens(Top)
+
+    assert Top.instances[0].debug_info.filename == __file__
