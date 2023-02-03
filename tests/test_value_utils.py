@@ -97,3 +97,16 @@ def test_fill(fill_value):
     for u_i in value.u:
         assert u_i.const()
         assert int(u_i) == (0 if not fill_value else 63)
+
+
+def test_selector_stop_at():
+    class T(m.Product):
+        x = m.Bit
+        y = m.Tuple[m.Bit, m.Bits[8]]
+
+    class _Foo(m.Circuit):
+        name = "Foo"
+        io = m.IO(I=m.In(T))
+
+        selector = make_selector(io.I.y[1][0], stop_at=io.I.y)
+        assert selector.select(io.I.y) is io.I.y[1][0]

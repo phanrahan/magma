@@ -1246,6 +1246,29 @@ def test_when_2d_array_assign():
     assert check_gold(__file__, "test_when_2d_array_assign.mlir")
 
 
+def test_when_nested_array_assign():
+    class T(m.Product):
+        x = m.Bit
+        y = m.Tuple[m.Bit, m.Bits[8]]
+
+    class test_when_nested_array_assign(m.Circuit):
+        io = m.IO(I=m.In(T), S=m.In(m.Bit),
+                  O=m.Out(T))
+        io.O.x @= io.I.x
+        io.O.y[0] @= io.I.y[0]
+
+        with m.when(io.S):
+            io.O.y[1] @= io.I.y[1]
+        with m.otherwise():
+            io.O.y[1] @= io.I.y[1][::-1]
+
+    m.compile("build/test_when_nested_array_assign",
+              test_when_nested_array_assign, output="mlir",
+              flatten_all_tuples=True)
+
+    assert check_gold(__file__, "test_when_nested_array_assign.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():

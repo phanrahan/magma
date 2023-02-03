@@ -168,7 +168,7 @@ class WhenBuilder(CircuitBuilder):
         if root_value not in value_to_index:
             return
         root_port = getattr(self, value_to_name[root_value])
-        return make_selector(value).select(root_port)
+        return make_selector(value, stop_at=root_value).select(root_port)
 
     def _generic_add(
             self,
