@@ -605,6 +605,14 @@ class ModuleVisitor:
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
+            if value_to_index is output_to_index:
+                root_value = value
+                while isinstance(root_value.name, ArrayRef):
+                    root_value = root_value.name.parent_value
+                if root_value is not value and root_value in value_to_index:
+                    # Don't add, only need its parent
+                    return
+
             value_to_index[value] = next(counter)
 
         counter = itertools.count()

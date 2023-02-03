@@ -1269,6 +1269,30 @@ def test_when_nested_array_assign():
     assert check_gold(__file__, "test_when_nested_array_assign.mlir")
 
 
+def test_when_partial_assign_order():
+    class test_when_partial_assign_order(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]),
+                  O0=m.Out(m.Bits[2]), O1=m.Out(m.Bits[2]),
+                  O2=m.Out(m.Bits[2]))
+
+        io.O0 @= io.I
+        with m.when(io.S[0]):
+            io.O1 @= m.bits((~io.I)[::-1])
+            io.O2 @= io.I
+        with m.elsewhen(io.S[1]):
+            io.O1 @= io.I
+            io.O2 @= io.I
+        with m.otherwise():
+            io.O1 @= ~io.I
+            io.O0 @= m.bits(io.I[::-1])
+            io.O2 @= ~io.I
+
+    m.compile("build/test_when_partial_assign_order",
+              test_when_partial_assign_order, output="mlir")
+
+    assert check_gold(__file__, "test_when_partial_assign_order.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():
