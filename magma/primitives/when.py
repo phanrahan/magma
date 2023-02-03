@@ -2,14 +2,13 @@ import functools
 import itertools
 from typing import Dict, Optional, Union, Set
 
-from magma.array import Array
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
-from magma.ref import ArrayRef
+from magma.ref import get_parent_array
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -158,12 +157,8 @@ class WhenBuilder(CircuitBuilder):
         """
         if not value.is_input():
             return
-        if not isinstance(value.name, ArrayRef):
-            return
-        root_value = value
-        while isinstance(root_value.name, ArrayRef):
-            root_value = root_value.name.parent_value
-        if not isinstance(root_value, Array):
+        root_value = get_parent_array(value)
+        if root_value is None:
             return
         if root_value not in value_to_index:
             return

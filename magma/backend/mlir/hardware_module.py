@@ -57,7 +57,7 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import ArrayRef
+from magma.ref import get_parent_array
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
@@ -606,10 +606,8 @@ class ModuleVisitor:
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
             if value_to_index is output_to_index:
-                root_value = value
-                while isinstance(root_value.name, ArrayRef):
-                    root_value = root_value.name.parent_value
-                if root_value is not value and root_value in value_to_index:
+                root_value = get_parent_array(value)
+                if root_value in value_to_index:
                     # Don't add, only need its parent
                     return
 
@@ -655,11 +653,9 @@ class ModuleVisitor:
             """If val is a child of an array, get the root wire
             (so we add to a collection of drivers for a bulk assign)
             """
-            if not isinstance(val.name, ArrayRef):
-                return None
-            root_value = val
-            while isinstance(root_value.name, ArrayRef):
-                root_value = root_value.name.parent_value
+            root_value = get_parent_array(val)
+            if root_value is None:
+                return
             try:
                 return wires[output_to_index[root_value]]
             except KeyError:

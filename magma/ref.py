@@ -295,3 +295,12 @@ def get_ref_defn(ref):
 def is_temp_ref(ref):
     root = ref.root()
     return isinstance(root, (TempNamedRef, AnonRef))
+
+
+def get_parent_array(value):
+    if not isinstance(value.name, ArrayRef):
+        return None
+    root_value = value
+    while isinstance(root_value.name, ArrayRef):
+        root_value = root_value.name.parent_value
+    return root_value
