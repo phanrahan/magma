@@ -8,7 +8,7 @@ import weakref
 from magma.backend.mlir.common import WithId, default_field, constant
 from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
-from magma.common import Stack
+from magma.common import Stack, epilogue
 
 
 OptionalWeakRef = Optional[weakref.ReferenceType]
@@ -72,14 +72,38 @@ class MlirLocation(MlirAttribute):
     pass
 
 
-@functools.lru_cache()
+_location_stack = Stack()
+
+
+def get_location_stack() -> Stack:
+    global _location_stack
+    return _location_stack
+
+
+@contextlib.contextmanager
+def push_location(location: MlirLocation):
+    get_location_stack().push(location)
+    try:
+        yield
+    finally:
+        get_location_stack().pop()
+
+
 def _default_location():
     # NOTE(rsetaluri): Due to the circular import dependency on the builtin
     # dialect for the default (unknown) location, we need to use a dynamic
     # import. Fortunately, this is used in a dataclass field factory function
     # anyway, and we can cache it so it will be little to no overhead.
     from magma.backend.mlir.builtin import builtin
-    return builtin.UnknownLoc()
+    return get_location_stack().peek_default(builtin.UnknownLoc())
+
+
+def _print_location_epilogue(this, printer, opts):
+    if opts.print_locations:
+        printer.print_line(this.location.emit())
+
+
+print_location = epilogue(_print_location_epilogue)
 
 
 @dataclasses.dataclass
@@ -172,12 +196,11 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
     def set_parent(self, parent: MlirBlock):
         self.parent = weakref.ref(parent)
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         self.print_op(printer)
         if not self.regions:
             printer.flush()
-            if opts.print_locations:
-                printer.print_line(self.location.emit())
             return
         printer.print(" {")
         printer.flush()
@@ -186,8 +209,6 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
             region.print(printer, opts)
         printer.pop()
         printer.print_line("}")
-        if opts.print_locations:
-            printer.print_line(self.location.emit())
 
     @abc.abstractmethod
     def print_op(self, printer: PrinterBase):

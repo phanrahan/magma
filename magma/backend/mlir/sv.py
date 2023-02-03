@@ -4,7 +4,9 @@ from typing import List, Optional
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.mlir import (
     MlirDialect, MlirOp, MlirBlock, MlirValue, MlirSymbol,
-    begin_dialect, end_dialect)
+    begin_dialect, end_dialect,
+    print_location,
+)
 from magma.backend.mlir.mlir_printer_utils import print_names, print_types
 from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
@@ -91,6 +93,7 @@ class AlwaysFFOp(MlirOp):
     def reset_block(self) -> MlirBlock:
         return self._reset_block
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         printer.print(f"sv.alwaysff({self.clock_edge} ")
         print_names(self.operands[0], printer)
@@ -125,6 +128,7 @@ class AlwaysCombOp(MlirOp):
     def body_block(self) -> MlirBlock:
         return self._body_block
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         printer.print("sv.alwayscomb {")
         printer.flush()
@@ -236,6 +240,7 @@ class IfDefOp(MlirOp):
             self._else_block = self.new_region().new_block()
         return self._else_block
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         printer.print(f"sv.ifdef \"{self.cond}\" {{")
         printer.flush()
@@ -275,6 +280,7 @@ class IfOp(MlirOp):
             self._else_block = self.new_region().new_block()
         return self._else_block
 
+    @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
         printer.print(f"sv.if ")
         print_names(self.operands[0], printer)

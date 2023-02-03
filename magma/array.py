@@ -871,6 +871,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
                 T._unresolved_slices[key] = result
             else:
                 T._ts[i] = result
+        T._resolved = True
 
         if len(T._ts) == self.N:
             if Array._iswhole(T.ts):

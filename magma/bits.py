@@ -16,6 +16,7 @@ from .bit import Bit
 from .array import ArrayMeta, Array
 from .t import Type, Direction, In, Out
 from magma.circuit import Circuit, coreir_port_mapping
+from magma.debug import magma_helper_function
 from magma.bitutils import seq2int, int2seq
 from magma.family import get_family
 from magma.interface import IO
@@ -366,25 +367,31 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
         return _MagmBitsOp
 
+    @magma_helper_function
     def bvnot(self) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_unary_op("not")()(self)
 
+    @magma_helper_function
     @bits_cast
     def bvand(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("and")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvor(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("or")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvxor(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("xor")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvshl(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("shl")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvlshr(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("lshr")()(self, other)
@@ -401,14 +408,17 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def bvcomp(self, other) -> 'AbstractBitVector[1]':
         return Bits[1](self == other)
 
+    @magma_helper_function
     @bits_cast
     def bveq(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("eq")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvult(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("ult")()(self, other)
 
+    @magma_helper_function
     def bvule(self, other) -> AbstractBit:
         # For wiring
         if self.is_input():
@@ -420,10 +430,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
         return type(self).undirected_t._declare_compare_op("ule")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvugt(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("ugt")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvuge(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("uge")()(self, other)
@@ -440,9 +452,11 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def bvsge(self, other) -> AbstractBit:
         raise NotImplementedError()
 
+    @magma_helper_function
     def bvneg(self) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_unary_op("neg")()(self)
 
+    @magma_helper_function
     def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
         """
         add with carry
@@ -459,6 +473,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         res = a + b + c
         return res[0:-1], res[-1]
 
+    @magma_helper_function
     def ite(self, t_branch, f_branch) -> 'AbstractBitVector':
         type_ = type(t_branch)
         if type_ != type(f_branch):
@@ -466,22 +481,27 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         return type(self).undirected_t._declare_ite(type_)()(
             t_branch, f_branch, self != self.make_constant(0))
 
+    @magma_helper_function
     @bits_cast
     def bvadd(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("add")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvsub(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("sub")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvmul(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("mul")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvudiv(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("udiv")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvurem(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("urem")()(self, other)
@@ -518,82 +538,102 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         T = type(self).unsized_t
         return self.concat(T[ext](0))
 
+    @magma_helper_function
     def __invert__(self):
         return self.bvnot()
 
+    @magma_helper_function
     @_error_handler
     def __and__(self, other):
         return self.bvand(other)
 
+    @magma_helper_function
     @_error_handler
     def __rand__(self, other):
         return self.bvand(other)
 
+    @magma_helper_function
     @_error_handler
     def __or__(self, other):
         return self.bvor(other)
 
+    @magma_helper_function
     @_error_handler
     def __ror__(self, other):
         return self.bvor(other)
 
+    @magma_helper_function
     @_error_handler
     def __xor__(self, other):
         return self.bvxor(other)
 
+    @magma_helper_function
     @_error_handler
     def __rxor__(self, other):
         return self.bvxor(other)
 
+    @magma_helper_function
     @_error_handler
     def __lshift__(self, other):
         return self.bvshl(other)
 
+    @magma_helper_function
     @_error_handler
     def __rlshift__(self, other):
         return type(self)(other) << self
 
+    @magma_helper_function
     @_error_handler
     def __rshift__(self, other):
         return self.bvlshr(other)
 
+    @magma_helper_function
     @_error_handler
     def __rrshift__(self, other):
         return type(self)(other) >> self
 
+    @magma_helper_function
     @output_only("Cannot use == on an input")
     @_error_handler
     def __eq__(self, other):
         return self.bveq(other)
 
+    @magma_helper_function
     @output_only("Cannot use != on an input")
     @_error_handler
     def __ne__(self, other):
         return self.bvne(other)
 
+    @magma_helper_function
     def __neg__(self):
         return self.bvneg()
 
+    @magma_helper_function
     @_error_handler
     def __add__(self, other):
         return self.bvadd(other)
 
+    @magma_helper_function
     @_error_handler
     def __radd__(self, other):
         return self.bvadd(other)
 
+    @magma_helper_function
     @_error_handler
     def __sub__(self, other):
         return self.bvsub(other)
 
+    @magma_helper_function
     @_error_handler
     def __rsub__(self, other):
         return type(self)(other) - self
 
+    @magma_helper_function
     @_error_handler
     def __mul__(self, other):
         return self.bvmul(other)
 
+    @magma_helper_function
     @_error_handler
     def __rmul__(self, other):
         return self.bvmul(other)
@@ -637,12 +677,15 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return type(self)[len(result)](result)
         return super().__getitem__(index)
 
+    @magma_helper_function
     def reduce_or(self):
         return reduce(operator.or_, self)
 
+    @magma_helper_function
     def reduce_xor(self):
         return reduce(operator.xor, self)
 
+    @magma_helper_function
     def reduce_and(self):
         return reduce(operator.and_, self)
 
@@ -684,14 +727,17 @@ class Int(Bits):
     """
     Defines shared right-hand operators for UInt/SInt
     """
+    @magma_helper_function
     @_error_handler
     def __rfloordiv__(self, other):
         return type(self)(other) // self
 
+    @magma_helper_function
     @_error_handler
     def __rtruediv__(self, other):
         return type(self)(other) / self
 
+    @magma_helper_function
     @_error_handler
     def __rmod__(self, other):
         return type(self)(other) % self
@@ -700,30 +746,37 @@ class Int(Bits):
 class UInt(Int):
     hwtypes_T = ht.UIntVector
 
+    @magma_helper_function
     @_error_handler
     def __floordiv__(self, other):
         return self.bvudiv(other)
 
+    @magma_helper_function
     @_error_handler
     def __truediv__(self, other):
         return self.bvudiv(other)
 
+    @magma_helper_function
     @_error_handler
     def __mod__(self, other):
         return self.bvurem(other)
 
+    @magma_helper_function
     @_error_handler
     def __ge__(self, other):
         return self.bvuge(other)
 
+    @magma_helper_function
     @_error_handler
     def __gt__(self, other):
         return self.bvugt(other)
 
+    @magma_helper_function
     @_error_handler
     def __le__(self, other):
         return self.bvule(other)
 
+    @magma_helper_function
     @_error_handler
     def __lt__(self, other):
         return self.bvult(other)
@@ -736,10 +789,12 @@ class SInt(Int):
     def _extend(cls, args):
         return args + [args[-1] for _ in range(cls.N - len(args))]
 
+    @magma_helper_function
     @bits_cast
     def bvslt(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("slt")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvsle(self, other) -> AbstractBit:
         # For wiring
@@ -747,58 +802,72 @@ class SInt(Int):
             return Type.__le__(self, other)
         return type(self).undirected_t._declare_compare_op("sle")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvsgt(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("sgt")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvsge(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("sge")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvsdiv(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("sdiv")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvsrem(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("srem")()(self, other)
 
+    @magma_helper_function
     @bits_cast
     def bvashr(self, other) -> 'AbstractBitVector':
         return type(self).undirected_t._declare_binary_op("ashr")()(self, other)
 
+    @magma_helper_function
     @_error_handler
     def __mod__(self, other):
         return self.bvsrem(other)
 
+    @magma_helper_function
     @_error_handler
     def __floordiv__(self, other):
         return self.bvsdiv(other)
 
+    @magma_helper_function
     @_error_handler
     def __truediv__(self, other):
         return self.bvsdiv(other)
 
+    @magma_helper_function
     @_error_handler
     def __ge__(self, other):
         return self.bvsge(other)
 
+    @magma_helper_function
     @_error_handler
     def __gt__(self, other):
         return self.bvsgt(other)
 
+    @magma_helper_function
     @_error_handler
     def __le__(self, other):
         return self.bvsle(other)
 
+    @magma_helper_function
     @_error_handler
     def __lt__(self, other):
         return self.bvslt(other)
 
+    @magma_helper_function
     @_error_handler
     def __rshift__(self, other):
         return self.bvashr(other)
 
+    @magma_helper_function
     def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
         """
         add with carry
@@ -860,6 +929,7 @@ _OP_MAP = {
 }
 
 
+@magma_helper_function
 def reduce(operator, bits: Bits):
     if not isinstance(bits, Bits):
         raise TypeError("m.reduce only works with Bits")

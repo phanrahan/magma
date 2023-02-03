@@ -7,6 +7,7 @@ from .circuit import (DefineCircuitKind, Circuit, DebugCircuit,
 from . import cache_definition
 from magma.common import ParamDict
 from magma.config import config
+from magma.debug import get_debug_info
 from hwtypes import BitVector
 
 
@@ -138,6 +139,8 @@ class Generator2(metaclass=_Generator2Meta):
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
+        if "debug_info" not in kwargs:
+            kwargs["debug_info"] = get_debug_info(4)
         return type(cls)._base_metacls_.__call__(cls, *args, **kwargs)
 
     @classmethod
