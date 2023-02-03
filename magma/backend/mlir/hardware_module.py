@@ -655,12 +655,26 @@ class ModuleVisitor:
             """
             root_value = get_parent_array(val)
             if root_value is None:
-                return
+                return None, None
             try:
-                return wires[output_to_index[root_value]]
+                wire = wires[output_to_index[root_value]]
             except KeyError:
                 # Could be a partially assigned array
-                return None
+                return None, None
+
+            class _IndexBuilder:
+                def __init__(self):
+                    self.index = tuple()
+
+                def __getitem__(self, idx):
+                    if isinstance(idx, slice):
+                        idx = idx.start  # sort on start idx
+                    self.index += (idx, )
+                    return self
+
+            builder = _IndexBuilder()
+            make_selector(val, stop_at=root_value).select(builder)
+            return wire, builder.index
 
         def _build_wire_map(connections):
             """Collect a map of output wires to their drivers.
@@ -672,36 +686,54 @@ class ModuleVisitor:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
                     operand = module.operands[input_to_index[driver_elt]]
-                    wire = _check_array_child_wire(drivee_elt)
+                    wire, index = _check_array_child_wire(drivee_elt)
                     if wire:
                         wire_map.setdefault(wire, {})
-                        key = drivee_elt.name.index
-                        if isinstance(key, slice):
-                            key = key.start  # for slices, sort by start
-                        wire_map[wire][key] = operand
+                        wire_map[wire][index] = operand
                     else:
                         wire = wires[output_to_index[drivee_elt]]
                         wire_map[wire] = operand
             return wire_map
 
-        def _combine_array_assign(wire, value):
+        def _make_arr(T):
+            if isinstance(T, builtin.IntegerType):
+                return [None for _ in range(T.n)]
+            assert isinstance(T, hw.ArrayType), T
+            return [_make_arr(T.T) for _ in range(T.dims[0])]
+
+        def _build_array_value(T, value):
+            arr = _make_arr(T)
+            for idx, elem in value.items():
+                curr = arr
+                for i in idx[:-1]:
+                    curr = curr[i]
+                curr[idx[-1]] = elem
+            return arr
+
+        def _combine_array_assign(T, value):
             """Sort drivers by index, use concat or create depending on type"""
-            operands = [
-                x[1] for x in sorted(value.items(),
-                                     key=lambda y: y[0],
-                                     reverse=True)
-            ]
-            result = self._ctx.new_value(wire.type.T)
-            if isinstance(wire.type.T, builtin.IntegerType):
+            if (
+                isinstance(T, builtin.IntegerType) and
+                isinstance(value, MlirValue)
+            ):
+                return value
+            result = self._ctx.new_value(T)
+            if isinstance(T, builtin.IntegerType):
+                operands = [x for x in reversed(value) if x is not None]
                 comb.ConcatOp(operands=operands, results=[result])
             else:
+                assert len(T.dims) == 1, "Expected 1d array"
+                operands = [_combine_array_assign(T.T, value[i])
+                            for i in reversed(range(T.dims[0]))]
+                operands = [x for x in operands if x is not None]
                 hw.ArrayCreateOp(operands=operands, results=[result])
             return result
 
         def _make_assignments(connections):
             for wire, value in _build_wire_map(connections).items():
                 if isinstance(value, dict):
-                    value = _combine_array_assign(wire, value)
+                    value = _build_array_value(wire.type.T, value)
+                    value = _combine_array_assign(wire.type.T, value)
                 sv.BPAssignOp(operands=[wire, value])
 
         def _process_when_block(block):

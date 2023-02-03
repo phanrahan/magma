@@ -1293,6 +1293,25 @@ def test_when_partial_assign_order():
     assert check_gold(__file__, "test_when_partial_assign_order.mlir")
 
 
+def test_when_3d_array_assign():
+    class test_when_3d_array_assign(m.Circuit):
+        T = m.Array[2, m.Array[2, m.Bits[2]]]
+        io = m.IO(I=m.In(T), S=m.In(m.Bit), O=m.Out(T))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[1][0] @= io.I[0][1]
+            io.O[1][1] @= io.I[0][0]
+            io.O[0][0] @= io.I[1][1]
+            io.O[0][1] @= io.I[1][0]
+
+    m.compile("build/test_when_3d_array_assign",
+              test_when_3d_array_assign, output="mlir-verilog")
+
+    assert check_gold(__file__, "test_when_3d_array_assign.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():
