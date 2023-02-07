@@ -107,7 +107,7 @@ def test_defn_wiring_error(caplog):
     assert not m.isdefinition(_Foo)
     assert has_error(caplog,
                      """\
-tests/test_circuit/test_new_style_syntax.py:104: Cannot wire _Foo.I (Out(Bit)) to _Foo.O (Out(Bit))
+tests/test_circuit/test_new_style_syntax.py:104: Using `_Foo.O` (an output) as an input
 >>         m.wire(io.I, io.O)\
 """)
     assert has_error(caplog,
