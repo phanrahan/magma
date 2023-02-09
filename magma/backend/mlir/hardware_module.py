@@ -712,10 +712,7 @@ class ModuleVisitor:
 
         def _combine_array_assign(T, value):
             """Sort drivers by index, use concat or create depending on type"""
-            if (
-                isinstance(T, builtin.IntegerType) and
-                isinstance(value, MlirValue)
-            ):
+            if isinstance(value, MlirValue):
                 return value
             result = self._ctx.new_value(T)
             if isinstance(T, builtin.IntegerType):

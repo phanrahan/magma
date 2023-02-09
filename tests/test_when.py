@@ -1330,6 +1330,23 @@ def test_when_array_resolved_after():
     assert check_gold(__file__, "test_when_array_resolved_after.mlir")
 
 
+def test_when_array_3d_bulk_child():
+    class test_when_array_3d_bulk_child(m.Circuit):
+        T = m.Array[2, m.Array[2, m.Bits[2]]]
+        io = m.IO(I=m.In(T), S=m.In(m.Bit), O=m.Out(T))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[1] @= io.I[0]
+            io.O[0] @= io.I[1]
+
+    m.compile("build/test_when_array_3d_bulk_child",
+              test_when_array_3d_bulk_child, output="mlir")
+
+    assert check_gold(__file__, "test_when_array_3d_bulk_child.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():
