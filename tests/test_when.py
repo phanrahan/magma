@@ -1211,3 +1211,140 @@ def test_when_type_error():
                 io.O @= 1
             with m.elsewhen(io.I):
                 assert False, "Should raise type error for non bit type"
+
+
+def test_when_partial_array_assign():
+    class test_when_partial_array_assign(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bits[2]))
+
+        io.O[0] @= io.I[1]
+        with m.when(io.S):
+            io.O[1] @= io.I[0]
+        with m.otherwise():
+            io.O[1] @= io.I[1]
+
+    m.compile("build/test_when_partial_array_assign",
+              test_when_partial_array_assign, output="mlir")
+
+    assert check_gold(__file__, "test_when_partial_array_assign.mlir")
+
+
+def test_when_2d_array_assign():
+    class test_when_2d_array_assign(m.Circuit):
+        io = m.IO(I=m.In(m.Array[2, m.Bits[2]]), S=m.In(m.Bit),
+                  O=m.Out(m.Array[2, m.Bits[2]]))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[0] @= io.I[1]
+            io.O[1] @= io.I[0]
+
+    m.compile("build/test_when_2d_array_assign",
+              test_when_2d_array_assign, output="mlir")
+
+    assert check_gold(__file__, "test_when_2d_array_assign.mlir")
+
+
+def test_when_nested_array_assign():
+    class T(m.Product):
+        x = m.Bit
+        y = m.Tuple[m.Bit, m.Bits[8]]
+
+    class test_when_nested_array_assign(m.Circuit):
+        io = m.IO(I=m.In(T), S=m.In(m.Bit),
+                  O=m.Out(T))
+        io.O.x @= io.I.x
+        io.O.y[0] @= io.I.y[0]
+
+        with m.when(io.S):
+            io.O.y[1] @= io.I.y[1]
+        with m.otherwise():
+            io.O.y[1] @= io.I.y[1][::-1]
+
+    m.compile("build/test_when_nested_array_assign",
+              test_when_nested_array_assign, output="mlir",
+              flatten_all_tuples=True)
+
+    assert check_gold(__file__, "test_when_nested_array_assign.mlir")
+
+
+def test_when_partial_assign_order():
+    class test_when_partial_assign_order(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]),
+                  O0=m.Out(m.Bits[2]), O1=m.Out(m.Bits[2]),
+                  O2=m.Out(m.Bits[2]))
+
+        io.O0 @= io.I
+        with m.when(io.S[0]):
+            io.O1 @= m.bits((~io.I)[::-1])
+            io.O2 @= io.I
+        with m.elsewhen(io.S[1]):
+            io.O1 @= io.I
+            io.O2 @= io.I
+        with m.otherwise():
+            io.O1 @= ~io.I
+            io.O0 @= m.bits(io.I[::-1])
+            io.O2 @= ~io.I
+
+    m.compile("build/test_when_partial_assign_order",
+              test_when_partial_assign_order, output="mlir")
+
+    assert check_gold(__file__, "test_when_partial_assign_order.mlir")
+
+
+def test_when_3d_array_assign():
+    class test_when_3d_array_assign(m.Circuit):
+        T = m.Array[2, m.Array[2, m.Bits[2]]]
+        io = m.IO(I=m.In(T), S=m.In(m.Bit), O=m.Out(T))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[1][0] @= io.I[0][1]
+            io.O[1][1] @= io.I[0][0]
+            io.O[0][0] @= io.I[1][1]
+            io.O[0][1] @= io.I[1][0]
+
+    m.compile("build/test_when_3d_array_assign",
+              test_when_3d_array_assign, output="mlir")
+
+    assert check_gold(__file__, "test_when_3d_array_assign.mlir")
+
+
+def test_when_array_resolved_after():
+    class test_when_array_resolved_after(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bit), O=m.Out(m.Bits[16]))
+
+        x = m.Bits[8]()
+
+        x @= ~io.I
+        with m.when(io.S):
+            x @= io.I
+
+        io.O @= m.concat(m.Bits[8](0), x)  # trigger resolve
+
+    m.compile("build/test_when_array_resolved_after",
+              test_when_array_resolved_after, output="mlir")
+
+    assert check_gold(__file__, "test_when_array_resolved_after.mlir")
+
+
+# TODO: In this case, we'll generate elaborated assignments, but it should
+# be possible for us to pack these into a concat/create assignment
+# def test_when_2d_array_assign():
+#     class test_when_2d_array_assign(m.Circuit):
+#         io = m.IO(I=m.In(m.Array[2, m.Bits[2]]), S=m.In(m.Bit),
+#                   O=m.Out(m.Array[2, m.Bits[2]]))
+
+#         with m.when(io.S):
+#             io.O[0] @= io.I[1]
+#             io.O[1] @= io.I[0]
+#         with m.otherwise():
+#             io.O[0] @= io.I[0]
+#             io.O[1] @= io.I[1]
+
+#     m.compile("build/test_when_2d_array_assign",
+#               test_when_2d_array_assign, output="mlir")
+
+#     assert check_gold(__file__, "test_when_2d_array_assign.mlir")

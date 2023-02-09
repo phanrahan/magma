@@ -17,21 +17,17 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %9 = sv.read_inout %14 : !hw.inout<i1>
         sv.alwayscomb {
             sv.if %S {
-                sv.bpassign %11, %3 : i1
-                sv.bpassign %12, %4 : i1
-                sv.bpassign %13, %3 : i1
-                sv.bpassign %14, %3 : i1
+                %15 = comb.concat %3, %3, %4, %3 : i1, i1, i1, i1
+                sv.bpassign %10, %15 : i4
             } else {
-                sv.bpassign %11, %3 : i1
-                sv.bpassign %12, %3 : i1
-                sv.bpassign %13, %4 : i1
-                sv.bpassign %14, %3 : i1
+                %16 = comb.concat %3, %4, %3, %3 : i1, i1, i1, i1
+                sv.bpassign %10, %16 : i4
             }
         }
-        %15 = comb.concat %9, %8, %7, %0 : i1, i1, i1, i1
-        %17 = sv.wire sym @test_when_lazy_array_slice_driving_resolve.x {name="x"} : !hw.inout<i4>
-        sv.assign %17, %15 : i4
-        %16 = sv.read_inout %17 : !hw.inout<i4>
-        hw.output %16 : i4
+        %17 = comb.concat %9, %8, %7, %0 : i1, i1, i1, i1
+        %19 = sv.wire sym @test_when_lazy_array_slice_driving_resolve.x {name="x"} : !hw.inout<i4>
+        sv.assign %19, %17 : i4
+        %18 = sv.read_inout %19 : !hw.inout<i4>
+        hw.output %18 : i4
     }
 }

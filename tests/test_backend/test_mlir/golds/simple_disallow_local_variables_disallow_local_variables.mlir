@@ -16,27 +16,27 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %10 = sv.read_inout %13 : !hw.inout<i1>
         sv.alwayscomb {
             sv.if %s {
-                sv.bpassign %12, %4 : i1
-                sv.bpassign %13, %6 : i1
+                %14 = comb.concat %6, %4 : i1, i1
+                sv.bpassign %11, %14 : i2
             } else {
-                sv.bpassign %12, %5 : i1
-                sv.bpassign %13, %7 : i1
+                %15 = comb.concat %7, %5 : i1, i1
+                sv.bpassign %11, %15 : i2
             }
         }
-        %16 = sv.reg : !hw.inout<i1>
-        %14 = sv.read_inout %16 : !hw.inout<i1>
-        %17 = sv.reg : !hw.inout<i1>
-        %15 = sv.read_inout %17 : !hw.inout<i1>
+        %18 = sv.reg : !hw.inout<i1>
+        %16 = sv.read_inout %18 : !hw.inout<i1>
+        %19 = sv.reg : !hw.inout<i1>
+        %17 = sv.read_inout %19 : !hw.inout<i1>
         sv.alwayscomb {
             sv.if %0 {
-                sv.bpassign %16, %10 : i1
-                sv.bpassign %17, %9 : i1
+                sv.bpassign %18, %10 : i1
+                sv.bpassign %19, %9 : i1
             } else {
-                sv.bpassign %16, %9 : i1
-                sv.bpassign %17, %10 : i1
+                sv.bpassign %18, %9 : i1
+                sv.bpassign %19, %10 : i1
             }
         }
-        %18 = comb.concat %15, %14 : i1, i1
-        hw.output %18 : i2
+        %20 = comb.concat %17, %16 : i1, i1
+        hw.output %20 : i2
     }
 }

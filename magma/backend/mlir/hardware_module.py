@@ -57,6 +57,7 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
+from magma.ref import get_parent_array
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
@@ -604,6 +605,12 @@ class ModuleVisitor:
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
+            if value_to_index is output_to_index:
+                root_value = get_parent_array(value)
+                if root_value in value_to_index:
+                    # Don't add, only need its parent
+                    return
+
             value_to_index[value] = next(counter)
 
         counter = itertools.count()
@@ -642,13 +649,92 @@ class ModuleVisitor:
             )
             return fields
 
-        def _make_assignments(connections):
+        def _check_array_child_wire(val):
+            """If val is a child of an array, get the root wire
+            (so we add to a collection of drivers for a bulk assign)
+            """
+            root_value = get_parent_array(val)
+            if root_value is None:
+                return None, None
+            try:
+                wire = wires[output_to_index[root_value]]
+            except KeyError:
+                # Could be a partially assigned array
+                return None, None
+
+            class _IndexBuilder:
+                def __init__(self):
+                    self.index = tuple()
+
+                def __getitem__(self, idx):
+                    if isinstance(idx, slice):
+                        idx = idx.start  # sort on start idx
+                    self.index += (idx, )
+                    return self
+
+            builder = _IndexBuilder()
+            make_selector(val, stop_at=root_value).select(builder)
+            return wire, builder.index
+
+        def _build_wire_map(connections):
+            """Collect a map of output wires to their drivers.
+            If it's an array that's been elaborated, we collect the drives in a
+            dictionary using their index as a key to sort.
+            """
+            wire_map = {}
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
                     operand = module.operands[input_to_index[driver_elt]]
-                    wire = wires[output_to_index[drivee_elt]]
-                    sv.BPAssignOp(operands=[wire, operand])
+                    wire, index = _check_array_child_wire(drivee_elt)
+                    if wire:
+                        wire_map.setdefault(wire, {})
+                        wire_map[wire][index] = operand
+                    else:
+                        wire = wires[output_to_index[drivee_elt]]
+                        wire_map[wire] = operand
+            return wire_map
+
+        def _make_arr(T):
+            if isinstance(T, builtin.IntegerType):
+                return [None for _ in range(T.n)]
+            assert isinstance(T, hw.ArrayType), T
+            return [_make_arr(T.T) for _ in range(T.dims[0])]
+
+        def _build_array_value(T, value):
+            arr = _make_arr(T)
+            for idx, elem in value.items():
+                curr = arr
+                for i in idx[:-1]:
+                    curr = curr[i]
+                curr[idx[-1]] = elem
+            return arr
+
+        def _combine_array_assign(T, value):
+            """Sort drivers by index, use concat or create depending on type"""
+            if (
+                isinstance(T, builtin.IntegerType) and
+                isinstance(value, MlirValue)
+            ):
+                return value
+            result = self._ctx.new_value(T)
+            if isinstance(T, builtin.IntegerType):
+                operands = [x for x in reversed(value) if x is not None]
+                comb.ConcatOp(operands=operands, results=[result])
+            else:
+                assert len(T.dims) == 1, "Expected 1d array"
+                operands = [_combine_array_assign(T.T, value[i])
+                            for i in reversed(range(T.dims[0]))]
+                operands = [x for x in operands if x is not None]
+                hw.ArrayCreateOp(operands=operands, results=[result])
+            return result
+
+        def _make_assignments(connections):
+            for wire, value in _build_wire_map(connections).items():
+                if isinstance(value, dict):
+                    value = _build_array_value(wire.type.T, value)
+                    value = _combine_array_assign(wire.type.T, value)
+                sv.BPAssignOp(operands=[wire, value])
 
         def _process_when_block(block):
             connections = (

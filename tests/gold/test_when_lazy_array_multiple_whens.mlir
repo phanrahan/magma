@@ -8,52 +8,42 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %5 = comb.extract %I from 2 : (i4) -> i1
         %6 = comb.extract %I from 3 : (i4) -> i1
         %7 = comb.concat %6, %5 : i1, i1
-        %14 = sv.reg : !hw.inout<i4>
-        %8 = sv.read_inout %14 : !hw.inout<i4>
-        %15 = sv.reg : !hw.inout<i2>
-        %9 = sv.read_inout %15 : !hw.inout<i2>
-        %16 = sv.reg : !hw.inout<i1>
-        %10 = sv.read_inout %16 : !hw.inout<i1>
-        %17 = sv.reg : !hw.inout<i1>
-        %11 = sv.read_inout %17 : !hw.inout<i1>
-        %18 = sv.reg : !hw.inout<i1>
-        %12 = sv.read_inout %18 : !hw.inout<i1>
-        %19 = sv.reg : !hw.inout<i1>
-        %13 = sv.read_inout %19 : !hw.inout<i1>
+        %9 = sv.reg : !hw.inout<i4>
+        %8 = sv.read_inout %9 : !hw.inout<i4>
         sv.alwayscomb {
             sv.if %S {
-                sv.bpassign %16, %5 : i1
-                sv.bpassign %17, %6 : i1
-                sv.bpassign %18, %2 : i1
-                sv.bpassign %19, %3 : i1
+                %10 = comb.concat %6, %5, %3, %2 : i1, i1, i1, i1
+                sv.bpassign %9, %10 : i4
             } else {
-                sv.bpassign %16, %2 : i1
-                sv.bpassign %17, %3 : i1
-                sv.bpassign %18, %5 : i1
-                sv.bpassign %19, %6 : i1
+                %11 = comb.concat %3, %2, %6, %5 : i1, i1, i1, i1
+                sv.bpassign %9, %11 : i4
             }
         }
-        %24 = sv.reg : !hw.inout<i1>
-        %20 = sv.read_inout %24 : !hw.inout<i1>
-        %25 = sv.reg : !hw.inout<i1>
-        %21 = sv.read_inout %25 : !hw.inout<i1>
-        %26 = sv.reg : !hw.inout<i1>
-        %22 = sv.read_inout %26 : !hw.inout<i1>
-        %27 = sv.reg : !hw.inout<i1>
-        %23 = sv.read_inout %27 : !hw.inout<i1>
+        %12 = comb.extract %8 from 0 : (i4) -> i1
+        %13 = comb.extract %8 from 1 : (i4) -> i1
+        %14 = comb.extract %8 from 2 : (i4) -> i1
+        %15 = comb.extract %8 from 3 : (i4) -> i1
+        %20 = sv.reg : !hw.inout<i1>
+        %16 = sv.read_inout %20 : !hw.inout<i1>
+        %21 = sv.reg : !hw.inout<i1>
+        %17 = sv.read_inout %21 : !hw.inout<i1>
+        %22 = sv.reg : !hw.inout<i1>
+        %18 = sv.read_inout %22 : !hw.inout<i1>
+        %23 = sv.reg : !hw.inout<i1>
+        %19 = sv.read_inout %23 : !hw.inout<i1>
         sv.alwayscomb {
-            sv.bpassign %24, %12 : i1
-            sv.bpassign %25, %13 : i1
-            sv.bpassign %26, %10 : i1
-            sv.bpassign %27, %11 : i1
+            sv.bpassign %20, %12 : i1
+            sv.bpassign %21, %13 : i1
+            sv.bpassign %22, %14 : i1
+            sv.bpassign %23, %15 : i1
             sv.if %0 {
-                sv.bpassign %24, %2 : i1
-                sv.bpassign %25, %3 : i1
-                sv.bpassign %26, %5 : i1
-                sv.bpassign %27, %6 : i1
+                sv.bpassign %20, %2 : i1
+                sv.bpassign %21, %3 : i1
+                sv.bpassign %22, %5 : i1
+                sv.bpassign %23, %6 : i1
             }
         }
-        %28 = comb.concat %23, %22, %21, %20 : i1, i1, i1, i1
-        hw.output %28 : i4
+        %24 = comb.concat %19, %18, %17, %16 : i1, i1, i1, i1
+        hw.output %24 : i4
     }
 }
