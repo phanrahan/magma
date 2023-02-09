@@ -1312,6 +1312,24 @@ def test_when_3d_array_assign():
     assert check_gold(__file__, "test_when_3d_array_assign.mlir")
 
 
+def test_when_array_resolved_after():
+    class test_when_array_resolved_after(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bit), O=m.Out(m.Bits[16]))
+
+        x = m.Bits[8]()
+
+        x @= ~io.I
+        with m.when(io.S):
+            x @= io.I
+
+        io.O @= m.concat(m.Bits[8](0), x)  # trigger resolve
+
+    m.compile("build/test_when_array_resolved_after",
+              test_when_array_resolved_after, output="mlir")
+
+    assert check_gold(__file__, "test_when_array_resolved_after.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():
