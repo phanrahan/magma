@@ -340,9 +340,7 @@ class AggregateWireable(Wireable):
         default_drivers = []
         for ctx in self._wired_when_contexts:
             conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
-            default = ctx.root.get_default_drivers_dict().pop(self, None)
-            if default:
-                ctx.root.builder.remove_default_driver(self)
+            default = ctx.root.get_default_drivers_dict().get(self, None)
             default_drivers.append(default)
         return self._wired_when_contexts, conditional_wires, default_drivers
 
