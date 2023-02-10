@@ -1,6 +1,7 @@
 import collections
 import dataclasses
 import functools
+from typing import Optional
 import uinspect
 
 from magma.common import Stack
@@ -36,6 +37,12 @@ def get_debug_info(frames_to_skip):
     else:
         filename, lineno = None, None
     return debug_info(filename, lineno, None)
+
+
+def maybe_get_debug_info(obj) -> Optional[_DebugInfo]:
+    """Get the debug_info attribute of @obj if it exists, otherwise None.
+    """
+    return getattr(obj, "debug_info", None)
 
 
 def debug_wire(fn):
