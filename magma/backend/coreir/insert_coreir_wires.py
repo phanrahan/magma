@@ -3,6 +3,7 @@ from magma.bits import Bits
 from magma.digital import Digital
 from magma.clock import AsyncReset, AsyncResetN, Clock, _ClockType
 from magma.conversions import as_bits, from_bits, bit, convertbit, convertbits
+from magma.debug import maybe_get_debug_info
 from magma.digital import Digital
 from magma.generator import Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
@@ -46,6 +47,7 @@ class InsertCoreIRWires(DefinitionPass):
 
             name = f"{driver_name}"
             wire_inst = Wire(T, flatten=self._flatten)(name=name)
+            wire_inst.debug_info = maybe_get_debug_info(value)
             self.wire_map[driver] = wire_inst
         wire_inst = self.wire_map[driver]
         wire_input = wire_inst.I

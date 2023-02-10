@@ -5,13 +5,14 @@ import pytest
 import magma as m
 from magma.debug import get_debug_info, debug_info, magma_helper_function
 from magma.passes.finalize_whens import finalize_whens
+from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
 
 
 def test_magma_debug_ext():
     filedir = os.path.realpath(os.path.dirname(__file__))
     assert get_debug_info(2) == debug_info(
         f"{filedir}/test_debug.py",
-        11,
+        13,
         None
     )
 
@@ -90,5 +91,18 @@ def test_when():
             io.O @= 0
 
     finalize_whens(Top)
+
+    assert Top.instances[0].debug_info.filename == __file__
+
+
+def test_wire():
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        x = m.Bit(name="x")
+        x @= io.I
+        io.O @= x
+
+    insert_coreir_wires(Top)
 
     assert Top.instances[0].debug_info.filename == __file__
