@@ -692,16 +692,22 @@ class ModuleVisitor:
                     lo=idx)
                 return operand
             i = index[0]
-            if isinstance(i, slice):
-                assert False
-                return
-            operand = self._ctx.new_value(wire.type.T)
             num_sel_bits = clog2(wire.type.dims[0])
-            # Avoid lru_cache for inside block
-            i = self.make_constant.__wrapped__(self, Bits[num_sel_bits], i)
-            hw.ArrayGetOp(
-                operands=[wire, i],
-                results=[operand])
+            if isinstance(i, slice):
+                n = i.stop - i.start
+                operand = self._ctx.new_value(hw.ArrayType((n, ), wire.type.T))
+                i = self.make_constant.__wrapped__(self, Bits[num_sel_bits],
+                                                   i.start)
+                hw.ArraySliceOp(
+                    operands=[wire, i],
+                    results=[operand])
+            else:
+                operand = self._ctx.new_value(wire.type.T)
+                # Avoid lru_cache for inside block
+                i = self.make_constant.__wrapped__(self, Bits[num_sel_bits], i)
+                hw.ArrayGetOp(
+                    operands=[wire, i],
+                    results=[operand])
             return _make_operand(operand, index[1:])
 
         def _build_wire_map(connections):
@@ -750,6 +756,8 @@ class ModuleVisitor:
             """Sort drivers by index, use concat or create depending on type"""
             if isinstance(value, MlirValue):
                 return value
+            if all(x is None for x in value):
+                return None
             result = self._ctx.new_value(T)
             if isinstance(T, builtin.IntegerType):
                 operands = [x for x in reversed(value) if x is not None]
@@ -757,9 +765,40 @@ class ModuleVisitor:
             else:
                 assert len(T.dims) == 1, "Expected 1d array"
                 operands = [_combine_array_assign(T.T, value[i])
-                            for i in reversed(range(T.dims[0]))]
-                operands = [x for x in operands if x is not None]
-                hw.ArrayCreateOp(operands=operands, results=[result])
+                            for i in range(T.dims[0])]
+                i = 0
+                print("---")
+                print(operands)
+                while i < len(operands):
+                    if i == len(operands) - 1:
+                        break
+                    if operands[i + 1] is not None:
+                        i += 1
+                        continue
+                    curr_slice = operands[i]
+                    n = i + 1
+                    while operands[n] is None:
+                        n += 1
+                    n -= i
+
+                    for j in range(i, i + n):
+                        operand = self._ctx.new_value(T.T)
+                        if isinstance(T, builtin.IntegerType):
+                            comb.ExtractOp(
+                                operands=curr_slice,
+                                results=operand,
+                                lo=j)
+                        else:
+                            hw.ArrayGetOp(
+                                operands=[curr_slice,
+                                          self.make_constant.__wrapped__(self, Bits[n - 1], j)],
+                                results=[operand])
+                        operands[j] = operand
+                    i = j
+                print(operands)
+                print("---")
+                hw.ArrayCreateOp(operands=list(reversed(operands)),
+                                 results=[result])
             return result
 
         def _make_assignments(connections):
@@ -1047,8 +1086,31 @@ class ModuleVisitor:
                     operands=list(reversed(module.operands)),
                     results=module.results)
                 return True
+            operands = []
+            for operand in module.operands:
+                if operand.type == magma_type_to_mlir_type(T.T):
+                    operands.append(operand)
+                    continue
+                if isinstance(operand.type, builtin.IntegerType):
+                    n = operand.type.n
+                else:
+                    n = operand.type.dims[0]
+                for i in range(n):
+                    result = self._ctx.new_value(T.T)
+                    if isinstance(operand.type, builtin.IntegerType):
+                        comb.ExtractOp(
+                            operands=operand,
+                            results=[result],
+                            lo=i)
+                    else:
+                        sel = clog2(n)
+                        hw.ArrayGetOp(
+                            operands=[operand,
+                                      self.make_constant.__wrapped__(self, Bits[sel], i)],
+                            results=[result])
+                    operands.append(result)
             hw.ArrayCreateOp(
-                operands=list(reversed(module.operands)),
+                operands=list(reversed(operands)),
                 results=module.results)
             return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):

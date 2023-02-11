@@ -1379,6 +1379,23 @@ def test_when_temporary_resolved():
     assert check_gold(__file__, "test_when_temporary_resolved.mlir")
 
 
+def test_when_2d_array_assign_slice():
+    class test_when_2d_array_assign_slice(m.Circuit):
+        io = m.IO(I=m.In(m.Array[4, m.Bits[2]]), S=m.In(m.Bit),
+                  O=m.Out(m.Array[4, m.Bits[2]]))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[:2] @= io.I[2:]
+            io.O[2:] @= io.I[:2]
+
+    m.compile("build/test_when_2d_array_assign_slice",
+              test_when_2d_array_assign_slice, output="mlir-verilog")
+
+    assert check_gold(__file__, "test_when_2d_array_assign_slice.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():

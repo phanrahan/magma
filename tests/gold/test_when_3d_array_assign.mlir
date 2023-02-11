@@ -20,9 +20,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 %14 = hw.array_get %I[%15] : !hw.array<2x!hw.array<2xi2>>, i1
                 %17 = hw.constant 1 : i1
                 %16 = hw.array_get %14[%17] : !hw.array<2xi2>, i1
-                %19 = hw.array_create %8, %4 : i2
-                %20 = hw.array_create %16, %12 : i2
-                %18 = hw.array_create %19, %20 : !hw.array<2xi2>
+                %19 = hw.array_create %16, %12 : i2
+                %20 = hw.array_create %8, %4 : i2
+                %18 = hw.array_create %20, %19 : !hw.array<2xi2>
                 sv.bpassign %1, %18 : !hw.array<2x!hw.array<2xi2>>
             } else {
                 %22 = hw.constant 0 : i1
@@ -41,9 +41,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 %33 = hw.array_get %I[%34] : !hw.array<2x!hw.array<2xi2>>, i1
                 %36 = hw.constant 0 : i1
                 %35 = hw.array_get %33[%36] : !hw.array<2xi2>, i1
-                %38 = hw.array_create %27, %23 : i2
-                %39 = hw.array_create %35, %31 : i2
-                %37 = hw.array_create %38, %39 : !hw.array<2xi2>
+                %38 = hw.array_create %35, %31 : i2
+                %39 = hw.array_create %27, %23 : i2
+                %37 = hw.array_create %39, %38 : !hw.array<2xi2>
                 sv.bpassign %1, %37 : !hw.array<2x!hw.array<2xi2>>
             }
         }
