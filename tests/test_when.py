@@ -1347,6 +1347,38 @@ def test_when_array_3d_bulk_child():
     assert check_gold(__file__, "test_when_array_3d_bulk_child.mlir")
 
 
+def test_when_temporary_resolved():
+    class test_when_temporary_resolved(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[2]), O=m.Out(m.Bits[8]))
+
+        N = 8
+        const = 4
+        count = m.Register(m.Bits[N])()
+        x = m.zext_to(count.O, N + 1) + m.zext_to(io.I, N + 1)
+        y = x[0:N]
+        z = m.zext_to((count.O - const), N)
+
+        countNext = m.Bits[N]()
+
+        with m.when(io.S[0]):
+            countNext @= z
+        with m.elsewhen(io.S[1]):
+            countNext @= y
+        with m.otherwise():
+            countNext @= y - const
+
+        # Force resolve
+        for i in range(8):
+            count.I[i] @= countNext[i]
+        io.O @= countNext
+
+    m.compile("build/test_when_temporary_resolved",
+              test_when_temporary_resolved, output="mlir",
+              disallow_local_variables=True)
+
+    assert check_gold(__file__, "test_when_temporary_resolved.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():

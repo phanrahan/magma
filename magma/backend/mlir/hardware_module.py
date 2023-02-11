@@ -605,11 +605,10 @@ class ModuleVisitor:
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
-            if value_to_index is output_to_index:
-                root_value = get_parent_array(value)
-                if root_value in value_to_index:
-                    # Don't add, only need its parent
-                    return
+            root_value = get_parent_array(value)
+            if root_value in value_to_index:
+                # Don't add, only need its parent
+                return
 
             value_to_index[value] = next(counter)
 
@@ -649,7 +648,7 @@ class ModuleVisitor:
             )
             return fields
 
-        def _check_array_child_wire(val):
+        def _check_array_child_wire(val, collection, to_index):
             """If val is a child of an array, get the root wire
             (so we add to a collection of drivers for a bulk assign)
             """
@@ -657,7 +656,7 @@ class ModuleVisitor:
             if root_value is None:
                 return None, None
             try:
-                wire = wires[output_to_index[root_value]]
+                wire = collection[to_index[root_value]]
             except KeyError:
                 # Could be a partially assigned array
                 return None, None
@@ -667,14 +666,43 @@ class ModuleVisitor:
                     self.index = tuple()
 
                 def __getitem__(self, idx):
-                    if isinstance(idx, slice):
-                        idx = idx.start  # sort on start idx
+                    # if isinstance(idx, slice):
+                    #     idx = idx.start  # sort on start idx
                     self.index += (idx, )
                     return self
 
             builder = _IndexBuilder()
             make_selector(val, stop_at=root_value).select(builder)
             return wire, builder.index
+
+        def _make_operand(wire, index):
+            if not index:
+                return wire
+            if isinstance(wire.type, builtin.IntegerType):
+                idx = index[0]
+                if isinstance(idx, slice):
+                    n = idx.stop - idx.start
+                    idx = idx.start
+                else:
+                    n = 1
+                operand = self._ctx.new_value(builtin.IntegerType(n))
+                comb.ExtractOp(
+                    operands=[wire],
+                    results=[operand],
+                    lo=idx)
+                return operand
+            i = index[0]
+            if isinstance(i, slice):
+                assert False
+                return
+            operand = self._ctx.new_value(wire.type.T)
+            num_sel_bits = clog2(wire.type.dims[0])
+            # Avoid lru_cache for inside block
+            i = self.make_constant.__wrapped__(self, Bits[num_sel_bits], i)
+            hw.ArrayGetOp(
+                operands=[wire, i],
+                results=[operand])
+            return _make_operand(operand, index[1:])
 
         def _build_wire_map(connections):
             """Collect a map of output wires to their drivers.
@@ -685,10 +713,18 @@ class ModuleVisitor:
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
-                    operand = module.operands[input_to_index[driver_elt]]
-                    wire, index = _check_array_child_wire(drivee_elt)
+                    operand_wire, operand_index = _check_array_child_wire(
+                        driver_elt, module.operands, input_to_index)
+                    wire, index = _check_array_child_wire(
+                        drivee_elt, wires, output_to_index)
+                    if operand_wire:
+                        operand = _make_operand(operand_wire, operand_index)
+                    else:
+                        operand = module.operands[input_to_index[driver_elt]]
                     if wire:
                         wire_map.setdefault(wire, {})
+                        index = tuple(i if not isinstance(i, slice) else i.start
+                                      for i in index)
                         wire_map[wire][index] = operand
                     else:
                         wire = wires[output_to_index[drivee_elt]]
