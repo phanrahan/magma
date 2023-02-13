@@ -1391,7 +1391,7 @@ def test_when_2d_array_assign_slice():
             io.O[2:] @= io.I[:2]
 
     m.compile("build/test_when_2d_array_assign_slice",
-              test_when_2d_array_assign_slice, output="mlir-verilog")
+              test_when_2d_array_assign_slice, output="mlir")
 
     assert check_gold(__file__, "test_when_2d_array_assign_slice.mlir")
 
