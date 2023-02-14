@@ -140,7 +140,7 @@ class Generator2(metaclass=_Generator2Meta):
 
     def __call__(cls, *args, **kwargs):
         if "debug_info" not in kwargs:
-            kwargs["debug_info"] = get_debug_info(4)
+            kwargs["debug_info"] = get_debug_info(3)
         return type(cls)._base_metacls_.__call__(cls, *args, **kwargs)
 
     @classmethod
