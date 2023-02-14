@@ -1,6 +1,7 @@
 import os
 import pathlib
 import pytest
+import uinspect
 
 import magma as m
 from magma.debug import get_debug_info, debug_info, magma_helper_function
@@ -12,7 +13,7 @@ def test_magma_debug_ext():
     filedir = os.path.realpath(os.path.dirname(__file__))
     assert get_debug_info(2) == debug_info(
         f"{filedir}/test_debug.py",
-        13,
+        14,
         None
     )
 
@@ -36,7 +37,8 @@ def test_primitive_debug_info(op):
         op()  # just to instance some primitive
 
     inst = Foo.instances[0]
-    assert inst.debug_info.filename == __file__
+    filename, lineno = uinspect.get_location()
+    assert inst.debug_info.filename == filename
 
 
 def test_helper_function():
@@ -58,8 +60,11 @@ def test_helper_function():
         _make_foo()
 
     instances = Bar.instances
-    assert instances[1].debug_info.lineno == instances[0].debug_info.lineno + 1
-    assert instances[2].debug_info.lineno == instances[0].debug_info.lineno - 8
+    filename, lineno = uinspect.get_location()
+    assert all(inst.debug_info.filename == filename for inst in instances)
+    assert instances[0].debug_info.lineno == lineno - 5
+    assert instances[1].debug_info.lineno == lineno - 4
+    assert instances[2].debug_info.lineno == lineno - 13
 
 
 def test_circuit_builder():
@@ -77,7 +82,9 @@ def test_circuit_builder():
         b0.I @= io.I
         io.O @= b0.O
 
-    assert Top.instances[0].debug_info.filename == __file__
+    filename, lineno = uinspect.get_location()
+    assert Top.instances[0].debug_info.filename == filename
+    assert Top.instances[0].debug_info.lineno == lineno - 4
     assert Top.instances[0].debug_info == Top.b0.debug_info
 
 
@@ -92,7 +99,9 @@ def test_when():
 
     finalize_whens(Top)
 
-    assert Top.instances[0].debug_info.filename == __file__
+    filename, lineno = uinspect.get_location()
+    assert Top.instances[0].debug_info.filename == filename
+    assert Top.instances[0].debug_info.lineno == lineno - 7
 
 
 def test_wire():
@@ -105,4 +114,6 @@ def test_wire():
 
     insert_coreir_wires(Top)
 
-    assert Top.instances[0].debug_info.filename == __file__
+    filename, lineno = uinspect.get_location()
+    assert Top.instances[0].debug_info.filename == filename
+    assert Top.instances[0].debug_info.lineno == lineno - 4
