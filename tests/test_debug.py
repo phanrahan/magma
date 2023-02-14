@@ -117,3 +117,26 @@ def test_wire():
     filename, lineno = uinspect.get_location()
     assert Top.instances[0].debug_info.filename == filename
     assert Top.instances[0].debug_info.lineno == lineno - 4
+
+
+def test_generator_instance():
+
+    class MyGen(m.Generator2):
+        def __init__(self, w: int):
+            self.io = io = m.IO(I=m.In(m.Bits[w]), O=m.Out(m.Bits[w]))
+            io.O @= io.I
+
+    MyGen4 = MyGen(4)
+    MyGen8 = MyGen(8)
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[12]), O=m.Out(m.Bits[12]))
+        x = MyGen4()(io.I[:4])
+        y = MyGen8()(io.I[4:])
+        io.O @= m.concat(x, y)
+
+    filename, lineno = uinspect.get_location()
+    instances = Top.instances
+    assert all(inst.debug_info.filename == filename for inst in instances)
+    assert instances[0].debug_info.lineno == lineno - 4
+    assert instances[1].debug_info.lineno == lineno - 3
