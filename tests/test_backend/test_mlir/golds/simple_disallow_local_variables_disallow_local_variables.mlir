@@ -8,17 +8,17 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %4 = sv.read_inout %5 : !hw.inout<i2>
         sv.alwayscomb {
             sv.if %s {
-                %6 = comb.extract %2 from 0 : (i2) -> i1
-                %7 = comb.extract %2 from 1 : (i2) -> i1
                 %8 = comb.concat %7, %6 : i1, i1
                 sv.bpassign %5, %8 : i2
             } else {
-                %9 = comb.extract %x from 0 : (i2) -> i1
-                %10 = comb.extract %x from 1 : (i2) -> i1
                 %11 = comb.concat %10, %9 : i1, i1
                 sv.bpassign %5, %11 : i2
             }
         }
+        %6 = comb.extract %2 from 0 : (i2) -> i1
+        %7 = comb.extract %2 from 1 : (i2) -> i1
+        %9 = comb.extract %x from 0 : (i2) -> i1
+        %10 = comb.extract %x from 1 : (i2) -> i1
         %12 = comb.extract %4 from 1 : (i2) -> i1
         %13 = comb.extract %4 from 0 : (i2) -> i1
         %16 = sv.reg : !hw.inout<i1>
