@@ -666,8 +666,6 @@ class ModuleVisitor:
                     self.index = tuple()
 
                 def __getitem__(self, idx):
-                    # if isinstance(idx, slice):
-                    #     idx = idx.start  # sort on start idx
                     self.index += (idx, )
                     return self
 
@@ -767,8 +765,6 @@ class ModuleVisitor:
                 operands = [_combine_array_assign(T.T, value[i])
                             for i in range(T.dims[0])]
                 i = 0
-                print("---")
-                print(operands)
                 while i < len(operands):
                     if i == len(operands) - 1:
                         break
@@ -795,8 +791,6 @@ class ModuleVisitor:
                                 results=[operand])
                         operands[j] = operand
                     i = j
-                print(operands)
-                print("---")
                 hw.ArrayCreateOp(operands=list(reversed(operands)),
                                  results=[result])
             return result
