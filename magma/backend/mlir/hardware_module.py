@@ -722,22 +722,26 @@ class ModuleVisitor:
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
+
                     operand_wire, operand_index = _check_array_child_wire(
                         driver_elt, module.operands, input_to_index)
-                    wire, index = _check_array_child_wire(
-                        drivee_elt, wires, output_to_index)
                     if operand_wire:
                         operand = _make_operand(operand_wire, operand_index)
                     else:
                         operand = module.operands[input_to_index[driver_elt]]
-                    if wire:
-                        wire_map.setdefault(wire, {})
-                        index = tuple(i if not isinstance(i, slice) else i.start
-                                      for i in index)
-                        wire_map[wire][index] = operand
+
+                    drivee_wire, drivee_index = _check_array_child_wire(
+                        drivee_elt, wires, output_to_index)
+                    if drivee_wire:
+                        wire_map.setdefault(drivee_wire, {})
+                        drivee_index = tuple(
+                            i if not isinstance(i, slice) else i.start
+                            for i in drivee_index
+                        )
+                        wire_map[drivee_wire][drivee_index] = operand
                     else:
-                        wire = wires[output_to_index[drivee_elt]]
-                        wire_map[wire] = operand
+                        drivee_wire = wires[output_to_index[drivee_elt]]
+                        wire_map[drivee_wire] = operand
             return wire_map
 
         def _make_arr(T):
