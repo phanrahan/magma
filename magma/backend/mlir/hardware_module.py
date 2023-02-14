@@ -767,30 +767,38 @@ class ModuleVisitor:
                 return None
             result = self._ctx.new_value(T)
             if isinstance(T, builtin.IntegerType):
+                # Filter None because we can concat indices/slices
                 operands = [x for x in reversed(value) if x is not None]
                 comb.ConcatOp(operands=operands, results=[result])
             else:
                 assert len(T.dims) == 1, "Expected 1d array"
-                operands = [_combine_array_assign(T.T, value[i])
-                            for i in range(T.dims[0])]
+                operands = (_combine_array_assign(T.T, value[i])
+                            for i in reversed(range(T.dims[0])))
+                operands = [x for x in operands if x is not None]
+                new_operands = []
                 i = 0
                 while i < len(operands):
-                    if i == len(operands) - 1:
+                    if i == len(operands):
                         break
-                    if operands[i + 1] is not None:
+                    if not operands[i].type is T.T:
+                        # slice
+                        new_operands.append(operands[i])
                         i += 1
                         continue
-                    curr_slice = operands[i]
-                    n = i + 1
-                    while operands[n] is None:
-                        n += 1
-                    n -= i
 
-                    for j in range(i, i + n):
-                        with push_block(outer_block):
-                            operands[j] = self.make_array_ref(curr_slice, j)
-                    i = j
-                hw.ArrayCreateOp(operands=list(reversed(operands)),
+                    elems = []
+                    while i < len(operands) and operands[i].type is T.T:
+                        elems.append(operands[i])
+                        i += 1
+                    elems_T = hw.ArrayType((len(elems),), T.T)
+                    if len(elems) == len(operands):
+                        # Whole create op
+                        hw.ArrayCreateOp(operands=elems, results=[result])
+                        return result
+                    curr_result = self._ctx.new_value(elems_T)
+                    hw.ArrayCreateOp(operands=elems, results=[curr_result])
+                    new_operands.append(curr_result)
+                hw.ArrayConcatOp(operands=new_operands,
                                  results=[result])
             return result
 
