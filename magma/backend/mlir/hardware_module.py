@@ -28,7 +28,7 @@ from magma.backend.mlir.magma_common import (
 )
 from magma.backend.mlir.mlir import (
     MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block,
-    push_location,
+    push_location, get_block_stack
 )
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
@@ -639,6 +639,8 @@ class ModuleVisitor:
             sv.RegOp(results=[wire])
             sv.ReadInOutOp(operands=[wire], results=[result])
 
+        outer_block = get_block_stack().peek()
+
         def _collect_visited(value):
             fields = []
             visit_magma_value_or_value_wrapper_by_direction(
@@ -694,15 +696,16 @@ class ModuleVisitor:
             if isinstance(i, slice):
                 n = i.stop - i.start
                 operand = self._ctx.new_value(hw.ArrayType((n, ), wire.type.T))
-                i = self.make_constant.__wrapped__(self, Bits[num_sel_bits],
-                                                   i.start)
+                with push_block(outer_block):
+                    i = self.make_constant(Bits[num_sel_bits], i.start)
                 hw.ArraySliceOp(
                     operands=[wire, i],
                     results=[operand])
             else:
                 operand = self._ctx.new_value(wire.type.T)
                 # Avoid lru_cache for inside block
-                i = self.make_constant.__wrapped__(self, Bits[num_sel_bits], i)
+                with push_block(outer_block):
+                    i = self.make_constant(Bits[num_sel_bits], i)
                 hw.ArrayGetOp(
                     operands=[wire, i],
                     results=[operand])
@@ -785,9 +788,10 @@ class ModuleVisitor:
                                 results=operand,
                                 lo=j)
                         else:
+                            with push_block(outer_block):
+                                const = self.make_constant(Bits[n - 1], j)
                             hw.ArrayGetOp(
-                                operands=[curr_slice,
-                                          self.make_constant.__wrapped__(self, Bits[n - 1], j)],
+                                operands=[curr_slice, const],
                                 results=[operand])
                         operands[j] = operand
                     i = j
@@ -1098,9 +1102,9 @@ class ModuleVisitor:
                             lo=i)
                     else:
                         sel = clog2(n)
+                        const = self.make_constant(Bits[sel], i)
                         hw.ArrayGetOp(
-                            operands=[operand,
-                                      self.make_constant.__wrapped__(self, Bits[sel], i)],
+                            operands=[operand, const],
                             results=[result])
                     operands.append(result)
             hw.ArrayCreateOp(

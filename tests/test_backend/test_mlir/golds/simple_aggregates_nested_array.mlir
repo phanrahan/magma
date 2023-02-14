@@ -12,15 +12,11 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %9 = hw.array_get %0[%10] : !hw.array<4x!hw.array<4xi16>>, i2
         %12 = hw.constant 3 : i2
         %11 = hw.array_get %0[%12] : !hw.array<4x!hw.array<4xi16>>, i2
-        %14 = hw.constant 0 : i2
-        %13 = hw.array_get %2[%14] : !hw.array<4x!hw.array<4xi16>>, i2
-        %16 = hw.constant 1 : i2
-        %15 = hw.array_get %2[%16] : !hw.array<4x!hw.array<4xi16>>, i2
-        %18 = hw.constant 2 : i2
-        %17 = hw.array_get %2[%18] : !hw.array<4x!hw.array<4xi16>>, i2
-        %20 = hw.constant 3 : i2
-        %19 = hw.array_get %2[%20] : !hw.array<4x!hw.array<4xi16>>, i2
-        %4 = hw.array_create %19, %17, %15, %13, %11, %9, %7, %5 : !hw.array<4xi16>
+        %13 = hw.array_get %2[%6] : !hw.array<4x!hw.array<4xi16>>, i2
+        %14 = hw.array_get %2[%8] : !hw.array<4x!hw.array<4xi16>>, i2
+        %15 = hw.array_get %2[%10] : !hw.array<4x!hw.array<4xi16>>, i2
+        %16 = hw.array_get %2[%12] : !hw.array<4x!hw.array<4xi16>>, i2
+        %4 = hw.array_create %16, %15, %14, %13, %11, %9, %7, %5 : !hw.array<4xi16>
         hw.output %4 : !hw.array<8x!hw.array<4xi16>>
     }
 }
