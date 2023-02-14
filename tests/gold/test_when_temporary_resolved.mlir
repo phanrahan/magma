@@ -50,14 +50,6 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %1 = sv.read_inout %41 : !hw.inout<i8>
         sv.alwayscomb {
             sv.if %0 {
-                %42 = comb.extract %6 from 0 : (i8) -> i1
-                %43 = comb.extract %6 from 1 : (i8) -> i1
-                %44 = comb.extract %6 from 2 : (i8) -> i1
-                %45 = comb.extract %6 from 3 : (i8) -> i1
-                %46 = comb.extract %6 from 4 : (i8) -> i1
-                %47 = comb.extract %6 from 5 : (i8) -> i1
-                %48 = comb.extract %6 from 6 : (i8) -> i1
-                %49 = comb.extract %6 from 7 : (i8) -> i1
                 %50 = comb.concat %49, %48, %47, %46, %45, %44, %43, %42 : i1, i1, i1, i1, i1, i1, i1, i1
                 sv.bpassign %41, %50 : i8
             } else {
@@ -65,19 +57,27 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
                     %51 = comb.concat %36, %35, %34, %33, %32, %31, %30, %29 : i1, i1, i1, i1, i1, i1, i1, i1
                     sv.bpassign %41, %51 : i8
                 } else {
-                    %52 = comb.extract %40 from 0 : (i8) -> i1
-                    %53 = comb.extract %40 from 1 : (i8) -> i1
-                    %54 = comb.extract %40 from 2 : (i8) -> i1
-                    %55 = comb.extract %40 from 3 : (i8) -> i1
-                    %56 = comb.extract %40 from 4 : (i8) -> i1
-                    %57 = comb.extract %40 from 5 : (i8) -> i1
-                    %58 = comb.extract %40 from 6 : (i8) -> i1
-                    %59 = comb.extract %40 from 7 : (i8) -> i1
                     %60 = comb.concat %59, %58, %57, %56, %55, %54, %53, %52 : i1, i1, i1, i1, i1, i1, i1, i1
                     sv.bpassign %41, %60 : i8
                 }
             }
         }
+        %42 = comb.extract %6 from 0 : (i8) -> i1
+        %43 = comb.extract %6 from 1 : (i8) -> i1
+        %44 = comb.extract %6 from 2 : (i8) -> i1
+        %45 = comb.extract %6 from 3 : (i8) -> i1
+        %46 = comb.extract %6 from 4 : (i8) -> i1
+        %47 = comb.extract %6 from 5 : (i8) -> i1
+        %48 = comb.extract %6 from 6 : (i8) -> i1
+        %49 = comb.extract %6 from 7 : (i8) -> i1
+        %52 = comb.extract %40 from 0 : (i8) -> i1
+        %53 = comb.extract %40 from 1 : (i8) -> i1
+        %54 = comb.extract %40 from 2 : (i8) -> i1
+        %55 = comb.extract %40 from 3 : (i8) -> i1
+        %56 = comb.extract %40 from 4 : (i8) -> i1
+        %57 = comb.extract %40 from 5 : (i8) -> i1
+        %58 = comb.extract %40 from 6 : (i8) -> i1
+        %59 = comb.extract %40 from 7 : (i8) -> i1
         hw.output %1 : i8
     }
 }

@@ -8,8 +8,6 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %4 = sv.read_inout %5 : !hw.inout<i2>
         sv.alwayscomb {
             sv.if %S {
-                %6 = comb.extract %I from 0 : (i2) -> i1
-                %7 = comb.extract %I from 1 : (i2) -> i1
                 %8 = comb.concat %7, %6 : i1, i1
                 sv.bpassign %5, %8 : i2
             } else {
@@ -17,6 +15,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %5, %9 : i2
             }
         }
+        %6 = comb.extract %I from 0 : (i2) -> i1
+        %7 = comb.extract %I from 1 : (i2) -> i1
         hw.output %4 : i2
     }
 }

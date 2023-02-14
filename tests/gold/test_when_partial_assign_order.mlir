@@ -23,41 +23,33 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %21 = sv.reg : !hw.inout<i1>
         %16 = sv.read_inout %21 : !hw.inout<i1>
         sv.alwayscomb {
-            %22 = comb.extract %I from 0 : (i2) -> i1
-            %23 = comb.extract %I from 1 : (i2) -> i1
             sv.bpassign %20, %22 : i1
             sv.bpassign %21, %23 : i1
             sv.if %0 {
-                %24 = comb.extract %I from 0 : (i2) -> i1
-                %25 = comb.extract %I from 1 : (i2) -> i1
                 sv.bpassign %17, %3 : i1
                 sv.bpassign %18, %4 : i1
-                %26 = comb.concat %25, %24 : i1, i1
-                sv.bpassign %19, %26 : i2
+                %24 = comb.concat %23, %22 : i1, i1
+                sv.bpassign %19, %24 : i2
             } else {
                 sv.if %5 {
-                    %27 = comb.extract %I from 0 : (i2) -> i1
-                    %28 = comb.extract %I from 1 : (i2) -> i1
-                    %29 = comb.extract %I from 0 : (i2) -> i1
-                    %30 = comb.extract %I from 1 : (i2) -> i1
-                    sv.bpassign %17, %27 : i1
-                    sv.bpassign %18, %28 : i1
-                    %31 = comb.concat %30, %29 : i1, i1
-                    sv.bpassign %19, %31 : i2
+                    sv.bpassign %17, %22 : i1
+                    sv.bpassign %18, %23 : i1
+                    %25 = comb.concat %23, %22 : i1, i1
+                    sv.bpassign %19, %25 : i2
                 } else {
-                    %32 = comb.extract %I from 1 : (i2) -> i1
-                    %33 = comb.extract %I from 0 : (i2) -> i1
                     sv.bpassign %17, %7 : i1
                     sv.bpassign %18, %8 : i1
-                    sv.bpassign %20, %32 : i1
-                    sv.bpassign %21, %33 : i1
-                    %34 = comb.concat %11, %10 : i1, i1
-                    sv.bpassign %19, %34 : i2
+                    sv.bpassign %20, %23 : i1
+                    sv.bpassign %21, %22 : i1
+                    %26 = comb.concat %11, %10 : i1, i1
+                    sv.bpassign %19, %26 : i2
                 }
             }
         }
-        %35 = comb.concat %16, %15 : i1, i1
-        %36 = comb.concat %13, %12 : i1, i1
-        hw.output %35, %36, %14 : i2, i2, i2
+        %22 = comb.extract %I from 0 : (i2) -> i1
+        %23 = comb.extract %I from 1 : (i2) -> i1
+        %27 = comb.concat %16, %15 : i1, i1
+        %28 = comb.concat %13, %12 : i1, i1
+        hw.output %27, %28, %14 : i2, i2, i2
     }
 }

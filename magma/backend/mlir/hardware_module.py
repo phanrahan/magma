@@ -298,6 +298,33 @@ class ModuleVisitor:
             return result
         raise TypeError(T)
 
+    @functools.lru_cache()
+    def make_array_ref(self, arr: MlirValue, i: Union[int, tuple]) -> MlirValue:
+        if isinstance(i, tuple):  # slice
+            start, stop, step = i
+            assert step in [1, None], "Expected step 1 slice"
+            n = stop - start
+        else:
+            start = i
+            n = 1
+
+        if isinstance(arr.type, builtin.IntegerType):
+            operand = self._ctx.new_value(builtin.IntegerType(n))
+            comb.ExtractOp(operands=[arr], results=[operand], lo=start)
+            return operand
+
+        num_sel_bits = clog2(arr.type.dims[0])
+        start = self.make_constant(Bits[num_sel_bits], start)
+
+        if isinstance(i, tuple):
+            operand = self._ctx.new_value(hw.ArrayType((n, ), arr.type.T))
+            hw.ArraySliceOp(operands=[arr, start], results=[operand])
+            return operand
+
+        operand = self._ctx.new_value(arr.type.T)
+        hw.ArrayGetOp(operands=[arr, start], results=[operand])
+        return operand
+
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -678,37 +705,12 @@ class ModuleVisitor:
         def _make_operand(wire, index):
             if not index:
                 return wire
-            if isinstance(wire.type, builtin.IntegerType):
-                idx = index[0]
-                if isinstance(idx, slice):
-                    n = idx.stop - idx.start
-                    idx = idx.start
-                else:
-                    n = 1
-                operand = self._ctx.new_value(builtin.IntegerType(n))
-                comb.ExtractOp(
-                    operands=[wire],
-                    results=[operand],
-                    lo=idx)
-                return operand
             i = index[0]
-            num_sel_bits = clog2(wire.type.dims[0])
             if isinstance(i, slice):
-                n = i.stop - i.start
-                operand = self._ctx.new_value(hw.ArrayType((n, ), wire.type.T))
-                with push_block(outer_block):
-                    i = self.make_constant(Bits[num_sel_bits], i.start)
-                hw.ArraySliceOp(
-                    operands=[wire, i],
-                    results=[operand])
-            else:
-                operand = self._ctx.new_value(wire.type.T)
-                # Avoid lru_cache for inside block
-                with push_block(outer_block):
-                    i = self.make_constant(Bits[num_sel_bits], i)
-                hw.ArrayGetOp(
-                    operands=[wire, i],
-                    results=[operand])
+                # convert to tuple for hashing
+                i = (i.start, i.stop, i.step)
+            with push_block(outer_block):
+                operand = self.make_array_ref(wire, i)
             return _make_operand(operand, index[1:])
 
         def _build_wire_map(connections):
