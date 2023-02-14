@@ -92,16 +92,21 @@ def test_when():
 
     class Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), S=m.In(m.Bit), O=m.Out(m.Bit))
+        x = m.Bit(name="x")
+        x @= io.I
         with m.when(io.S):
-            io.O @= io.I
+            io.O @= x
         with m.otherwise():
             io.O @= 0
 
     finalize_whens(Top)
+    insert_coreir_wires(Top)
 
     filename, lineno = uinspect.get_location()
     assert Top.instances[0].debug_info.filename == filename
-    assert Top.instances[0].debug_info.lineno == lineno - 7
+    assert Top.instances[0].debug_info.lineno == lineno - 8
+    assert Top.instances[1].debug_info.filename == filename
+    assert Top.instances[1].debug_info.lineno == lineno - 8
 
 
 def test_wire():

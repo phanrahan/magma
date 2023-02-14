@@ -197,6 +197,8 @@ class WhenBuilder(CircuitBuilder):
                 port.rewire(value)
             else:
                 wire(port, value)
+                port.debug_info = self.debug_info
+                value.debug_info = self.debug_info
 
     def add_drivee(self, value: Type):
         self._generic_add(
