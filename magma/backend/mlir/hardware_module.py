@@ -787,19 +787,8 @@ class ModuleVisitor:
                     n -= i
 
                     for j in range(i, i + n):
-                        operand = self._ctx.new_value(T.T)
-                        if isinstance(T, builtin.IntegerType):
-                            comb.ExtractOp(
-                                operands=curr_slice,
-                                results=operand,
-                                lo=j)
-                        else:
-                            with push_block(outer_block):
-                                const = self.make_constant(Bits[n - 1], j)
-                            hw.ArrayGetOp(
-                                operands=[curr_slice, const],
-                                results=[operand])
-                        operands[j] = operand
+                        with push_block(outer_block):
+                            operands[j] = self.make_array_ref(curr_slice, j)
                     i = j
                 hw.ArrayCreateOp(operands=list(reversed(operands)),
                                  results=[result])
