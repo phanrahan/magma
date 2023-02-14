@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 
 __all__ = ["Compiler", "make_compiler"]
@@ -9,6 +9,9 @@ class Compiler:
         self.main = main
         self.basename = basename
         self.opts = opts
+
+    def run_pre_uniquification_passes(self):
+        pass
 
     def compile(self):
         suffix = self.suffix()
