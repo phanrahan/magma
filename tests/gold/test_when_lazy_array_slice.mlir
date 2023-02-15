@@ -31,7 +31,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %17, %4 : i1
             }
         }
-        %18 = comb.concat %8, %9, %10, %11 : i1, i1, i1, i1
+        %18 = comb.concat %11, %10, %9, %8 : i1, i1, i1, i1
         %20 = sv.wire sym @test_when_lazy_array_slice.x {name="x"} : !hw.inout<i4>
         sv.assign %20, %18 : i4
         %19 = sv.read_inout %20 : !hw.inout<i4>

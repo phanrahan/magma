@@ -22,7 +22,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %14 = comb.extract %2 from 6 : (i8) -> i1
         %15 = comb.extract %2 from 7 : (i8) -> i1
         %16 = hw.constant 0 : i1
-        %17 = comb.concat %8, %9, %10, %11, %12, %13, %14, %15, %16 : i1, i1, i1, i1, i1, i1, i1, i1, i1
+        %17 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9, %8 : i1, i1, i1, i1, i1, i1, i1, i1, i1
         %18 = comb.extract %I from 0 : (i8) -> i1
         %19 = comb.extract %I from 1 : (i8) -> i1
         %20 = comb.extract %I from 2 : (i8) -> i1
@@ -32,7 +32,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %24 = comb.extract %I from 6 : (i8) -> i1
         %25 = comb.extract %I from 7 : (i8) -> i1
         %26 = hw.constant 0 : i1
-        %27 = comb.concat %18, %19, %20, %21, %22, %23, %24, %25, %26 : i1, i1, i1, i1, i1, i1, i1, i1, i1
+        %27 = comb.concat %26, %25, %24, %23, %22, %21, %20, %19, %18 : i1, i1, i1, i1, i1, i1, i1, i1, i1
         %28 = comb.add %17, %27 : i9
         %29 = comb.extract %28 from 0 : (i9) -> i1
         %30 = comb.extract %28 from 1 : (i9) -> i1
@@ -42,8 +42,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %34 = comb.extract %28 from 5 : (i9) -> i1
         %35 = comb.extract %28 from 6 : (i9) -> i1
         %36 = comb.extract %28 from 7 : (i9) -> i1
-        %37 = comb.concat %29, %30, %31, %32, %33, %34, %35, %36 : i1, i1, i1, i1, i1, i1, i1, i1
-        %38 = comb.concat %29, %30, %31, %32, %33, %34, %35, %36 : i1, i1, i1, i1, i1, i1, i1, i1
+        %37 = comb.concat %36, %35, %34, %33, %32, %31, %30, %29 : i1, i1, i1, i1, i1, i1, i1, i1
+        %38 = comb.concat %36, %35, %34, %33, %32, %31, %30, %29 : i1, i1, i1, i1, i1, i1, i1, i1
         %39 = hw.constant 4 : i8
         %40 = comb.sub %38, %39 : i8
         %41 = sv.reg : !hw.inout<i8>

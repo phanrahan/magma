@@ -22,7 +22,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %12 = comb.extract %3 from 1 : (i4) -> i1
         %13 = comb.extract %3 from 2 : (i4) -> i1
         %14 = comb.extract %I from 0 : (i4) -> i1
-        %15 = comb.concat %11, %12, %13, %14 : i1, i1, i1, i1
+        %15 = comb.concat %14, %13, %12, %11 : i1, i1, i1, i1
         %17 = sv.wire sym @test_when_lazy_array_slice_driving_resolve_2.x {name="x"} : !hw.inout<i4>
         sv.assign %17, %15 : i4
         %16 = sv.read_inout %17 : !hw.inout<i4>

@@ -20,7 +20,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %10 = comb.extract %0 from 0 : (i4) -> i2
         %11 = comb.extract %0 from 2 : (i4) -> i1
         %12 = comb.extract %0 from 3 : (i4) -> i1
-        %13 = comb.concat %10, %11, %12 : i2, i1, i1
+        %13 = comb.concat %12, %11, %10 : i1, i1, i2
         hw.output %13 : i4
     }
 }

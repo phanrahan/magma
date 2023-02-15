@@ -26,8 +26,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %16 = hw.array_slice %0[%2] : (!hw.array<4xi2>) -> !hw.array<2xi2>
         %17 = hw.array_get %0[%4] : !hw.array<4xi2>, i2
         %18 = hw.array_get %0[%6] : !hw.array<4xi2>, i2
-        %20 = hw.array_create %17, %18 : i2
-        %19 = hw.array_concat %16, %20 : !hw.array<2xi2>, !hw.array<2xi2>
+        %20 = hw.array_create %18, %17 : i2
+        %19 = hw.array_concat %20, %16 : !hw.array<2xi2>, !hw.array<2xi2>
         hw.output %19 : !hw.array<4xi2>
     }
 }

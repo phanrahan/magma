@@ -48,8 +48,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         }
         %22 = comb.extract %I from 0 : (i2) -> i1
         %23 = comb.extract %I from 1 : (i2) -> i1
-        %27 = comb.concat %15, %16 : i1, i1
-        %28 = comb.concat %12, %13 : i1, i1
+        %27 = comb.concat %16, %15 : i1, i1
+        %28 = comb.concat %13, %12 : i1, i1
         hw.output %27, %28, %14 : i2, i2, i2
     }
 }
