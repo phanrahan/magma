@@ -759,6 +759,43 @@ class ModuleVisitor:
                 curr[idx[-1]] = elem
             return arr
 
+        def _make_concat(operands, result):
+            """Collect single elements and put them into an array create op,
+            this allows slices to be concatenated with the surround elements.
+            """
+            T = result.type
+            if isinstance(T, builtin.IntegerType):
+                # comb concat supports single elem/slices
+                return comb.ConcatOp(operands=operands, results=[result])
+            new_operands = []  # packed single elements
+            i = 0
+            while i < len(operands):
+                if i == len(operands):
+                    break
+                if not operands[i].type is T.T:
+                    # Found slice
+                    new_operands.append(operands[i])
+                    i += 1
+                    continue
+
+                # Collect elements until we encounter a slice or the end.
+                elems = []
+                while i < len(operands) and operands[i].type is T.T:
+                    elems.append(operands[i])
+                    i += 1
+
+                if len(elems) == len(operands):
+                    # Found a whole create op
+                    return hw.ArrayCreateOp(operands=elems, results=[result])
+
+                # Add create for current elements
+                elems_T = hw.ArrayType((len(elems),), T.T)
+                curr_result = self._ctx.new_value(elems_T)
+                hw.ArrayCreateOp(operands=elems, results=[curr_result])
+                new_operands.append(curr_result)
+
+            hw.ArrayConcatOp(operands=new_operands, results=[result])
+
         def _combine_array_assign(T, value):
             """Sort drivers by index, use concat or create depending on type"""
             if isinstance(value, MlirValue):
@@ -766,40 +803,15 @@ class ModuleVisitor:
             if all(x is None for x in value):
                 return None
             result = self._ctx.new_value(T)
-            if isinstance(T, builtin.IntegerType):
-                # Filter None because we can concat indices/slices
-                operands = [x for x in reversed(value) if x is not None]
-                comb.ConcatOp(operands=operands, results=[result])
-            else:
+            operands = value
+            if not isinstance(T, builtin.IntegerType):
+                # recursive combine children
                 assert len(T.dims) == 1, "Expected 1d array"
-                operands = (_combine_array_assign(T.T, value[i])
-                            for i in reversed(range(T.dims[0])))
-                operands = [x for x in operands if x is not None]
-                new_operands = []
-                i = 0
-                while i < len(operands):
-                    if i == len(operands):
-                        break
-                    if not operands[i].type is T.T:
-                        # slice
-                        new_operands.append(operands[i])
-                        i += 1
-                        continue
-
-                    elems = []
-                    while i < len(operands) and operands[i].type is T.T:
-                        elems.append(operands[i])
-                        i += 1
-                    elems_T = hw.ArrayType((len(elems),), T.T)
-                    if len(elems) == len(operands):
-                        # Whole create op
-                        hw.ArrayCreateOp(operands=elems, results=[result])
-                        return result
-                    curr_result = self._ctx.new_value(elems_T)
-                    hw.ArrayCreateOp(operands=elems, results=[curr_result])
-                    new_operands.append(curr_result)
-                hw.ArrayConcatOp(operands=new_operands,
-                                 results=[result])
+                operands = [_combine_array_assign(T.T, value[i])
+                            for i in range(T.dims[0])]
+            # Filter None elements (indices covered by a previous slice)
+            operands = [x for x in reversed(operands) if x is not None]
+            _make_concat(operands, result)
             return result
 
         def _make_assignments(connections):

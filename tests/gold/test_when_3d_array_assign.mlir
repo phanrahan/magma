@@ -4,14 +4,14 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %0 = sv.read_inout %1 : !hw.inout<!hw.array<2x!hw.array<2xi2>>>
         sv.alwayscomb {
             sv.if %S {
-                %11 = hw.array_create %6, %5 : i2
-                %12 = hw.array_create %9, %8 : i2
-                %10 = hw.array_create %11, %12 : !hw.array<2xi2>
+                %11 = hw.array_create %9, %8 : i2
+                %12 = hw.array_create %6, %5 : i2
+                %10 = hw.array_create %12, %11 : !hw.array<2xi2>
                 sv.bpassign %1, %10 : !hw.array<2x!hw.array<2xi2>>
             } else {
-                %14 = hw.array_create %8, %9 : i2
-                %15 = hw.array_create %5, %6 : i2
-                %13 = hw.array_create %14, %15 : !hw.array<2xi2>
+                %14 = hw.array_create %5, %6 : i2
+                %15 = hw.array_create %8, %9 : i2
+                %13 = hw.array_create %15, %14 : !hw.array<2xi2>
                 sv.bpassign %1, %13 : !hw.array<2x!hw.array<2xi2>>
             }
         }
