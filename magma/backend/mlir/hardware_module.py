@@ -1095,7 +1095,8 @@ class ModuleVisitor:
                 return True
             return self.visit_array_slice(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
-            self._make_concat(module.operands, module.results[0])
+            self._make_concat(list(reversed(module.operands)),
+                              module.results[0])
             return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):
             index = inst_wrapper.attrs["index"]
