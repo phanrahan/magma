@@ -703,6 +703,8 @@ class ModuleVisitor:
             sv.RegOp(results=[wire])
             sv.ReadInOutOp(operands=[wire], results=[result])
 
+        # Track outer_block so array_ref/constants are placed outside the always
+        # comb to reduce code repetition
         outer_block = get_block_stack().peek()
 
         def _collect_visited(value):
