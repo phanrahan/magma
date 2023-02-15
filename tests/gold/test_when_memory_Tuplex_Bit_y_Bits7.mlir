@@ -7,7 +7,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %4 = comb.extract %WDATA_y from 4 : (i7) -> i1
         %5 = comb.extract %WDATA_y from 5 : (i7) -> i1
         %6 = comb.extract %WDATA_y from 6 : (i7) -> i1
-        %7 = comb.concat %6, %5, %4, %3, %2, %1, %0, %WDATA_x : i1, i1, i1, i1, i1, i1, i1, i1
+        %7 = comb.concat %WDATA_x, %0, %1, %2, %3, %4, %5, %6 : i1, i1, i1, i1, i1, i1, i1, i1
         %9 = sv.reg {name = "coreir_mem32x8_inst0"} : !hw.inout<!hw.array<32xi8>>
         %10 = sv.array_index_inout %9[%RADDR] : !hw.inout<!hw.array<32xi8>>, i5
         %8 = sv.read_inout %10 : !hw.inout<i8>
@@ -25,7 +25,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %17 = comb.extract %8 from 5 : (i8) -> i1
         %18 = comb.extract %8 from 6 : (i8) -> i1
         %19 = comb.extract %8 from 7 : (i8) -> i1
-        %20 = comb.concat %19, %18, %17, %16, %15, %14, %13 : i1, i1, i1, i1, i1, i1, i1
+        %20 = comb.concat %13, %14, %15, %16, %17, %18, %19 : i1, i1, i1, i1, i1, i1, i1
         hw.output %12, %20 : i1, i7
     }
     hw.module @test_when_memory_Tuplex_Bit_y_Bits7(%data0_x: i1, %data0_y: i7, %addr0: i5, %en0: i1, %data1_x: i1, %data1_y: i7, %addr1: i5, %en1: i1, %CLK: i1) -> (out_x: i1, out_y: i7) {

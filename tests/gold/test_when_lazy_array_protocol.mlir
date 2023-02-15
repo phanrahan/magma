@@ -15,7 +15,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %5, %1 : i1
             }
         }
-        %6 = hw.array_create %3, %2 : i1
+        %6 = hw.array_create %2, %3 : i1
         %8 = sv.wire sym @test_when_lazy_array_protocol.x {name="x"} : !hw.inout<!hw.array<2xi1>>
         sv.assign %8, %6 : !hw.array<2xi1>
         %7 = sv.read_inout %8 : !hw.inout<!hw.array<2xi1>>

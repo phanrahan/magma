@@ -325,6 +325,43 @@ class ModuleVisitor:
         hw.ArrayGetOp(operands=[arr, start], results=[operand])
         return operand
 
+    def _make_concat(self, operands, result):
+        """Collect single elements and put them into an array create op,
+        this allows slices to be concatenated with the surround elements.
+        """
+        T = result.type
+        if isinstance(T, builtin.IntegerType):
+            # comb concat supports single elem/slices
+            return comb.ConcatOp(operands=operands, results=[result])
+        new_operands = []  # packed single elements
+        i = 0
+        while i < len(operands):
+            if i == len(operands):
+                break
+            if operands[i].type != T.T:
+                # Found slice
+                new_operands.append(operands[i])
+                i += 1
+                continue
+
+            # Collect elements until we encounter a slice or the end.
+            elems = []
+            while i < len(operands) and operands[i].type == T.T:
+                elems.append(operands[i])
+                i += 1
+
+            if len(elems) == len(operands):
+                # Found a whole create op
+                return hw.ArrayCreateOp(operands=elems, results=[result])
+
+            # Add create for current elements
+            elems_T = hw.ArrayType((len(elems),), T.T)
+            curr_result = self._ctx.new_value(elems_T)
+            hw.ArrayCreateOp(operands=elems, results=[curr_result])
+            new_operands.append(curr_result)
+
+        hw.ArrayConcatOp(operands=new_operands, results=[result])
+
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -759,43 +796,6 @@ class ModuleVisitor:
                 curr[idx[-1]] = elem
             return arr
 
-        def _make_concat(operands, result):
-            """Collect single elements and put them into an array create op,
-            this allows slices to be concatenated with the surround elements.
-            """
-            T = result.type
-            if isinstance(T, builtin.IntegerType):
-                # comb concat supports single elem/slices
-                return comb.ConcatOp(operands=operands, results=[result])
-            new_operands = []  # packed single elements
-            i = 0
-            while i < len(operands):
-                if i == len(operands):
-                    break
-                if not operands[i].type is T.T:
-                    # Found slice
-                    new_operands.append(operands[i])
-                    i += 1
-                    continue
-
-                # Collect elements until we encounter a slice or the end.
-                elems = []
-                while i < len(operands) and operands[i].type is T.T:
-                    elems.append(operands[i])
-                    i += 1
-
-                if len(elems) == len(operands):
-                    # Found a whole create op
-                    return hw.ArrayCreateOp(operands=elems, results=[result])
-
-                # Add create for current elements
-                elems_T = hw.ArrayType((len(elems),), T.T)
-                curr_result = self._ctx.new_value(elems_T)
-                hw.ArrayCreateOp(operands=elems, results=[curr_result])
-                new_operands.append(curr_result)
-
-            hw.ArrayConcatOp(operands=new_operands, results=[result])
-
         def _combine_array_assign(T, value):
             """Sort drivers by index, use concat or create depending on type"""
             if isinstance(value, MlirValue):
@@ -811,7 +811,7 @@ class ModuleVisitor:
                             for i in range(T.dims[0])]
             # Filter None elements (indices covered by a previous slice)
             operands = [x for x in reversed(operands) if x is not None]
-            _make_concat(operands, result)
+            self._make_concat(operands, result)
             return result
 
         def _make_assignments(connections):
@@ -1093,38 +1093,7 @@ class ModuleVisitor:
                 return True
             return self.visit_array_slice(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
-            T = inst_wrapper.attrs["T"]
-            if isinstance(T, BitsMeta) or issubclass(T.T, Bit):
-                comb.ConcatOp(
-                    operands=list(reversed(module.operands)),
-                    results=module.results)
-                return True
-            operands = []
-            for operand in module.operands:
-                if operand.type == magma_type_to_mlir_type(T.T):
-                    operands.append(operand)
-                    continue
-                if isinstance(operand.type, builtin.IntegerType):
-                    n = operand.type.n
-                else:
-                    n = operand.type.dims[0]
-                for i in range(n):
-                    result = self._ctx.new_value(T.T)
-                    if isinstance(operand.type, builtin.IntegerType):
-                        comb.ExtractOp(
-                            operands=operand,
-                            results=[result],
-                            lo=i)
-                    else:
-                        sel = clog2(n)
-                        const = self.make_constant(Bits[sel], i)
-                        hw.ArrayGetOp(
-                            operands=[operand, const],
-                            results=[result])
-                    operands.append(result)
-            hw.ArrayCreateOp(
-                operands=list(reversed(operands)),
-                results=module.results)
+            self._make_concat(module.operands, module.results[0])
             return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):
             index = inst_wrapper.attrs["index"]

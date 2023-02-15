@@ -11,7 +11,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %3, %0 : i1
             }
         }
-        %4 = comb.concat %2, %0 : i1, i1
+        %4 = comb.concat %0, %2 : i1, i1
         hw.output %4 : i2
     }
 }

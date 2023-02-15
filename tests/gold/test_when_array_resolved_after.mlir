@@ -44,7 +44,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %35 = comb.extract %10 from 5 : (i8) -> i1
         %36 = comb.extract %10 from 6 : (i8) -> i1
         %37 = comb.extract %10 from 7 : (i8) -> i1
-        %38 = comb.concat %37, %36, %35, %34, %33, %32, %31, %30, %7, %6, %5, %4, %3, %2, %1, %0 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
+        %38 = comb.concat %0, %1, %2, %3, %4, %5, %6, %7, %30, %31, %32, %33, %34, %35, %36, %37 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
         hw.output %38 : i16
     }
 }
