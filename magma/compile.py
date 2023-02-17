@@ -6,17 +6,14 @@ from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.backend.mlir.mlir_compiler import MlirCompiler
 from magma.bind import BindPass
 from magma.bind2 import bind_generators
-from magma.compiler import Compiler
 from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.is_definition import isdefinition
-from magma.passes.clock import WireClockPass
 from magma.passes.drive_undriven import drive_undriven
 from magma.passes.instance_callback_pass import instance_callback_pass
 from magma.passes.terminate_unused import terminate_unused
 from magma.uniquification import (
-    UniquificationMode,
     uniquification_pass,
     reset_names,
 )
@@ -82,6 +79,7 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
 
     bind_generators(main)
 
+    compiler.run_pre_uniquification_passes()
     # Default behavior is to perform uniquification, but can be overriden.
     original_names = uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
 

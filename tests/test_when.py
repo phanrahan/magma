@@ -1396,6 +1396,30 @@ def test_when_2d_array_assign_slice():
     assert check_gold(__file__, "test_when_2d_array_assign_slice.mlir")
 
 
+def test_when_unique():
+
+    class Gen(m.Generator2):
+        def __init__(self, width: int):
+            self.io = io = m.IO(
+                a=m.In(m.Bits[8]),
+                y=m.Out(m.Bits[8]),
+            )
+            with m.when(io.a[0]):
+                io.y @= m.zext_to(io.a[:width], 8)
+            with m.otherwise():
+                io.y @= io.a
+
+    class test_when_unique(m.Circuit):
+        io = m.IO(
+            a=m.In(m.Bits[8]),
+            y=m.Out(m.Bits[8]),
+        )
+        io.y @= Gen(2)()(io.a) | Gen(4)()(io.a)
+
+    m.compile("build/test_when_unique", test_when_unique, output="mlir")
+    assert check_gold(__file__, "test_when_unique.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():
