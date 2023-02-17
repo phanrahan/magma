@@ -155,8 +155,6 @@ class WhenBuilder(CircuitBuilder):
         which allows us to maintain bulk assignments in the eventual generated
         if statement, rather that elaborating into per-child assignments
         """
-        if not value.is_input():
-            return
         root_value = get_parent_array(value)
         if root_value is None:
             return
@@ -195,6 +193,8 @@ class WhenBuilder(CircuitBuilder):
                     port,
                     driven_implicitly_by_when=value.driven_implicitly_by_when
                 )
+            elif port.is_input() and port.driven():
+                port.rewire(value)
             else:
                 wire(port, value)
 

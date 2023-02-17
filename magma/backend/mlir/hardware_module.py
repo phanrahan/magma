@@ -28,7 +28,7 @@ from magma.backend.mlir.magma_common import (
 )
 from magma.backend.mlir.mlir import (
     MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block,
-    push_location,
+    push_location, get_block_stack
 )
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
@@ -297,6 +297,70 @@ class ModuleVisitor:
             hw.StructCreateOp(operands=operands, results=[result])
             return result
         raise TypeError(T)
+
+    @functools.lru_cache()
+    def make_array_ref(self, arr: MlirValue, i: Union[int, tuple]) -> MlirValue:
+        if isinstance(i, tuple):  # slice
+            start, stop, step = i
+            assert step in [1, None], "Expected step 1 slice"
+            n = stop - start
+        else:
+            start = i
+            n = 1
+
+        if isinstance(arr.type, builtin.IntegerType):
+            operand = self._ctx.new_value(builtin.IntegerType(n))
+            comb.ExtractOp(operands=[arr], results=[operand], lo=start)
+            return operand
+
+        num_sel_bits = clog2(arr.type.dims[0])
+        start = self.make_constant(Bits[num_sel_bits], start)
+
+        if isinstance(i, tuple):
+            operand = self._ctx.new_value(hw.ArrayType((n, ), arr.type.T))
+            hw.ArraySliceOp(operands=[arr, start], results=[operand])
+            return operand
+
+        operand = self._ctx.new_value(arr.type.T)
+        hw.ArrayGetOp(operands=[arr, start], results=[operand])
+        return operand
+
+    def _make_concat(self, operands, result):
+        """Collect single elements and put them into an array create op,
+        this allows slices to be concatenated with the surround elements.
+        """
+        T = result.type
+        if isinstance(T, builtin.IntegerType):
+            # comb concat supports single elem/slices
+            return comb.ConcatOp(operands=operands, results=[result])
+        new_operands = []  # packed single elements
+        i = 0
+        while i < len(operands):
+            if i == len(operands):
+                break
+            if operands[i].type != T.T:
+                # Found slice
+                new_operands.append(operands[i])
+                i += 1
+                continue
+
+            # Collect elements until we encounter a slice or the end.
+            elems = []
+            while i < len(operands) and operands[i].type == T.T:
+                elems.append(operands[i])
+                i += 1
+
+            if len(elems) == len(operands):
+                # Found a whole create op
+                return hw.ArrayCreateOp(operands=elems, results=[result])
+
+            # Add create for current elements
+            elems_T = hw.ArrayType((len(elems),), T.T)
+            curr_result = self._ctx.new_value(elems_T)
+            hw.ArrayCreateOp(operands=elems, results=[curr_result])
+            new_operands.append(curr_result)
+
+        hw.ArrayConcatOp(operands=new_operands, results=[result])
 
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
@@ -605,11 +669,10 @@ class ModuleVisitor:
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
-            if value_to_index is output_to_index:
-                root_value = get_parent_array(value)
-                if root_value in value_to_index:
-                    # Don't add, only need its parent
-                    return
+            root_value = get_parent_array(value)
+            if root_value in value_to_index:
+                # Don't add, only need its parent
+                return
 
             value_to_index[value] = next(counter)
 
@@ -640,6 +703,10 @@ class ModuleVisitor:
             sv.RegOp(results=[wire])
             sv.ReadInOutOp(operands=[wire], results=[result])
 
+        # Track outer_block so array_ref/constants are placed outside the always
+        # comb to reduce code repetition
+        outer_block = get_block_stack().peek()
+
         def _collect_visited(value):
             fields = []
             visit_magma_value_or_value_wrapper_by_direction(
@@ -649,7 +716,7 @@ class ModuleVisitor:
             )
             return fields
 
-        def _check_array_child_wire(val):
+        def _check_array_child_wire(val, collection, to_index):
             """If val is a child of an array, get the root wire
             (so we add to a collection of drivers for a bulk assign)
             """
@@ -657,7 +724,7 @@ class ModuleVisitor:
             if root_value is None:
                 return None, None
             try:
-                wire = wires[output_to_index[root_value]]
+                wire = collection[to_index[root_value]]
             except KeyError:
                 # Could be a partially assigned array
                 return None, None
@@ -667,14 +734,23 @@ class ModuleVisitor:
                     self.index = tuple()
 
                 def __getitem__(self, idx):
-                    if isinstance(idx, slice):
-                        idx = idx.start  # sort on start idx
                     self.index += (idx, )
                     return self
 
             builder = _IndexBuilder()
             make_selector(val, stop_at=root_value).select(builder)
             return wire, builder.index
+
+        def _make_operand(wire, index):
+            if not index:
+                return wire
+            i = index[0]
+            if isinstance(i, slice):
+                # convert to tuple for hashing
+                i = (i.start, i.stop, i.step)
+            with push_block(outer_block):
+                operand = self.make_array_ref(wire, i)
+            return _make_operand(operand, index[1:])
 
         def _build_wire_map(connections):
             """Collect a map of output wires to their drivers.
@@ -685,14 +761,26 @@ class ModuleVisitor:
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
-                    operand = module.operands[input_to_index[driver_elt]]
-                    wire, index = _check_array_child_wire(drivee_elt)
-                    if wire:
-                        wire_map.setdefault(wire, {})
-                        wire_map[wire][index] = operand
+
+                    operand_wire, operand_index = _check_array_child_wire(
+                        driver_elt, module.operands, input_to_index)
+                    if operand_wire:
+                        operand = _make_operand(operand_wire, operand_index)
                     else:
-                        wire = wires[output_to_index[drivee_elt]]
-                        wire_map[wire] = operand
+                        operand = module.operands[input_to_index[driver_elt]]
+
+                    drivee_wire, drivee_index = _check_array_child_wire(
+                        drivee_elt, wires, output_to_index)
+                    if drivee_wire:
+                        wire_map.setdefault(drivee_wire, {})
+                        drivee_index = tuple(
+                            i if not isinstance(i, slice) else i.start
+                            for i in drivee_index
+                        )
+                        wire_map[drivee_wire][drivee_index] = operand
+                    else:
+                        drivee_wire = wires[output_to_index[drivee_elt]]
+                        wire_map[drivee_wire] = operand
             return wire_map
 
         def _make_arr(T):
@@ -714,16 +802,18 @@ class ModuleVisitor:
             """Sort drivers by index, use concat or create depending on type"""
             if isinstance(value, MlirValue):
                 return value
+            if all(x is None for x in value):
+                return None
             result = self._ctx.new_value(T)
-            if isinstance(T, builtin.IntegerType):
-                operands = [x for x in reversed(value) if x is not None]
-                comb.ConcatOp(operands=operands, results=[result])
-            else:
+            operands = value
+            if not isinstance(T, builtin.IntegerType):
+                # recursive combine children
                 assert len(T.dims) == 1, "Expected 1d array"
                 operands = [_combine_array_assign(T.T, value[i])
-                            for i in reversed(range(T.dims[0]))]
-                operands = [x for x in operands if x is not None]
-                hw.ArrayCreateOp(operands=operands, results=[result])
+                            for i in range(T.dims[0])]
+            # Filter None elements (indices covered by a previous slice)
+            operands = [x for x in reversed(operands) if x is not None]
+            self._make_concat(operands, result)
             return result
 
         def _make_assignments(connections):
@@ -1005,15 +1095,8 @@ class ModuleVisitor:
                 return True
             return self.visit_array_slice(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
-            T = inst_wrapper.attrs["T"]
-            if isinstance(T, BitsMeta) or issubclass(T.T, Bit):
-                comb.ConcatOp(
-                    operands=list(reversed(module.operands)),
-                    results=module.results)
-                return True
-            hw.ArrayCreateOp(
-                operands=list(reversed(module.operands)),
-                results=module.results)
+            self._make_concat(list(reversed(module.operands)),
+                              module.results[0])
             return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):
             index = inst_wrapper.attrs["index"]
