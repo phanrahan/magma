@@ -1,4 +1,5 @@
 import dataclasses
+import pathlib
 
 from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
 from magma.backend.mlir.mlir import MlirLocation
@@ -7,7 +8,12 @@ from magma.backend.mlir.mlir import MlirOp, MlirRegion, MlirBlock
 from magma.backend.mlir.mlir import MlirType
 from magma.backend.mlir.mlir_printer_utils import print_attr_dict
 from magma.backend.mlir.printer_base import PrinterBase
+from magma.config import config, RuntimeConfig
 
+
+# TODO(rsetaluri): This global runtime config is really somewhat of a hack. This
+# should really be a pass or a compile-time option.
+config.register(mlir_emit_loc_filename_only=RuntimeConfig(False))
 
 builtin = MlirDialect("builtin")
 begin_dialect(builtin)
@@ -25,7 +31,10 @@ class FileLineColLoc(MlirLocation):
     col: int
 
     def emit(self) -> str:
-        return f"loc(\"{self.file}\":{self.line}:{self.col})"
+        path = pathlib.Path(self.file)
+        if config.mlir_emit_loc_filename_only:
+            path = path.name
+        return f"loc(\"{path}\":{self.line}:{self.col})"
 
 
 @dataclasses.dataclass(frozen=True)
