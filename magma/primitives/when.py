@@ -155,8 +155,6 @@ class WhenBuilder(CircuitBuilder):
         which allows us to maintain bulk assignments in the eventual generated
         if statement, rather that elaborating into per-child assignments
         """
-        if not isinstance(value.name, ArrayRef):
-            return None
         curr_root = None
         for ref in value.name.root_iter(
             stop_if=lambda ref: not isinstance(ref, ArrayRef)
