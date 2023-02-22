@@ -669,9 +669,9 @@ class ModuleVisitor:
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
-            for ref in value.name.root_iter():
-                if not isinstance(ref, ArrayRef):
-                    break
+            for ref in value.name.root_iter(
+                stop_if=lambda ref: not isinstance(ref, ArrayRef)
+            ):
                 if ref.array in value_to_index:
                     # Don't add, only need its parent
                     return
@@ -718,23 +718,25 @@ class ModuleVisitor:
             )
             return fields
 
-        def _check_array_child_wire(val, collection, to_index):
-            """If val is a child of an array, get the root wire
-            (so we add to a collection of drivers for a bulk assign)
-            """
-            for ref in val.name.root_iter():
-                if not isinstance(ref, ArrayRef):
-                    return None, None
+        def _get_parent(val, collection, to_index):
+            for ref in val.name.root_iter(
+                stop_if=lambda ref: not isinstance(ref, ArrayRef)
+            ):
                 try:
                     idx = to_index[ref.array]
                 except KeyError:
                     pass  # try next parent
                 else:
-                    wire = collection[idx]
-                    parent = ref.array
-                    break
-            else:
-                return None, None  # didn't find parent
+                    return collection[idx], ref.array
+            return None, None  # didn't find parent
+
+        def _check_array_child_wire(val, collection, to_index):
+            """If val is a child of an array, get the root wire
+            (so we add to a collection of drivers for a bulk assign)
+            """
+            wire, parent = _get_parent(val, collection, to_index)
+            if wire is None:
+                return None, None
 
             class _IndexBuilder:
                 def __init__(self):

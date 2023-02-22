@@ -158,9 +158,9 @@ class WhenBuilder(CircuitBuilder):
         if not isinstance(value.name, ArrayRef):
             return None
         curr_root = None
-        for ref in value.name.root_iter():
-            if not isinstance(ref, ArrayRef):
-                break
+        for ref in value.name.root_iter(
+            stop_if=lambda ref: not isinstance(ref, ArrayRef)
+        ):
             if ref.array in value_to_index:
                 curr_root = ref.array
         if not curr_root:
