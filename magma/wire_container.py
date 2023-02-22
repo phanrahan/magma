@@ -302,7 +302,7 @@ class Wireable:
         driving = o.driving()[0]
         for ctx in driving._wired_when_contexts:
             try:
-                ctx.root.get_default_driver(self):
+                ctx.root.get_default_driver(self)
             except KeyError:
                 try:
                     default = ctx.root.get_default_driver(driving)
