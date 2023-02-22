@@ -726,11 +726,13 @@ class ModuleVisitor:
                 if not isinstance(ref, ArrayRef):
                     return None, None
                 try:
-                    wire = collection[to_index[ref.array]]
-                    parent = ref.array
-                    break
+                    idx = to_index[ref.array]
                 except KeyError:
                     pass  # try next parent
+                else:
+                    wire = collection[idx]
+                    parent = ref.array
+                    break
             else:
                 return None, None  # didn't find parent
 
