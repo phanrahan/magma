@@ -1420,6 +1420,37 @@ def test_when_unique():
     assert check_gold(__file__, "test_when_unique.mlir")
 
 
+def test_when_tuple_as_bits_resolve():
+
+    class T(m.Product):
+        x = m.Array[2, m.Bits[8]]
+        y = m.Bit
+        z = m.Bits[8]
+
+    class U(m.Product):
+        x = T
+
+    class test_when_tuple_as_bits_resolve(m.Circuit):
+        io = m.IO(I=m.In(U), S=m.In(m.Bit),
+                  O=m.Out(U), X=m.Out(m.Bits[25]))
+        with m.when(io.S):
+            for i in range(2):
+                io.O.x.x[i] @= io.I.x.x[i]
+            io.O.x.y @= io.I.x.y
+            io.O.x.z @= io.I.x.z
+        with m.otherwise():
+            for i in range(2):
+                io.O.x.x[i] @= ~io.I.x.x[i]
+            io.O.x.y @= ~io.I.x.y
+            io.O.x.z @= ~io.I.x.z
+        io.X @= m.as_bits(io.O.value())
+
+    m.compile("build/test_when_tuple_as_bits_resolve",
+              test_when_tuple_as_bits_resolve, output="mlir",
+              flatten_all_tuples=True)
+    assert check_gold(__file__, "test_when_tuple_as_bits_resolve.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():

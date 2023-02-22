@@ -57,7 +57,7 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import get_parent_array
+from magma.ref import ArrayRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
@@ -669,10 +669,14 @@ class ModuleVisitor:
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
-            root_value = get_parent_array(value)
-            if root_value in value_to_index:
-                # Don't add, only need its parent
-                return
+            # root_value = get_parent_array(value)
+            if isinstance(value.name, ArrayRef):
+                root_value = value
+                while isinstance(root_value.name, ArrayRef):
+                    root_value = root_value.name.parent_value
+                    if root_value in value_to_index:
+                        # Don't add, only need its parent
+                        return
 
             value_to_index[value] = next(counter)
 
@@ -720,12 +724,17 @@ class ModuleVisitor:
             """If val is a child of an array, get the root wire
             (so we add to a collection of drivers for a bulk assign)
             """
-            root_value = get_parent_array(val)
-            if root_value is None:
+            if not isinstance(value.name, ArrayRef):
                 return None, None
-            try:
-                wire = collection[to_index[root_value]]
-            except KeyError:
+            root_value = val
+            while isinstance(root_value.name, ArrayRef):
+                root_value = root_value.name.parent_value
+                try:
+                    wire = collection[to_index[root_value]]
+                    break
+                except KeyError:
+                    pass
+            else:
                 # Could be a partially assigned array
                 return None, None
 

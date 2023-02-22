@@ -217,6 +217,7 @@ class Wireable:
         self._enclosing_when_context = get_curr_when_block()
         self._wired_when_contexts = []
         self._parent = None
+        self.is_when_port = False
 
     @property
     def parent(self):
@@ -225,6 +226,11 @@ class Wireable:
     @parent.setter
     def parent(self, value):
         self._parent = value
+
+    def root(self):
+        if self.parent:
+            return self.parent.root()
+        return self
 
     def set_enclosing_when_context(self, ctx):
         self._enclosing_when_context = ctx
@@ -286,7 +292,21 @@ class Wireable:
         if not keep_wired_when_contexts:
             self._remove_from_wired_when_contexts()
 
+    def _when_output_wire(self, o, debug_info):
+        driving = o.driving()[0]
+        for ctx in driving._wired_when_contexts:
+            try:
+                ctx.add_default_driver(self,
+                                       ctx.root.get_default_driver(driving))
+            except KeyError:
+                pass
+            for wire in ctx.get_conditional_wires_for_drivee(driving):
+                ctx.add_conditional_wire(self, wire.driver)
+            self._wired_when_contexts.append(ctx)
+
     def _wire_impl(self, o, debug_info):
+        if o.root().is_when_port and o.driving():
+            return self._when_output_wire(o, debug_info)
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info
@@ -335,6 +355,7 @@ class AggregateWireable(Wireable):
 
         * default_drivers: for each ctx in `wired_when_contexts`, contains the
                            default driver (if it exists) for `self`.
+        block = get_ref_inst(self.name).block
         """
         conditional_wires = []
         default_drivers = []
