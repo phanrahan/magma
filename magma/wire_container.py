@@ -300,16 +300,14 @@ class Wireable:
         for two different conditionally driven values, even if they have the
         same drivers)."""
         driving = o.driving()[0]
+        root = driving._wired_when_contexts[0].root
+        try:
+            default = root.get_default_driver(driving)
+        except KeyError:
+            pass
+        else:
+            root.add_default_driver(self, default)
         for ctx in driving._wired_when_contexts:
-            try:
-                ctx.root.get_default_driver(self)
-            except KeyError:
-                try:
-                    default = ctx.root.get_default_driver(driving)
-                except KeyError:
-                    pass
-                else:
-                    ctx.root.add_default_driver(self, default)
             for wire in ctx.get_conditional_wires_for_drivee(driving):
                 ctx.add_conditional_wire(self, wire.driver)
             self._wired_when_contexts.append(ctx)
