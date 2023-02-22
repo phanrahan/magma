@@ -355,7 +355,6 @@ class AggregateWireable(Wireable):
 
         * default_drivers: for each ctx in `wired_when_contexts`, contains the
                            default driver (if it exists) for `self`.
-        block = get_ref_inst(self.name).block
         """
         conditional_wires = []
         default_drivers = []

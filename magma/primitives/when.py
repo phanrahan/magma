@@ -155,15 +155,14 @@ class WhenBuilder(CircuitBuilder):
         which allows us to maintain bulk assignments in the eventual generated
         if statement, rather that elaborating into per-child assignments
         """
-        # root_value = get_parent_array(value)
         if not isinstance(value.name, ArrayRef):
             return None
         curr_root = None
-        curr_value = value
-        while isinstance(curr_value.name, ArrayRef):
-            curr_value = curr_value.name.parent_value
-            if curr_value in value_to_index:
-                curr_root = curr_value
+        for ref in value.name.root_iter():
+            if not isinstance(ref, ArrayRef):
+                break
+            if ref.array in value_to_index:
+                curr_root = ref.array
         if not curr_root:
             return
         root_port = getattr(self, value_to_name[curr_root])
@@ -193,7 +192,6 @@ class WhenBuilder(CircuitBuilder):
             self._add_port(port_name, type_qualifier(type(value).undirected_t))
             port = getattr(self, port_name)
             port.is_when_port = True
-            port.orig_when_value = value
 
         with no_when():
             if value.is_input() and isinstance(value, Enable):

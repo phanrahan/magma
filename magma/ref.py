@@ -37,6 +37,13 @@ class Ref:
             return self
         return parent.root()
 
+    def root_iter(self) -> typing.Optional['Ref']:
+        yield self
+        parent = self.parent()
+        if parent is self:
+            return
+        yield from parent.root_iter()
+
 
 class AnonRef(Ref):
     def __init__(self):

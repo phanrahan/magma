@@ -669,14 +669,12 @@ class ModuleVisitor:
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
-            # root_value = get_parent_array(value)
-            if isinstance(value.name, ArrayRef):
-                root_value = value
-                while isinstance(root_value.name, ArrayRef):
-                    root_value = root_value.name.parent_value
-                    if root_value in value_to_index:
-                        # Don't add, only need its parent
-                        return
+            for ref in value.name.root_iter():
+                if not isinstance(ref, ArrayRef):
+                    break
+                if ref.array in value_to_index:
+                    # Don't add, only need its parent
+                    return
 
             value_to_index[value] = next(counter)
 
@@ -724,19 +722,17 @@ class ModuleVisitor:
             """If val is a child of an array, get the root wire
             (so we add to a collection of drivers for a bulk assign)
             """
-            if not isinstance(value.name, ArrayRef):
-                return None, None
-            root_value = val
-            while isinstance(root_value.name, ArrayRef):
-                root_value = root_value.name.parent_value
+            for ref in val.name.root_iter():
+                if not isinstance(ref, ArrayRef):
+                    return None, None
                 try:
-                    wire = collection[to_index[root_value]]
+                    wire = collection[to_index[ref.array]]
+                    parent = ref.array
                     break
                 except KeyError:
-                    pass
+                    pass  # try next parent
             else:
-                # Could be a partially assigned array
-                return None, None
+                return None, None  # didn't find parent
 
             class _IndexBuilder:
                 def __init__(self):
@@ -747,7 +743,7 @@ class ModuleVisitor:
                     return self
 
             builder = _IndexBuilder()
-            make_selector(val, stop_at=root_value).select(builder)
+            make_selector(val, stop_at=parent).select(builder)
             return wire, builder.index
 
         def _make_operand(wire, index):
