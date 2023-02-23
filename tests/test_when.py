@@ -1076,7 +1076,7 @@ def test_when_output_resolve():
         io.O1[1] @= io.O0.value()[0]  # direct reference to when builder output
         io.O1[0] @= io.O0.value()[1]  # direct reference to when builder output
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir-verilog")
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
