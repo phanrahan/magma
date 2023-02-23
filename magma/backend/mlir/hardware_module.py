@@ -663,13 +663,10 @@ class ModuleVisitor:
         output_to_index = {}
 
         def _visit(value, counter, value_to_index):
-            # NOTE(leonardt): value may already be in value_to_index, in which
-            # case we update it to a new index.  This is okay and it just means
-            # that `value` occurs as more than one input (for example, it could
-            # be used as a conditional driver for multiple values).  We could
-            # optimize the logic to always share the same argument, but for now
-            # we just use the "last" index.
             if isinstance(value.name, TupleRef) and value in value_to_index:
+                # tuples are flattened by the
+                # `visit_magma_value_or_value_wrapper_by_direction`, so we avoid
+                # adding them twice which invalidates the count logic
                 return
             for ref in value.name.root_iter(
                 stop_if=lambda ref: not isinstance(ref, (ArrayRef, TupleRef))
@@ -678,6 +675,12 @@ class ModuleVisitor:
                     # Don't add, only need its parent
                     return
 
+            # NOTE(leonardt): value may already be in value_to_index, in which
+            # case we update it to a new index.  This is okay and it just means
+            # that `value` occurs as more than one input (for example, it could
+            # be used as a conditional driver for multiple values).  We could
+            # optimize the logic to always share the same argument, but for now
+            # we just use the "last" index.
             value_to_index[value] = next(counter)
 
         counter = itertools.count()
