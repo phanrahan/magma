@@ -394,7 +394,6 @@ class AggregateWireable(Wireable):
 
     def _resolve_conditional_children(self, value):
         # Save conditional wire info before unwire happens
-                # Special handling if `o` is a reference to a when output
         info = self._get_conditional_drivee_info()
 
         AggregateWireable.unwire(self, value)
