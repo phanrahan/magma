@@ -227,10 +227,10 @@ class Wireable:
     def parent(self, value):
         self._parent = value
 
-    def root(self):
+    def root_iter(self):
+        yield self
         if self.parent:
-            return self.parent.root()
-        return self
+            yield from self.parent.root_iter()
 
     def set_enclosing_when_context(self, ctx):
         self._enclosing_when_context = ctx
@@ -313,9 +313,10 @@ class Wireable:
             self._wired_when_contexts.append(ctx)
 
     def _wire_impl(self, o, debug_info):
-        if o.root().is_when_port and o.driving():
-            # Special handling if `o` is a reference to a when output
-            return self._when_output_wire(o, debug_info)
+        for value in o.root_iter():
+            if value.is_when_port and o.driving():
+                # Special handling if `o` is a reference to a when output
+                return self._when_output_wire(o, debug_info)
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info
@@ -393,6 +394,7 @@ class AggregateWireable(Wireable):
 
     def _resolve_conditional_children(self, value):
         # Save conditional wire info before unwire happens
+                # Special handling if `o` is a reference to a when output
         info = self._get_conditional_drivee_info()
 
         AggregateWireable.unwire(self, value)

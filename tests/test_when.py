@@ -1076,7 +1076,7 @@ def test_when_output_resolve():
         io.O1[1] @= io.O0.value()[0]  # direct reference to when builder output
         io.O1[0] @= io.O0.value()[1]  # direct reference to when builder output
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    m.compile(f"build/{_Test.name}", _Test, output="mlir-verilog")
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
@@ -1422,32 +1422,37 @@ def test_when_unique():
 
 def test_when_tuple_as_bits_resolve():
 
-    class T(m.Product):
-        x = m.Array[2, m.Bits[8]]
+    class V(m.Product):
+        x = m.Bits[8]
         y = m.Bit
-        z = m.Bits[8]
+
+    class T(m.Product):
+        y = m.Bit
+        z = V
+        x = m.Array[2, m.Bits[8]]
 
     class U(m.Product):
         x = T
+        y = m.Bits[8]
 
     class test_when_tuple_as_bits_resolve(m.Circuit):
         io = m.IO(I=m.In(U), S=m.In(m.Bit),
-                  O=m.Out(U), X=m.Out(m.Bits[25]))
+                  O=m.Out(U), X=m.Out(m.Bits[U.flat_length()]))
+        io.O.y @= io.I.y
         with m.when(io.S):
             for i in range(2):
                 io.O.x.x[i] @= io.I.x.x[i]
             io.O.x.y @= io.I.x.y
-            io.O.x.z @= io.I.x.z
+            for key, port in io.O.x.items():
+                if key == "z":
+                    port @= m.mux([io.I.x.z, io.I.x.z], io.S)
         with m.otherwise():
-            for i in range(2):
-                io.O.x.x[i] @= ~io.I.x.x[i]
-            io.O.x.y @= ~io.I.x.y
-            io.O.x.z @= ~io.I.x.z
+            io.O @= io.I
         io.X @= m.as_bits(io.O.value())
 
     m.compile("build/test_when_tuple_as_bits_resolve",
-              test_when_tuple_as_bits_resolve, output="mlir",
-              flatten_all_tuples=True)
+              test_when_tuple_as_bits_resolve, output="mlir-verilog",
+              flatten_all_tuples=True, disallow_local_variables=True)
     assert check_gold(__file__, "test_when_tuple_as_bits_resolve.mlir")
 
 

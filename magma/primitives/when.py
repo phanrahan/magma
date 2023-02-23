@@ -8,7 +8,7 @@ from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
-from magma.ref import ArrayRef
+from magma.ref import ArrayRef, TupleRef
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -157,10 +157,10 @@ class WhenBuilder(CircuitBuilder):
         """
         curr_root = None
         for ref in value.name.root_iter(
-            stop_if=lambda ref: not isinstance(ref, ArrayRef)
+            stop_if=lambda ref: not isinstance(ref, (ArrayRef, TupleRef))
         ):
-            if ref.array in value_to_index:
-                curr_root = ref.array
+            if ref.parent_value in value_to_index:
+                curr_root = ref.parent_value
         if not curr_root:
             return
         root_port = getattr(self, value_to_name[curr_root])

@@ -57,7 +57,7 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import ArrayRef
+from magma.ref import ArrayRef, TupleRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
@@ -669,10 +669,12 @@ class ModuleVisitor:
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
+            if isinstance(value.name, TupleRef) and value in value_to_index:
+                return
             for ref in value.name.root_iter(
-                stop_if=lambda ref: not isinstance(ref, ArrayRef)
+                stop_if=lambda ref: not isinstance(ref, (ArrayRef, TupleRef))
             ):
-                if ref.array in value_to_index:
+                if ref.parent_value in value_to_index:
                     # Don't add, only need its parent
                     return
 
