@@ -37,6 +37,15 @@ class Ref:
             return self
         return parent.root()
 
+    def root_iter(self, stop_if=None) -> typing.Optional['Ref']:
+        if stop_if is not None and stop_if(self):
+            return
+        yield self
+        parent = self.parent()
+        if parent is self:
+            return
+        yield from parent.root_iter(stop_if=stop_if)
+
 
 class AnonRef(Ref):
     def __init__(self):
@@ -295,12 +304,3 @@ def get_ref_defn(ref):
 def is_temp_ref(ref):
     root = ref.root()
     return isinstance(root, (TempNamedRef, AnonRef))
-
-
-def get_parent_array(value):
-    if not isinstance(value.name, ArrayRef):
-        return None
-    root_value = value
-    while isinstance(root_value.name, ArrayRef):
-        root_value = root_value.name.parent_value
-    return root_value

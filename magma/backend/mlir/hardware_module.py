@@ -57,7 +57,7 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import get_parent_array
+from magma.ref import ArrayRef, TupleRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
@@ -663,17 +663,24 @@ class ModuleVisitor:
         output_to_index = {}
 
         def _visit(value, counter, value_to_index):
+            if isinstance(value.name, TupleRef) and value in value_to_index:
+                # tuples are flattened by the
+                # `visit_magma_value_or_value_wrapper_by_direction`, so we avoid
+                # adding them twice which invalidates the count logic
+                return
+            for ref in value.name.root_iter(
+                stop_if=lambda ref: not isinstance(ref, (ArrayRef, TupleRef))
+            ):
+                if ref.parent_value in value_to_index:
+                    # Don't add, only need its parent
+                    return
+
             # NOTE(leonardt): value may already be in value_to_index, in which
             # case we update it to a new index.  This is okay and it just means
             # that `value` occurs as more than one input (for example, it could
             # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
-            root_value = get_parent_array(value)
-            if root_value in value_to_index:
-                # Don't add, only need its parent
-                return
-
             value_to_index[value] = next(counter)
 
         counter = itertools.count()
@@ -716,17 +723,24 @@ class ModuleVisitor:
             )
             return fields
 
+        def _get_parent(val, collection, to_index):
+            for ref in val.name.root_iter(
+                stop_if=lambda ref: not isinstance(ref, ArrayRef)
+            ):
+                try:
+                    idx = to_index[ref.array]
+                except KeyError:
+                    pass  # try next parent
+                else:
+                    return collection[idx], ref.array
+            return None, None  # didn't find parent
+
         def _check_array_child_wire(val, collection, to_index):
             """If val is a child of an array, get the root wire
             (so we add to a collection of drivers for a bulk assign)
             """
-            root_value = get_parent_array(val)
-            if root_value is None:
-                return None, None
-            try:
-                wire = collection[to_index[root_value]]
-            except KeyError:
-                # Could be a partially assigned array
+            wire, parent = _get_parent(val, collection, to_index)
+            if wire is None:
                 return None, None
 
             class _IndexBuilder:
@@ -738,7 +752,7 @@ class ModuleVisitor:
                     return self
 
             builder = _IndexBuilder()
-            make_selector(val, stop_at=root_value).select(builder)
+            make_selector(val, stop_at=parent).select(builder)
             return wire, builder.index
 
         def _make_operand(wire, index):
