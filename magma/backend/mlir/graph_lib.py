@@ -1,5 +1,4 @@
 import networkx as nx
-from typing import Any, Callable, Iterable, List, Mapping, Tuple, Union
 
 
 Graph = nx.MultiDiGraph

@@ -139,6 +139,7 @@ class WhenBuilder(CircuitBuilder):
         self._set_definition_attr(_ISWHEN_KEY, True)
         self._set_definition_attr("_builder_", self)
         self._is_when_builder_ = True
+        self._set_definition_attr("_is_when_builder_", True)
 
     @property
     def default_drivers(self) -> Dict[Type, Type]:
