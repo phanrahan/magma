@@ -82,7 +82,7 @@ class WhenCompiler:
     def _make_output_wires(self):
         """Create the mlir values corresponding to each output"""
         wires = [
-            self._module_visitor._ctx.new_value(hw.InOutType(result.type))
+            self._module_visitor.new_value(hw.InOutType(result.type))
             for result in self._module.results
         ]
 
@@ -136,6 +136,8 @@ class WhenCompiler:
         return wire, builder.index
 
     def _make_operand(self, wire, index):
+        """If the operand is an element of wire, emit the requires array
+        reference ops (extract, get, or slice) to retrieve the desired index"""
         if not index:
             return wire
         i = index[0]
@@ -179,40 +181,50 @@ class WhenCompiler:
                     wire_map[drivee_wire] = operand
         return wire_map
 
-    def _make_arr(self, T):
+    def _make_arr_list(self, T):
+        """Create a nested list structure matching the dimensions of T, used to
+        populate the elements of an array create op"""
         if isinstance(T, builtin.IntegerType):
             return [None for _ in range(T.n)]
         assert isinstance(T, hw.ArrayType), T
-        return [self._make_arr(T.T) for _ in range(T.dims[0])]
+        return [self._make_arr_list(T.T) for _ in range(T.dims[0])]
 
     def _build_array_value(self, T, value):
-        arr = self._make_arr(T)
+        """Unpack the contents of value into a nested list structure"""
+        # TODO(leonardt): we could use an ndarray here, would simplify indexing
+        arr = self._make_arr_list(T)
         for idx, elem in value.items():
             curr = arr
-            for i in idx[:-1]:
+            for i in idx[:-1]:  # descend up to last index
                 curr = curr[i]
-            curr[idx[-1]] = elem
+            curr[idx[-1]] = elem  # use last index for setitem
         return arr
 
     def _combine_array_assign(self, T, value):
         """Sort drivers by index, use concat or create depending on type"""
         if isinstance(value, MlirValue):
-            return value
+            return value  # found whole value, no need to combine
         if all(x is None for x in value):
-            return None
-        result = self._module_visitor._ctx.new_value(T)
-        operands = value
+            return None  # found empty value, covered by previous slice
+        result = self._module_visitor.new_value(T)
         if not isinstance(T, builtin.IntegerType):
             # recursive combine children
             assert len(T.dims) == 1, "Expected 1d array"
-            operands = [self._combine_array_assign(T.T, value[i])
-                        for i in range(T.dims[0])]
+            value = [self._combine_array_assign(T.T, value[i])
+                     for i in range(T.dims[0])]
         # Filter None elements (indices covered by a previous slice)
-        operands = [x for x in reversed(operands) if x is not None]
-        self._module_visitor._make_concat(operands, result)
+        value = [x for x in reversed(value) if x is not None]
+        self._module_visitor.make_concat(value, result)
         return result
 
     def _make_assignments(self, connections):
+        """
+        * _build_wire_map: contructs mapping from output wire to driver
+
+        * _build_array_value,
+          _combine_array_assign: handle collection elaborated drivers for a bulk
+                                 assign
+        """
         for wire, value in self._build_wire_map(connections).items():
             if isinstance(value, dict):
                 value = self._build_array_value(wire.type.T, value)
