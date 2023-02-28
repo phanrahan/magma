@@ -38,6 +38,12 @@ class WhenCompiler:
 
         self._output_wires = self._make_output_wires()
 
+    def _get_input_index(self, value):
+        return self._input_to_index[value]
+
+    def _get_operand(self, value):
+        return self._operands[self._get_input_index(value)]
+
     def _flatten_index_map(self, builder_map):
         """The when builder tracks a mapping from value to their index which is
         used to find a value's position in the input port list.  This function
@@ -164,7 +170,7 @@ class WhenCompiler:
                     operand = self._make_operand(operand_wire,
                                                  operand_index)
                 else:
-                    operand = self._operands[self._input_to_index[driver_elt]]
+                    operand = self._get_operand(driver_elt)
 
                 drivee_wire, drivee_index = self._check_array_child_wire(
                     drivee_elt, self._output_wires, self._output_to_index)
@@ -231,22 +237,32 @@ class WhenCompiler:
                 value = self._combine_array_assign(wire.type.T, value)
             sv.BPAssignOp(operands=[wire, value])
 
-    def _process_when_block(self, block):
+    def _process_connections(self, block):
         connections = (
             (conditional_wire.drivee, conditional_wire.driver)
             for conditional_wire in block.conditional_wires()
         )
+        self._make_assignments(connections)
+        for child in block.children():
+            self._process_when_block(child)
+
+    def _process_when_block(self, block):
+        """
+        If no condition, we are in an otherwise case and simply emit the
+        block body (which is inside a previous IfOp)
+
+        Otherwise, we emit an IfOp with the true body corresponding to this
+        block, then process the sibilings in the else block
+        """
         if block.condition is None:
-            self._make_assignments(connections)
-            for child in block.children():
-                self._process_when_block(child)
-            return
-        cond = self._operands[self._input_to_index[block.condition]]
+            return self._process_connections(block)
+
+        cond = self._get_operand(block.condition)
         if_op = sv.IfOp(operands=[cond])
+
         with push_block(if_op.then_block):
-            self._make_assignments(connections)
-            for child in block.children():
-                self._process_when_block(child)
+            self._process_connections(block)
+
         curr_sibling = if_op
         with contextlib.ExitStack() as stack:
             sibling_blocks = list(block.elsewhen_blocks())
@@ -255,9 +271,11 @@ class WhenCompiler:
             for sibling_block in sibling_blocks:
                 stack.enter_context(push_block(curr_sibling.else_block))
                 curr_sibling = self._process_when_block(sibling_block)
+
         return if_op
 
     def compile(self):
+        """Emit default drivers then process the when block chain"""
         with push_block(sv.AlwaysCombOp().body_block):
             self._make_assignments(self._builder.default_drivers.items())
             self._process_when_block(self._builder.block)
