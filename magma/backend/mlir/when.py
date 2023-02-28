@@ -48,13 +48,12 @@ class WhenCompiler:
             # we just use the "last" index.
             value_to_index[value] = next(counter)
 
-        flatten_all_tuples = self._module_visitor._ctx.opts.flatten_all_tuples
         for value in sort_by_value(builder_map):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 _index_map_visit,
                 _index_map_visit,
-                flatten_all_tuples=flatten_all_tuples,
+                flatten_all_tuples=self._flatten_all_tuples,
                 inout_visitor=_index_map_visit
             )
         return value_to_index
@@ -75,6 +74,17 @@ class WhenCompiler:
         self._module_visitor = module_visitor
         self._module = module
         self._operands = self._module.operands
+        self._flatten_all_tuples = \
+            self._module_visitor._ctx.opts.flatten_all_tuples
+
+    def _flatten_value(self, value):
+        fields = []
+        visit_magma_value_or_value_wrapper_by_direction(
+            value, fields.append, fields.append,
+            flatten_all_tuples=self._flatten_all_tuples,
+            inout_visitor=fields.append,
+        )
+        return fields
 
     def compile(self):
         inst = self._module.module
@@ -91,17 +101,6 @@ class WhenCompiler:
         # Track outer_block so array_ref/constants are placed outside the always
         # comb to reduce code repetition
         outer_block = get_block_stack().peek()
-
-        flatten_all_tuples = self._module_visitor._ctx.opts.flatten_all_tuples
-
-        def _collect_visited(value):
-            fields = []
-            visit_magma_value_or_value_wrapper_by_direction(
-                value, fields.append, fields.append,
-                flatten_all_tuples=flatten_all_tuples,
-                inout_visitor=fields.append,
-            )
-            return fields
 
         def _get_parent(val, collection, to_index):
             for ref in val.name.root_iter(
@@ -153,7 +152,7 @@ class WhenCompiler:
             """
             wire_map = {}
             for drivee, driver in connections:
-                elts = zip(*map(_collect_visited, (drivee, driver)))
+                elts = zip(*map(self._flatten_value, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
 
                     operand_wire, operand_index = _check_array_child_wire(
