@@ -150,7 +150,8 @@ class _BlockBase(contextlib.AbstractContextManager):
         yield from self._children
 
     def __enter__(self):
-        self.root.builder.add_condition(self.condition)
+        if self.condition is not None:
+            self.root.builder.add_condition(self.condition)
         _set_curr_block(self)
         return self
 

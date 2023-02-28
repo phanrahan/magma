@@ -176,7 +176,7 @@ class WhenBuilder(CircuitBuilder):
             name_prefix,
             type_qualifier,
     ):
-        if value is None or value in value_to_index:
+        if value in value_to_index:
             return
         value_to_index[value] = next(index_counter)
         port_name = f"{name_prefix}{next(name_counter)}"
