@@ -16,6 +16,27 @@ from magma.value_utils import make_selector
 
 
 class WhenCompiler:
+    def __init__(self, module_visitor, module):
+        self._module_visitor = module_visitor
+        self._module = module
+        self._operands = self._module.operands
+        self._flatten_all_tuples = \
+            self._module_visitor._ctx.opts.flatten_all_tuples
+
+        # Track outer_block so array_ref/constants are placed outside the always
+        # comb to reduce code repetition
+        self._outer_block = get_block_stack().peek()
+
+        inst = module.module
+        defn = type(inst)
+        assert iswhen(defn)
+        self._builder = builder = defn._builder_
+
+        # Update index map for flattened tuples
+        self._input_to_index = self._flatten_index_map(builder.input_to_index)
+        self._output_to_index = self._flatten_index_map(builder.output_to_index)
+
+        self._output_wires = self._make_output_wires()
 
     def _flatten_index_map(self, builder_map):
         """The when builder tracks a mapping from value to their index which is
@@ -59,6 +80,7 @@ class WhenCompiler:
         return value_to_index
 
     def _make_output_wires(self):
+        """Create the mlir values corresponding to each output"""
         wires = [
             self._module_visitor._ctx.new_value(hw.InOutType(result.type))
             for result in self._module.results
@@ -69,28 +91,6 @@ class WhenCompiler:
             sv.ReadInOutOp(operands=[wire], results=[result])
 
         return wires
-
-    def __init__(self, module_visitor, module):
-        self._module_visitor = module_visitor
-        self._module = module
-        self._operands = self._module.operands
-        self._flatten_all_tuples = \
-            self._module_visitor._ctx.opts.flatten_all_tuples
-
-        # Track outer_block so array_ref/constants are placed outside the always
-        # comb to reduce code repetition
-        self._outer_block = get_block_stack().peek()
-
-        inst = module.module
-        defn = type(inst)
-        assert iswhen(defn)
-        self._builder = builder = defn._builder_
-
-        # Update index map for flattened tuples
-        self._input_to_index = self._flatten_index_map(builder.input_to_index)
-        self._output_to_index = self._flatten_index_map(builder.output_to_index)
-
-        self._wires = self._make_output_wires()
 
     def _flatten_value(self, value):
         fields = []
@@ -165,7 +165,7 @@ class WhenCompiler:
                     operand = self._operands[self._input_to_index[driver_elt]]
 
                 drivee_wire, drivee_index = self._check_array_child_wire(
-                    drivee_elt, self._wires, self._output_to_index)
+                    drivee_elt, self._output_wires, self._output_to_index)
                 if drivee_wire:
                     wire_map.setdefault(drivee_wire, {})
                     drivee_index = tuple(
@@ -174,7 +174,8 @@ class WhenCompiler:
                     )
                     wire_map[drivee_wire][drivee_index] = operand
                 else:
-                    drivee_wire = self._wires[self._output_to_index[drivee_elt]]
+                    drivee_idx = self._output_to_index[drivee_elt]
+                    drivee_wire = self._output_wires[drivee_idx]
                     wire_map[drivee_wire] = operand
         return wire_map
 
