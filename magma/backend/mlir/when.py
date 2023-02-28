@@ -18,6 +18,11 @@ from magma.value_utils import make_selector
 class WhenCompiler:
 
     def _flatten_index_map(self, builder_map):
+        """The when builder tracks a mapping from value to their index which is
+        used to find a value's position in the input port list.  This function
+        flattens tuple values and updates the index map accordingly since
+        flattened tuples will offset the originally indices.
+        """
         value_to_index = {}
         counter = itertools.count()
 
@@ -54,23 +59,34 @@ class WhenCompiler:
             )
         return value_to_index
 
+    def _make_output_wires(self):
+        wires = [
+            self._module_visitor._ctx.new_value(hw.InOutType(result.type))
+            for result in self._module.results
+        ]
+
+        for result, wire in zip(self._module.results, wires):
+            sv.RegOp(results=[wire])
+            sv.ReadInOutOp(operands=[wire], results=[result])
+
+        return wires
+
     def __init__(self, module_visitor, module):
         self._module_visitor = module_visitor
+        self._module = module
+        self._operands = self._module.operands
 
-        inst = module.module
+    def compile(self):
+        inst = self._module.module
         defn = type(inst)
         assert iswhen(defn)
         self.builder = builder = defn._builder_
+
+        # Update index map for flattened tuples
         input_to_index = self._flatten_index_map(self.builder.input_to_index)
         output_to_index = self._flatten_index_map(self.builder.output_to_index)
 
-        wires = [
-            self._module_visitor._ctx.new_value(hw.InOutType(result.type))
-            for result in module.results
-        ]
-        for result, wire in zip(module.results, wires):
-            sv.RegOp(results=[wire])
-            sv.ReadInOutOp(operands=[wire], results=[result])
+        wires = self._make_output_wires()
 
         # Track outer_block so array_ref/constants are placed outside the always
         # comb to reduce code repetition
@@ -141,11 +157,11 @@ class WhenCompiler:
                 for drivee_elt, driver_elt in elts:
 
                     operand_wire, operand_index = _check_array_child_wire(
-                        driver_elt, module.operands, input_to_index)
+                        driver_elt, self._operands, input_to_index)
                     if operand_wire:
                         operand = _make_operand(operand_wire, operand_index)
                     else:
-                        operand = module.operands[input_to_index[driver_elt]]
+                        operand = self._operands[input_to_index[driver_elt]]
 
                     drivee_wire, drivee_index = _check_array_child_wire(
                         drivee_elt, wires, output_to_index)
@@ -211,7 +227,7 @@ class WhenCompiler:
                 for child in block.children():
                     _process_when_block(child)
                 return
-            cond = module.operands[input_to_index[block.condition]]
+            cond = self._operands[input_to_index[block.condition]]
             if_op = sv.IfOp(operands=[cond])
             with push_block(if_op.then_block):
                 _make_assignments(connections)
@@ -231,5 +247,4 @@ class WhenCompiler:
             _make_assignments(builder.default_drivers.items())
             _process_when_block(builder.block)
 
-    def compile(self):
         return True
