@@ -178,75 +178,74 @@ class WhenCompiler:
                     wire_map[drivee_wire] = operand
         return wire_map
 
+    def _make_arr(self, T):
+        if isinstance(T, builtin.IntegerType):
+            return [None for _ in range(T.n)]
+        assert isinstance(T, hw.ArrayType), T
+        return [self._make_arr(T.T) for _ in range(T.dims[0])]
+
+    def _build_array_value(self, T, value):
+        arr = self._make_arr(T)
+        for idx, elem in value.items():
+            curr = arr
+            for i in idx[:-1]:
+                curr = curr[i]
+            curr[idx[-1]] = elem
+        return arr
+
+    def _combine_array_assign(self, T, value):
+        """Sort drivers by index, use concat or create depending on type"""
+        if isinstance(value, MlirValue):
+            return value
+        if all(x is None for x in value):
+            return None
+        result = self._module_visitor._ctx.new_value(T)
+        operands = value
+        if not isinstance(T, builtin.IntegerType):
+            # recursive combine children
+            assert len(T.dims) == 1, "Expected 1d array"
+            operands = [self._combine_array_assign(T.T, value[i])
+                        for i in range(T.dims[0])]
+        # Filter None elements (indices covered by a previous slice)
+        operands = [x for x in reversed(operands) if x is not None]
+        self._module_visitor._make_concat(operands, result)
+        return result
+
+    def _make_assignments(self, connections):
+        for wire, value in self._build_wire_map(connections).items():
+            if isinstance(value, dict):
+                value = self._build_array_value(wire.type.T, value)
+                value = self._combine_array_assign(wire.type.T, value)
+            sv.BPAssignOp(operands=[wire, value])
+
+    def _process_when_block(self, block):
+        connections = (
+            (conditional_wire.drivee, conditional_wire.driver)
+            for conditional_wire in block.conditional_wires()
+        )
+        if block.condition is None:
+            self._make_assignments(connections)
+            for child in block.children():
+                self._process_when_block(child)
+            return
+        cond = self._operands[self._input_to_index[block.condition]]
+        if_op = sv.IfOp(operands=[cond])
+        with push_block(if_op.then_block):
+            self._make_assignments(connections)
+            for child in block.children():
+                self._process_when_block(child)
+        curr_sibling = if_op
+        with contextlib.ExitStack() as stack:
+            sibling_blocks = list(block.elsewhen_blocks())
+            if block.otherwise_block is not None:
+                sibling_blocks.append(block.otherwise_block)
+            for sibling_block in sibling_blocks:
+                stack.enter_context(push_block(curr_sibling.else_block))
+                curr_sibling = self._process_when_block(sibling_block)
+        return if_op
+
     def compile(self):
-        def _make_arr(T):
-            if isinstance(T, builtin.IntegerType):
-                return [None for _ in range(T.n)]
-            assert isinstance(T, hw.ArrayType), T
-            return [_make_arr(T.T) for _ in range(T.dims[0])]
-
-        def _build_array_value(T, value):
-            arr = _make_arr(T)
-            for idx, elem in value.items():
-                curr = arr
-                for i in idx[:-1]:
-                    curr = curr[i]
-                curr[idx[-1]] = elem
-            return arr
-
-        def _combine_array_assign(T, value):
-            """Sort drivers by index, use concat or create depending on type"""
-            if isinstance(value, MlirValue):
-                return value
-            if all(x is None for x in value):
-                return None
-            result = self._module_visitor._ctx.new_value(T)
-            operands = value
-            if not isinstance(T, builtin.IntegerType):
-                # recursive combine children
-                assert len(T.dims) == 1, "Expected 1d array"
-                operands = [_combine_array_assign(T.T, value[i])
-                            for i in range(T.dims[0])]
-            # Filter None elements (indices covered by a previous slice)
-            operands = [x for x in reversed(operands) if x is not None]
-            self._module_visitor._make_concat(operands, result)
-            return result
-
-        def _make_assignments(connections):
-            for wire, value in self._build_wire_map(connections).items():
-                if isinstance(value, dict):
-                    value = _build_array_value(wire.type.T, value)
-                    value = _combine_array_assign(wire.type.T, value)
-                sv.BPAssignOp(operands=[wire, value])
-
-        def _process_when_block(block):
-            connections = (
-                (conditional_wire.drivee, conditional_wire.driver)
-                for conditional_wire in block.conditional_wires()
-            )
-            if block.condition is None:
-                _make_assignments(connections)
-                for child in block.children():
-                    _process_when_block(child)
-                return
-            cond = self._operands[self._input_to_index[block.condition]]
-            if_op = sv.IfOp(operands=[cond])
-            with push_block(if_op.then_block):
-                _make_assignments(connections)
-                for child in block.children():
-                    _process_when_block(child)
-            curr_sibling = if_op
-            with contextlib.ExitStack() as stack:
-                sibling_blocks = list(block.elsewhen_blocks())
-                if block.otherwise_block is not None:
-                    sibling_blocks.append(block.otherwise_block)
-                for sibling_block in sibling_blocks:
-                    stack.enter_context(push_block(curr_sibling.else_block))
-                    curr_sibling = _process_when_block(sibling_block)
-            return if_op
-
         with push_block(sv.AlwaysCombOp().body_block):
-            _make_assignments(self._builder.default_drivers.items())
-            _process_when_block(self._builder.block)
-
+            self._make_assignments(self._builder.default_drivers.items())
+            self._process_when_block(self._builder.block)
         return True
