@@ -84,11 +84,11 @@ class WhenCompiler:
         inst = module.module
         defn = type(inst)
         assert iswhen(defn)
-        self._builder = defn._builder_
+        self._builder = builder = defn._builder_
 
         # Update index map for flattened tuples
-        self._input_to_index = self._flatten_index_map(self._builder.input_to_index)
-        self._output_to_index = self._flatten_index_map(self._builder.output_to_index)
+        self._input_to_index = self._flatten_index_map(builder.input_to_index)
+        self._output_to_index = self._flatten_index_map(builder.output_to_index)
 
         self._wires = self._make_output_wires()
 
