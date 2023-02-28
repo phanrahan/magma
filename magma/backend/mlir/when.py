@@ -77,6 +77,21 @@ class WhenCompiler:
         self._flatten_all_tuples = \
             self._module_visitor._ctx.opts.flatten_all_tuples
 
+        # Track outer_block so array_ref/constants are placed outside the always
+        # comb to reduce code repetition
+        self._outer_block = get_block_stack().peek()
+
+        inst = module.module
+        defn = type(inst)
+        assert iswhen(defn)
+        self._builder = defn._builder_
+
+        # Update index map for flattened tuples
+        self._input_to_index = self._flatten_index_map(self._builder.input_to_index)
+        self._output_to_index = self._flatten_index_map(self._builder.output_to_index)
+
+        self._wires = self._make_output_wires()
+
     def _flatten_value(self, value):
         fields = []
         visit_magma_value_or_value_wrapper_by_direction(
@@ -86,96 +101,84 @@ class WhenCompiler:
         )
         return fields
 
-    def compile(self):
-        inst = self._module.module
-        defn = type(inst)
-        assert iswhen(defn)
-        self.builder = builder = defn._builder_
+    def _get_parent(self, val, collection, to_index):
+        """Search ancestor tree until we find either not an Array or we find a
+        an array that is in the index map"""
+        for ref in val.name.root_iter(
+            stop_if=lambda ref: not isinstance(ref, ArrayRef)
+        ):
+            try:
+                idx = to_index[ref.array]
+            except KeyError:
+                pass  # try next parent
+            else:
+                return collection[idx], ref.array
+        return None, None  # didn't find parent
 
-        # Update index map for flattened tuples
-        input_to_index = self._flatten_index_map(self.builder.input_to_index)
-        output_to_index = self._flatten_index_map(self.builder.output_to_index)
+    def _check_array_child_wire(self, val, collection, to_index):
+        """If val is a child of an array in the index map, get the parent wire
+        (so we add to a collection of drivers for a bulk assign)
+        """
+        wire, parent = self._get_parent(val, collection, to_index)
+        if wire is None:
+            return None, None
 
-        wires = self._make_output_wires()
+        class _IndexBuilder:
+            def __init__(self):
+                self.index = tuple()
 
-        # Track outer_block so array_ref/constants are placed outside the always
-        # comb to reduce code repetition
-        outer_block = get_block_stack().peek()
+            def __getitem__(self, idx):
+                self.index += (idx, )
+                return self
 
-        def _get_parent(val, collection, to_index):
-            for ref in val.name.root_iter(
-                stop_if=lambda ref: not isinstance(ref, ArrayRef)
-            ):
-                try:
-                    idx = to_index[ref.array]
-                except KeyError:
-                    pass  # try next parent
+        builder = _IndexBuilder()
+        make_selector(val, stop_at=parent).select(builder)
+        return wire, builder.index
+
+    def _make_operand(self, wire, index):
+        if not index:
+            return wire
+        i = index[0]
+        if isinstance(i, slice):
+            # convert to tuple for hashing
+            i = (i.start, i.stop, i.step)
+        with push_block(self._outer_block):
+            operand = self._module_visitor.make_array_ref(wire, i)
+        return self._make_operand(operand, index[1:])
+
+    def _build_wire_map(self, connections):
+        """Collect a map of output wires to their drivers.
+        If it's an array that's been elaborated, we collect the drives in a
+        dictionary using their index as a key to sort.
+        """
+        wire_map = {}
+        for drivee, driver in connections:
+            elts = zip(*map(self._flatten_value, (drivee, driver)))
+            for drivee_elt, driver_elt in elts:
+
+                operand_wire, operand_index = self._check_array_child_wire(
+                    driver_elt, self._operands, self._input_to_index)
+                if operand_wire:
+                    operand = self._make_operand(operand_wire,
+                                                 operand_index)
                 else:
-                    return collection[idx], ref.array
-            return None, None  # didn't find parent
+                    operand = self._operands[self._input_to_index[driver_elt]]
 
-        def _check_array_child_wire(val, collection, to_index):
-            """If val is a child of an array, get the root wire
-            (so we add to a collection of drivers for a bulk assign)
-            """
-            wire, parent = _get_parent(val, collection, to_index)
-            if wire is None:
-                return None, None
+                drivee_wire, drivee_index = self._check_array_child_wire(
+                    drivee_elt, self._wires, self._output_to_index)
+                if drivee_wire:
+                    wire_map.setdefault(drivee_wire, {})
+                    drivee_index = tuple(
+                        i if not isinstance(i, slice) else i.start
+                        for i in drivee_index
+                    )
+                    wire_map[drivee_wire][drivee_index] = operand
+                else:
+                    drivee_wire = self._wires[self._output_to_index[drivee_elt]]
+                    wire_map[drivee_wire] = operand
+        return wire_map
 
-            class _IndexBuilder:
-                def __init__(self):
-                    self.index = tuple()
-
-                def __getitem__(self, idx):
-                    self.index += (idx, )
-                    return self
-
-            builder = _IndexBuilder()
-            make_selector(val, stop_at=parent).select(builder)
-            return wire, builder.index
-
-        def _make_operand(wire, index):
-            if not index:
-                return wire
-            i = index[0]
-            if isinstance(i, slice):
-                # convert to tuple for hashing
-                i = (i.start, i.stop, i.step)
-            with push_block(outer_block):
-                operand = self._module_visitor.make_array_ref(wire, i)
-            return _make_operand(operand, index[1:])
-
-        def _build_wire_map(connections):
-            """Collect a map of output wires to their drivers.
-            If it's an array that's been elaborated, we collect the drives in a
-            dictionary using their index as a key to sort.
-            """
-            wire_map = {}
-            for drivee, driver in connections:
-                elts = zip(*map(self._flatten_value, (drivee, driver)))
-                for drivee_elt, driver_elt in elts:
-
-                    operand_wire, operand_index = _check_array_child_wire(
-                        driver_elt, self._operands, input_to_index)
-                    if operand_wire:
-                        operand = _make_operand(operand_wire, operand_index)
-                    else:
-                        operand = self._operands[input_to_index[driver_elt]]
-
-                    drivee_wire, drivee_index = _check_array_child_wire(
-                        drivee_elt, wires, output_to_index)
-                    if drivee_wire:
-                        wire_map.setdefault(drivee_wire, {})
-                        drivee_index = tuple(
-                            i if not isinstance(i, slice) else i.start
-                            for i in drivee_index
-                        )
-                        wire_map[drivee_wire][drivee_index] = operand
-                    else:
-                        drivee_wire = wires[output_to_index[drivee_elt]]
-                        wire_map[drivee_wire] = operand
-            return wire_map
-
+    def compile(self):
         def _make_arr(T):
             if isinstance(T, builtin.IntegerType):
                 return [None for _ in range(T.n)]
@@ -210,7 +213,7 @@ class WhenCompiler:
             return result
 
         def _make_assignments(connections):
-            for wire, value in _build_wire_map(connections).items():
+            for wire, value in self._build_wire_map(connections).items():
                 if isinstance(value, dict):
                     value = _build_array_value(wire.type.T, value)
                     value = _combine_array_assign(wire.type.T, value)
@@ -226,7 +229,7 @@ class WhenCompiler:
                 for child in block.children():
                     _process_when_block(child)
                 return
-            cond = self._operands[input_to_index[block.condition]]
+            cond = self._operands[self._input_to_index[block.condition]]
             if_op = sv.IfOp(operands=[cond])
             with push_block(if_op.then_block):
                 _make_assignments(connections)
@@ -243,7 +246,7 @@ class WhenCompiler:
             return if_op
 
         with push_block(sv.AlwaysCombOp().body_block):
-            _make_assignments(builder.default_drivers.items())
-            _process_when_block(builder.block)
+            _make_assignments(self._builder.default_drivers.items())
+            _process_when_block(self._builder.block)
 
         return True
