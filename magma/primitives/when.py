@@ -8,7 +8,7 @@ from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
-from magma.ref import ArrayRef, TupleRef
+from magma.ref import DerivedRef
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -149,15 +149,16 @@ class WhenBuilder(CircuitBuilder):
     def output_to_index(self) -> Dict[Type, int]:
         return self._output_to_index.copy()
 
-    def _check_existing_array_child(self, value, value_to_name, value_to_index):
-        """If value is a child of an array that has already been added, we
-        return the child of the existing value, rather than adding a new port,
-        which allows us to maintain bulk assignments in the eventual generated
-        if statement, rather that elaborating into per-child assignments
+    def _check_existing_derived_ref(self, value, value_to_name, value_to_index):
+        """If value is a child of an array or tuple that has already been added,
+        we return the child of the existing value, rather than adding a new
+        port, which allows us to maintain bulk assignments in the eventual
+        generated if statement, rather that elaborating into per-child
+        assignments
         """
         curr_root = None
         for ref in value.name.root_iter(
-            stop_if=lambda ref: not isinstance(ref, (ArrayRef, TupleRef))
+            stop_if=lambda ref: not isinstance(ref, DerivedRef)
         ):
             if ref.parent_value in value_to_index:
                 curr_root = ref.parent_value
@@ -182,7 +183,7 @@ class WhenBuilder(CircuitBuilder):
         port_name = f"{name_prefix}{next(name_counter)}"
         value_to_name[value] = port_name
 
-        port = self._check_existing_array_child(value, value_to_name,
+        port = self._check_existing_derived_ref(value, value_to_name,
                                                 value_to_index)
         # NOTE(leonardt): when we add support for flatten_all_tuples=False, we
         # should also add similar logic here to avoid flattening assignments
