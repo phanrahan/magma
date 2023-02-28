@@ -61,9 +61,8 @@ class WhenCompiler:
         defn = type(inst)
         assert iswhen(defn)
         self.builder = builder = defn._builder_
-        input_to_index = self._flatten_index_map(self.builder.input_to_index),
+        input_to_index = self._flatten_index_map(self.builder.input_to_index)
         output_to_index = self._flatten_index_map(self.builder.output_to_index)
-        print(input_to_index, output_to_index)
 
         wires = [
             self._module_visitor._ctx.new_value(hw.InOutType(result.type))
@@ -92,7 +91,6 @@ class WhenCompiler:
             for ref in val.name.root_iter(
                 stop_if=lambda ref: not isinstance(ref, ArrayRef)
             ):
-                print(to_index)
                 try:
                     idx = to_index[ref.array]
                 except KeyError:
