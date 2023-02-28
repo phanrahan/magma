@@ -15,23 +15,14 @@ from magma.ref import ArrayRef, TupleRef
 from magma.value_utils import make_selector
 
 
-def _assert_false(*args, **kwargs):
-    assert False
-
-
 class WhenCompiler:
-    def __init__(self, module_visitor, module):
-        self._module_visitor = module_visitor
 
-        inst = module.module
-        defn = type(inst)
-        assert iswhen(defn)
-        builder = defn._builder_
+    def _flatten_index_map(self, builder_map):
+        value_to_index = {}
+        counter = itertools.count()
 
-        input_to_index = {}
-        output_to_index = {}
-
-        def _visit(value, counter, value_to_index):
+        def _index_map_visit(value):
+            nonlocal counter, value_to_index
             if isinstance(value.name, TupleRef) and value in value_to_index:
                 # tuples are flattened by the
                 # `visit_magma_value_or_value_wrapper_by_direction`, so we avoid
@@ -53,24 +44,26 @@ class WhenCompiler:
             value_to_index[value] = next(counter)
 
         flatten_all_tuples = self._module_visitor._ctx.opts.flatten_all_tuples
-        counter = itertools.count()
-        for value in sort_by_value(builder.input_to_index):
+        for value in sort_by_value(builder_map):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
-                _assert_false,
-                lambda v: _visit(v, counter, input_to_index),
+                _index_map_visit,
+                _index_map_visit,
                 flatten_all_tuples=flatten_all_tuples,
-                inout_visitor=lambda v: _visit(v, counter, input_to_index),
+                inout_visitor=_index_map_visit
             )
-        counter = itertools.count()
-        for value in sort_by_value(builder.output_to_index):
-            visit_magma_value_or_value_wrapper_by_direction(
-                value,
-                lambda v: _visit(v, counter, output_to_index),
-                _assert_false,
-                flatten_all_tuples=flatten_all_tuples,
-                inout_visitor=lambda v: _visit(v, counter, output_to_index),
-            )
+        return value_to_index
+
+    def __init__(self, module_visitor, module):
+        self._module_visitor = module_visitor
+
+        inst = module.module
+        defn = type(inst)
+        assert iswhen(defn)
+        self.builder = builder = defn._builder_
+        input_to_index = self._flatten_index_map(self.builder.input_to_index),
+        output_to_index = self._flatten_index_map(self.builder.output_to_index)
+        print(input_to_index, output_to_index)
 
         wires = [
             self._module_visitor._ctx.new_value(hw.InOutType(result.type))
@@ -83,6 +76,8 @@ class WhenCompiler:
         # Track outer_block so array_ref/constants are placed outside the always
         # comb to reduce code repetition
         outer_block = get_block_stack().peek()
+
+        flatten_all_tuples = self._module_visitor._ctx.opts.flatten_all_tuples
 
         def _collect_visited(value):
             fields = []
@@ -97,6 +92,7 @@ class WhenCompiler:
             for ref in val.name.root_iter(
                 stop_if=lambda ref: not isinstance(ref, ArrayRef)
             ):
+                print(to_index)
                 try:
                     idx = to_index[ref.array]
                 except KeyError:
