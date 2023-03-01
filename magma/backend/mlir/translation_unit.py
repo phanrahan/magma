@@ -1,9 +1,10 @@
-from typing import Any, Dict
+from typing import Any, Dict, Iterable
 import weakref
 
 from magma.backend.mlir.builtin import builtin
 from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
 from magma.backend.mlir.hardware_module import HardwareModule
+from magma.backend.mlir.hw import hw
 from magma.backend.mlir.mlir import MlirSymbol, push_block
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.circuit import CircuitKind, DefineCircuitKind
@@ -24,6 +25,18 @@ def _set_module_attrs(mlir_module: builtin.ModuleOp, opts: CompileToMlirOpts):
     if lowering_options:
         mlir_module.attr_dict["circt.loweringOptions"] = builtin.StringAttr(
             f"{','.join(lowering_options)}"
+        )
+
+
+def _prepare_for_split_verilog(
+        hardware_modules: Iterable[HardwareModule],
+        filename: str
+):
+    for hardware_module in hardware_modules:
+        if hardware_module.hw_module is None:
+            continue
+        hardware_module.hw_module.attr_dict["output_file"] = (
+            hw.OutputFileAttr(filename)
         )
 
 
@@ -108,6 +121,15 @@ class TranslationUnit:
                 hardware_module.compile()
                 if hardware_module.hw_module:
                     self.set_hardware_module(dep, hardware_module)
+        if self._opts.split_verilog:
+            if self._opts.basename is None or self._opts.suffix is None:
+                raise ValueError(
+                    "Must specify basename and suffix if split_verilog is set"
+                )
+            _prepare_for_split_verilog(
+                self._hardware_modules.values(),
+                f"{self._opts.basename}.{self._opts.suffix}",
+            )
         self._write_listings_file()
 
     @staticmethod

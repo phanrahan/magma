@@ -6,6 +6,7 @@ from typing import Optional
 class CompileToMlirOpts:
     flatten_all_tuples: bool = False
     basename: Optional[str] = None
+    suffix: Optional[str] = None
     use_native_bind_processor: bool = False
     verilog_prefix: Optional[str] = None
     user_namespace: Optional[str] = None
@@ -17,3 +18,4 @@ class CompileToMlirOpts:
     explicit_bitcast: bool = False
     disallow_expression_inlining_in_ports: bool = False
     disallow_local_variables: bool = False
+    split_verilog: bool = False
