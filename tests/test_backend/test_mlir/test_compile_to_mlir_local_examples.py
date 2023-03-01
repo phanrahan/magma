@@ -15,6 +15,7 @@ from examples import (
     complex_register_wrapper,
     complex_bind,
     simple_comb,
+    simple_hierarchy,
     simple_register_wrapper,
 )
 from test_utils import get_local_examples, run_test_compile_to_mlir
@@ -252,4 +253,17 @@ def test_compile_to_mlir_disallow_local_variables(disallow_local_variables: bool
         "disallow_local_variables": disallow_local_variables,
         "gold_name": gold_name,
     }
+    run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize("ckt", (simple_hierarchy,))
+def test_compile_to_mlir_split_verilog(ckt):
+    gold_name = ckt.name + "_split_verilog"
+    kwargs = {
+        "split_verilog": True,
+        "gold_name": gold_name,
+        "basename": ckt.name,
+        "suffix": "v",
+    }
+    kwargs.update({"check_verilog": False})
     run_test_compile_to_mlir(ckt, **kwargs)

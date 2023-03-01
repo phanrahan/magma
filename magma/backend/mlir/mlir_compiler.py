@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict
 
 from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
 from magma.backend.mlir.compile_to_mlir import compile_to_mlir
@@ -16,11 +16,24 @@ from magma.passes.finalize_whens import finalize_whens
 from magma.passes.raise_logs_as_exceptions import raise_logs_as_exceptions_pass
 
 
+def _get_suffix(opts: dict) -> str:
+    if opts.get("output_verilog", False):
+        if opts.get("sv", False):
+            return "sv"
+        return "v"
+    return "mlir"
+
+
+def _set_or_die(dct: Dict, key: Any, value: Any):
+    if key in dct:
+        raise KeyError(key)
+    dct[key] = value
+
+
 class MlirCompiler(Compiler):
     def __init__(self, main: DefineCircuitKind, basename: str, opts: Dict):
-        # TODO(rsetaluri): Make this a better error.
-        assert "basename" not in opts
-        opts["basename"] = basename
+        _set_or_die(opts, "basename", basename)
+        _set_or_die(opts, "suffix", _get_suffix(opts))
         self._compile_to_mlir_opts = slice_opts(
             opts, CompileToMlirOpts, keep=True
         )
@@ -30,11 +43,7 @@ class MlirCompiler(Compiler):
         super().__init__(main, basename, opts)
 
     def suffix(self):
-        if self.opts.get("output_verilog", False):
-            if self.opts.get("sv", False):
-                return "sv"
-            return "v"
-        return "mlir"
+        return _get_suffix(self.opts)
 
     def run_pre_uniquification_passes(self):
         if self.opts.get("flatten_all_tuples", False):
