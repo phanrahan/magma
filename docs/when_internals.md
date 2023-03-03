@@ -26,7 +26,42 @@ relavant code.
     other code that could potentially modify the circuit.  For example, a pass
     could elaborate a value, which would trigger the when resolve logic, which
     needs to occur before the when builder is finalized.
-* `primitives/when.py`: TODO
+* `primitives/when.py`
+  * `iswhen`
+  * `InferredLatchError`
+  * `_add_default_drivers_to_memory_ports`
+  * `_get_corresponding_register_default`
+  * `_add_default_drivers_to_register_inputs`
+  * `WhenBuilder`
+    * Attributes
+      * `_block`
+      * `_condition_counter`
+      * `_driver_counter`
+      * `_drivee_counter`
+      * `_input_counter`
+      * `_output_counter`
+      * `_input_to_index`
+      * `_output_to_index`
+      * `_input_to_name`
+      * `_output_to_name`
+      * `_default_drivers`
+      * `_is_when_builder_`
+    * Properties
+      * `default_drivers`
+      * `input_to_index`
+      * `output_to_index`
+      * `block`
+    * Methods
+      * `_check_existing_derived_ref`
+      * `_generic_add`
+      * `add_drivee`
+      * `add_driver`
+      * `add_condition`
+      * `add_default_driver`
+      * `remove_default_driver`
+      * `_finalize`
+  * `is_when_builder`
+
 * `protocol_type.py`
   * `Protocol` should pass the `set_enclosing_when_context` API through to the
     underlying magma value
