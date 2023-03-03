@@ -34,7 +34,109 @@ relavant code.
   * `reset_global_context`, reset the when context global state (used for
     teardown of tests that could potentially error and leave a when context in
     place)
-* `when.py`: TODO
+* `when.py`
+  * `WhenSyntaxError`: used to report errors about invalid ordering of when
+    statements (e.g. an `otherwise` must follow a `when` or `elsewhen`)
+  * `ConditionalWire`: a container with fields `drivee` and `driver` used
+    to store information about conditional wires
+  * `_BlockBase`
+    * Overview
+      * Base class containing common logic for the various types of when blocks
+        (i.e. when, elsewhen, otherwise)
+    * Attributes:
+      * `self._parent`
+      * `self._children`
+      * `self._conditional_wires`
+      * `self._default_drivers`
+    * Properties
+      * `root`
+      * `condition`
+    * Methods
+      * `spawn`
+      * `get_conditional_wires_for_drivee`
+      * `remove_conditional_wire`
+      * `add_conditional_wire`
+      * `new_elsewhen_block`
+      * `new_otherwise_block`
+      * `elsewhen_blocks`
+      * `otherwise_blocks`
+      * `conditional_wires`
+      * `default_drivers`
+      * `get_default_drivers_dict`
+      * `add_default_driver`
+      * `children`
+      * `__enter__`
+      * `_add_reg_enables`
+      * `_get_exit_block`
+      * `__exit__`
+  * `get_all_blocks`
+  * `_WhenBlockInfo`
+  * `_ElseWhenBlockInfo`
+  * `_WhenBlock`
+    * Overview
+    * Attributes
+      * `_info`
+      * `_elsewhens`
+      * `_otherwise`
+      * `_builder`
+    * Properties
+      * `builder`
+      * `root`
+      * `condition`
+      * `otherwise_block`
+    * Methods
+      * `new_elsewhen_block`
+      * `new_otherwise_block`
+      * `elsewhen_blocks`
+      * `__enter__`
+      * `_get_exit_block`
+
+  * `_ElseWhenBlock`
+    * Overview
+    * Attributes
+      * `_info`
+    * Properties
+      * `root`
+      * `condition`
+      * `otherwise_block`
+    * Methods
+      * `new_elsewhen_block`
+      * `new_otherwise_block`
+      * `elsewhen_blocks`
+      * `_get_exit_block`
+
+  * `_OtherwiseBlock`
+    * Overview
+    * Attributes
+      * `_info`
+    * Properties
+      * `root`
+      * `condition`
+      * `otherwise_block`
+    * Methods
+      * `new_elsewhen_block`
+      * `new_otherwise_block`
+      * `elsewhen_blocks`
+      * `_get_exit_block`
+  * `_curr_block`, `_prev_block`
+  * `no_when`
+  * `temp_when`
+  * `get_curr_block`
+  * `_set_curr_block`
+  * `_reset_curr_block`
+  * `_get_prev_block`
+  * `_reset_prev_block`
+  * `reset_context`
+  * `_get_else_block`
+  * `_get_then_ops`
+  * `_get_else_ops`
+  * `_get_assignees_and_latches`
+  * `find_inferred_latches`
+  * `when`
+  * `elsewhen`
+  * `otherwise`
+
+
 * `wire_container.py`
   * `Wireable`
     * Overview
@@ -88,7 +190,6 @@ relavant code.
       * `_wire_impl`: special handling if `self` is a when port
       * `wire`: checks if there is an active when context, if so, trigger
       * conditional wiring logic and add to `self._wire_when_contexts`
-
   * `AggregateWireable`
     * Overview
       * This extends the `Wireable` code with logic to handle the resolution
