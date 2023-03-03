@@ -6,7 +6,11 @@ relavant code.
   * Both recursive types are responsible for providing the
     `set_enclosing_when_context` API, as well as ensuring lazily elaborated children
     inherit the enclosing when context.
-* `backend/mlir/mlir_compiler.py`: TODO
+* `backend/mlir/mlir_compiler.py`: call the `finalize_whens` pass after any passes that
+  may modify the circuit are run, and before uniquification (so that when logic
+  is elaborated in the repr).  **NOTE:** It could be useful to add a notion of dependencies
+  in the pass framework that enforce these constraints (e.g. only analysis
+  passes can occur after finalize_whens, no transformation passes).
 * `backend/mlir/hardware_module.py`: TODO
 * `backend/mlir/when.py`: TODO
 * `definition_context.py`: `DefinitionContext.place_instances` treats
