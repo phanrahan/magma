@@ -1,8 +1,10 @@
 import contextlib
 import itertools
+import pathlib
 import pytest
 
 import magma as m
+from magma.config import config
 from magma.debug import debug_info
 from magma.passes.finalize_whens import finalize_whens
 from magma.primitives.mux import CoreIRCommonLibMuxN
@@ -18,7 +20,11 @@ from examples import (
     simple_hierarchy,
     simple_register_wrapper,
 )
-from test_utils import get_local_examples, run_test_compile_to_mlir
+from test_utils import (
+    get_local_examples,
+    run_test_compile_to_mlir,
+    check_streams_equal,
+)
 
 
 class _simple_coreir_common_lib_mux_n_wrapper(m.Circuit):
@@ -258,12 +264,17 @@ def test_compile_to_mlir_disallow_local_variables(disallow_local_variables: bool
 
 @pytest.mark.parametrize("ckt", (simple_hierarchy,))
 def test_compile_to_mlir_split_verilog(ckt):
+    dirname = pathlib.Path("tests/test_backend/test_mlir/")
+    basename = dirname / "build" / ckt.name
     gold_name = ckt.name + "_split_verilog"
     kwargs = {
         "split_verilog": True,
         "gold_name": gold_name,
-        "basename": ckt.name,
+        "basename": basename,
         "suffix": "v",
     }
-    kwargs.update({"check_verilog": False})
     run_test_compile_to_mlir(ckt, **kwargs)
+    if config.test_mlir_check_verilog:
+        with open(f"{basename}.v", "rb") as verilog_out:
+            with open(f"{dirname}/golds/{gold_name}_real.v", "rb") as verilog_gold:
+                assert check_streams_equal(verilog_out, verilog_gold, "out", "gold")
