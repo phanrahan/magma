@@ -11,7 +11,8 @@ relavant code.
   is elaborated in the repr).  **NOTE:** It could be useful to add a notion of dependencies
   in the pass framework that enforce these constraints (e.g. only analysis
   passes can occur after finalize_whens, no transformation passes).
-* `backend/mlir/hardware_module.py`: TODO
+* `backend/mlir/hardware_module.py`: `ModuleVisitor` dispatches to
+  `WhenCompiler` when encounter a when primitive instance.
 * `backend/mlir/when.py`: TODO
 * `definition_context.py`: `DefinitionContext.place_instances` treats
   when builder's differently because they are finalized at a later stage
