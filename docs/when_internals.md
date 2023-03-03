@@ -6,9 +6,12 @@ relavant code.
 * `wire_container.py`
   * `Wireable`
     * Overview
-      *
+      * The main `when` logic for the `Wireable` class is to trigger the `when`
+        code path when `wire` is invoked inside an active `when` context.  It is
+        also responsible for handling unwiring, as well as special logic for
+        wiring the output of a when primitive.
     * Attributes:
-      * `self._enclsoing_when_context`: tracks the active when context when a
+      * `self._enclosing_when_context`: tracks the active when context when a
         `Wireable` value is created.  This ensures that wiring done inside the
         enclosing context is treated as unconditional.  For example, if we have
         the following code:
@@ -56,6 +59,9 @@ relavant code.
 
   * `AggregateWireable`
     * Overview
+      * This extends the `Wireable` code with logic to handle the resolution
+        of conditionally driven values.  This ensures that resolved children
+        inherit the when logic of the parent.
     * Methods
       * `_get_conditional_drivee_info`: used in the resolve pipeline, collect
         the relevant information related to the when drivers before calling
