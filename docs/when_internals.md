@@ -6,27 +6,34 @@ relavant code.
   * Both recursive types are responsible for providing the
     `set_enclosing_when_context` API, as well as ensuring lazily elaborated children
     inherit the enclosing when context.
-* `backend/mlir/mlir_compiler.py`: call the `finalize_whens` pass after any passes that
-  may modify the circuit are run, and before uniquification (so that when logic
-  is elaborated in the repr).  **NOTE:** It could be useful to add a notion of dependencies
-  in the pass framework that enforce these constraints (e.g. only analysis
-  passes can occur after finalize_whens, no transformation passes).
-* `backend/mlir/hardware_module.py`: `ModuleVisitor` dispatches to
-  `WhenCompiler` when encounter a when primitive instance.
+* `backend/mlir/mlir_compiler.py`: 
+  * `MlirCompiler` calls the `finalize_whens` pass after any passes that may
+    modify the circuit are run, and before uniquification (so that when logic
+    is elaborated in the repr).  **NOTE:** It could be useful to add a notion
+    of dependencies in the pass framework that enforce these constraints (e.g.
+    only analysis passes can occur after finalize_whens, no transformation
+    passes).
+* `backend/mlir/hardware_module.py`
+  * `ModuleVisitor` dispatches to `WhenCompiler` when encounter a when
+    primitive instance.
 * `backend/mlir/when.py`: TODO
-* `definition_context.py`: `DefinitionContext.place_instances` treats
-  when builder's differently because they are finalized at a later stage
-* `passes/finalize_whens.py`: when builders are finalized separately than
-  normal builders, because the when finalization process should occur after all
-  other code that could potentially modify the circuit.  For example, a pass
-  could elaborate a value, which would trigger the when resolve logic, which
-  needs to occur before the when builder is finalized.
+* `definition_context.py`: 
+  * `DefinitionContext.place_instances` treats when builder's differently
+    because they are finalized at a later stage
+* `passes/finalize_whens.py`
+  * `FinalizeWhens`: when builders are finalized separately than normal
+    builders, because the when finalization process should occur after all
+    other code that could potentially modify the circuit.  For example, a pass
+    could elaborate a value, which would trigger the when resolve logic, which
+    needs to occur before the when builder is finalized.
 * `primitives/when.py`: TODO
-* `protocol_type.py`: `Protocol` should pass the `set_enclosing_when_context`
-  API through to the underlying magma value
-* `util.py`: as part of `reset_global_context`, reset the when context global
-  state (used for teardown of tests that could potentially error and leave a
-  when context in place)
+* `protocol_type.py`
+  * `Protocol` should pass the `set_enclosing_when_context` API through to the
+    underlying magma value
+* `util.py`
+  * `reset_global_context`, reset the when context global state (used for
+    teardown of tests that could potentially error and leave a when context in
+    place)
 * `when.py`: TODO
 * `wire_container.py`
   * `Wireable`
