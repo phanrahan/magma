@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 
 from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
@@ -67,6 +68,11 @@ class MlirCompiler(Compiler):
                 self.main, sout=f, opts=self._compile_to_mlir_opts)
         if not self.opts.get("output_verilog", False):
             return
+        outfile = (
+            os.devnull
+            if self.opts.get("split_verilog", False)
+            else f"{self.basename}.{self.suffix()}"
+        )
         with open(f"{self.basename}.mlir", "rb") as fi:
-            with open(f"{self.basename}.{self.suffix()}", "wb") as fo:
+            with open(outfile, "wb") as fo:
                 mlir_to_verilog(fi, fo, opts=self._mlir_to_verilog_opts)
