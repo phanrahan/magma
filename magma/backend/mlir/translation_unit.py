@@ -1,3 +1,4 @@
+import pathlib
 from typing import Any, Dict, Iterable
 import weakref
 
@@ -7,6 +8,7 @@ from magma.backend.mlir.hardware_module import HardwareModule
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.mlir import MlirSymbol, push_block
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
+from magma.bind2 import is_bound_module
 from magma.circuit import CircuitKind, DefineCircuitKind
 from magma.passes import dependencies
 from magma.t import Type
@@ -30,13 +32,20 @@ def _set_module_attrs(mlir_module: builtin.ModuleOp, opts: CompileToMlirOpts):
 
 def _prepare_for_split_verilog(
         hardware_modules: Iterable[HardwareModule],
-        filename: str
+        basename: str,
+        suffix: str,
 ):
+    filename = pathlib.Path(f"{basename}.{suffix}")
     for hardware_module in hardware_modules:
         if hardware_module.hw_module is None:
             continue
+        if is_bound_module(hardware_module.magma_defn_or_decl):
+            name = hardware_module.magma_defn_or_decl.name
+            output_filename = filename.parent / f"{name}.{suffix}"
+        else:
+            output_filename = filename
         hardware_module.hw_module.attr_dict["output_file"] = (
-            hw.OutputFileAttr(filename)
+            hw.OutputFileAttr(str(output_filename))
         )
 
 
@@ -129,7 +138,8 @@ class TranslationUnit:
             suffix = "sv" if self._opts.sv else "v"
             _prepare_for_split_verilog(
                 self._hardware_modules.values(),
-                f"{self._opts.basename}.{suffix}",
+                self._opts.basename,
+                suffix,
             )
         self._write_listings_file()
 

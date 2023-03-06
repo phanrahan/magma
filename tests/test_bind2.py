@@ -1,4 +1,7 @@
+import itertools
+import pathlib
 import pytest
+import string
 
 import magma as m
 from magma.bind2 import is_bound_module
@@ -14,8 +17,11 @@ def _assert_compilation(ckt, basename, suffix, opts):
         f"gold/{basename}.{suffix}")
 
 
-@pytest.mark.parametrize("backend", ("mlir",))
-def test_basic(backend):
+@pytest.mark.parametrize(
+    "backend,split_verilog",
+    itertools.product(("mlir",), (False, True))
+)
+def test_basic(backend, split_verilog):
 
     class Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
@@ -39,6 +45,16 @@ def test_basic(backend):
         "output": backend,
         "use_native_bind_processor": True,
     }
+    if split_verilog:
+        opts.update({"split_verilog": True})
+        basename = basename + "_split_verilog"
+    # Specialize gold file for cwd.
+    if split_verilog:
+        cwd = pathlib.Path(__file__).parent
+        with open(f"{cwd}/gold/{basename}.{suffix}.tpl", "r") as f_tpl:
+            with open(f"{cwd}/gold/{basename}.{suffix}", "w") as f_out:
+                tpl = string.Template(f_tpl.read())
+                f_out.write(tpl.substitute(cwd=cwd))
     _assert_compilation(Top, basename, suffix, opts)
 
 

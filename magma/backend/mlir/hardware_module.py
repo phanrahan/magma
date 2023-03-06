@@ -1225,8 +1225,7 @@ class NativeBindProcessor(BindProcessorInterface):
             hardware_module = self._ctx.parent.new_hardware_module(bind_module)
             hardware_module.compile()
             assert hardware_module.hw_module is not None
-            self._ctx.parent.set_hardware_module(
-                bind_module, hardware_module.hw_module)
+            self._ctx.parent.set_hardware_module(bind_module, hardware_module)
 
     @wrap_with_not_implemented_error
     def _resolve_arg(self, arg) -> MlirValue:
@@ -1256,7 +1255,7 @@ class NativeBindProcessor(BindProcessorInterface):
             module = self._ctx.parent.get_hardware_module(bind_module)
             inst = hw.InstanceOp(
                 name=inst_name,
-                module=module,
+                module=module.hw_module,
                 operands=operands,
                 results=[],
                 sym=sym)
