@@ -19,6 +19,9 @@ relavant code.
 * `backend/mlir/when.py`
   * `WhenCompiler`
     * Overview
+      * A class encapsulating the MLIR compilation logic for instances of
+        the `WhenBuilder` primitive.  It is invoked by the `ModuleVisitor`
+        class in `backend/mlir/harware_module.py`.
     * Attributes
       * `_module_visitor`: handle to `ModuleVisitor` instance from
         `backend/mlir/harware_module.py`, used to reference the context for
@@ -189,6 +192,9 @@ relavant code.
   * `_WhenBlockInfo`, `_ElseWhenBlockInfo`: stores the when block condition
   * `_WhenBlock`
     * Overview
+      * The `_WhenBlock` corresponds to an invocation of the `when` context
+        manager, and tracks the common information for a chain of `elsewhen`
+        and `otherwise` blocks.
     * Attributes
       * `_info`: instance of `_WhenBlockInfo` storing condition information
       * `_elsewhens`: list of elsewhen blocks
@@ -209,8 +215,10 @@ relavant code.
 
   * `_ElseWhenBlock`
     * Overview
+      * Specific elsewhen logic that dispatches to its parent `_WhenBlock` for
+        common logic
     * Attributes
-      * `_info`: instance of `_ElseWHenBlockInfo` storing condition information
+      * `_info`: instance of `_ElseWhenBlockInfo` storing condition information
     * Properties
       * `root`: always has a parent `_WhenBlock`, return its root
       * `condition`: public API to condition information
@@ -223,6 +231,8 @@ relavant code.
 
   * `_OtherwiseBlock`
     * Overview
+      * Specific otherwise logic that dispatches to its parent `_WhenBlock` for
+        common logic
     * Attributes
       * `_info`: None, no condition
     * Properties
