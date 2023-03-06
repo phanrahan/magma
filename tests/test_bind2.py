@@ -1,6 +1,8 @@
 import pytest
 
 import magma as m
+from magma.bind2 import is_bound_module
+from magma.passes.passes import CircuitPass
 import magma.testing
 
 
@@ -27,6 +29,9 @@ def test_basic(backend):
         io.other.unused()
 
     m.bind2(Top, TopBasicAsserts, Top.I)
+
+    assert not is_bound_module(Top)
+    assert is_bound_module(TopBasicAsserts)
 
     basename = f"test_bind2_basic"
     suffix = "mlir" if backend == "mlir" else "v"
@@ -114,3 +119,12 @@ def test_generator():
         "use_native_bind_processor": True,
     }
     _assert_compilation(Top, "test_bind2_generator", "mlir", opts)
+
+    class _CheckLogicAssertsAreBoundModulesPass(CircuitPass):
+        def __call__(self, defn):
+            if not isinstance(defn, LogicAsserts):
+                return
+            assert is_bound_module(defn)
+
+    assert not is_bound_module(Top)
+    _CheckLogicAssertsAreBoundModulesPass(Top).run()
