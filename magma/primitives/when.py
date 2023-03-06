@@ -57,6 +57,9 @@ def _is_memory_port(value: Type) -> bool:
 def _add_default_drivers_to_memory_ports(
     builder: 'WhenBuilder', latches: Set[Type]
 ):
+    # TODO(leonardt): for waddr/wdata/raddr, we could use an existing value as a
+    # default since ren/wen will be low, this would avoid potentially adding an
+    # extra input to the select mux
     for drivee in builder.output_to_index:
         if drivee in builder.default_drivers:
             continue

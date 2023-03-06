@@ -88,40 +88,49 @@ relavant code.
     could elaborate a value, which would trigger the when resolve logic, which
     needs to occur before the when builder is finalized.
 * `primitives/when.py`
-  * `iswhen`
-  * `InferredLatchError`
-  * `_add_default_drivers_to_memory_ports`
-  * `_get_corresponding_register_default`
-  * `_add_default_drivers_to_register_inputs`
+  * `iswhen`: public API to check if an instance or definition corresponds to
+    the when primitive builder.
+  * `InferredLatchError`: raised by latch inference
+  * `_add_default_drivers_to_memory_ports`: wires a default zero value to memory
+    ports (e.g. waddr and wen are default)
+  * `_get_corresponding_register_default`: used to get the default value for
+    register inputs (reg.O for reg.I, False for reg.CE)
+  * `_add_default_drivers_to_register_inputs`: wires default values for register
+    inputs using `_get_corresponding_register_default`
   * `WhenBuilder`
     * Attributes
-      * `_block`
-      * `_condition_counter`
-      * `_driver_counter`
-      * `_drivee_counter`
-      * `_input_counter`
-      * `_output_counter`
-      * `_input_to_index`
-      * `_output_to_index`
-      * `_input_to_name`
-      * `_output_to_name`
-      * `_default_drivers`
-      * `_is_when_builder_`
+      * `_block`: corresponding root when block object
+      * `_condition_counter`, `_driver_counter`, `_drivee_counter`,
+        `_input_counter`, `_output_counter`: counters used to track the number
+        of each type of value, which is used to construct a unique name and populate
+        their value in the index map.
+      * `_input_to_index`, `_output_to_index`: used to look up the corresponding index for
+         a value in the MLIR logic
+      * `_input_to_name`, `_output_to_name`: used to map a value to the
+        corresponding port name
+      * `_default_drivers`: used to track the default driver for values
+      * `_is_when_builder_`: True (used externally to find when builders)
     * Properties
-      * `default_drivers`
-      * `input_to_index`
-      * `output_to_index`
-      * `block`
+      * `default_drivers`, `input_to_index`, `output_to_index`, `block`: public
+        APIs to internal attributes
     * Methods
-      * `_check_existing_derived_ref`
-      * `_generic_add`
-      * `add_drivee`
-      * `add_driver`
-      * `add_condition`
-      * `add_default_driver`
-      * `remove_default_driver`
-      * `_finalize`
-  * `is_when_builder`
+      * `_check_existing_derived_ref`: if value is a child of an array or tuple
+        that has already been added, we return the child of the existing value,
+        rather than adding a new port, which allows us to maintain bulk
+        assignments in the eventual generated if statement, rather that
+        elaborating into per-child assignments
+      * `_generic_add`: common logic for `add_drivee`, `add_driver`, and `add_condition` which
+        updates the appropriate maps, adds/gets a corresponding builder port,
+        and wires the port to the value
+      * `add_drivee`, `add_driver`, `add_condition`: uses `_generic_add` with
+        specific maps for each variant
+      * `add_default_driver`: adds ports for the driver and drivee, updates the
+        `_default_drivers` map
+      * `remove_default_driver`: removes drivee from `_default_drivers` map
+        (used for unwire)
+      * `_finalize`: run latch inference, add default logic for memories and
+        registers.
+  * `is_when_builder`: public API for checking if instance of when builder
 
 * `protocol_type.py`
   * `Protocol` should pass the `set_enclosing_when_context` API through to the
