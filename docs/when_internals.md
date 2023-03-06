@@ -149,97 +149,112 @@ relavant code.
       * Base class containing common logic for the various types of when blocks
         (i.e. when, elsewhen, otherwise)
     * Attributes:
-      * `self._parent`
-      * `self._children`
-      * `self._conditional_wires`
-      * `self._default_drivers`
+      * `self._parent`: for `WhenBlock`, reference to enclosing `WhenBlock` if
+        it exists.  For all other blocks, reference to intial `WhenBlock`
+      * `self._children`: for `WhenBlock`, reference to child blocks created by
+        the `spawn` API
+      * `self._conditional_wires`: list of conditional wires created in this block
+      * `self._default_drivers`: list of `_default_drivers` for conditional
+        values
     * Properties
-      * `root`
-      * `condition`
+      * `root`: traverse `_parent` chain until finding the root
+      * `condition`: get condition for this block
     * Methods
-      * `spawn`
-      * `get_conditional_wires_for_drivee`
-      * `remove_conditional_wire`
-      * `add_conditional_wire`
-      * `new_elsewhen_block`
-      * `new_otherwise_block`
-      * `elsewhen_blocks`
-      * `otherwise_blocks`
-      * `conditional_wires`
-      * `default_drivers`
-      * `get_default_drivers_dict`
-      * `add_default_driver`
-      * `children`
-      * `__enter__`
-      * `_add_reg_enables`
-      * `_get_exit_block`
-      * `__exit__`
-  * `get_all_blocks`
-  * `_WhenBlockInfo`
-  * `_ElseWhenBlockInfo`
+      * `spawn`: create a child `_WhenBlock`
+      * `get_conditional_wires_for_drivee`: return all conditional wires corresponding
+        to a drivee
+      * `remove_conditional_wire`: remove all conditional wires and the default
+        driver for a drivee
+      * `add_conditional_wire`: add a conditional wire for an input and an output
+      * `new_elsewhen_block`: API to construct an elsewhen block in the chain
+      * `new_otherwise_block`: API to construct an otherwise block in the chain
+      * `elsewhen_blocks`: get elsewhen blocks
+      * `otherwise_blocks`: get otherwise blocks
+      * `conditional_wires`: get iterator over `_conditional_wires`
+      * `default_drivers`: get generator of `ConditionalWire` objects for
+        `_default_drivers` 
+      * `get_default_drivers_dict`: get reference to `_default_drivers` dictionary
+      * `add_default_driver`: add a new default driver for a drivee
+      * `children`: get iterator over `_children`
+      * `__enter__`: if needed, add condition to the root builder, push self
+        onto block stack
+      * `_add_reg_enables`: on exit, add default enable logic for unwired
+        registers
+      * `_get_exit_block`: returns the block that should be set as the current
+        block when __exit__ is called.
+      * `__exit__`: add register enables if needed, update the block stack, track
+        self as the previous block (used for chaining logic).
+  * `get_all_blocks`: given a block, provide a flattened iterator over all the
+    child blocks.
+  * `_WhenBlockInfo`, `_ElseWhenBlockInfo`: stores the when block condition
   * `_WhenBlock`
     * Overview
     * Attributes
-      * `_info`
-      * `_elsewhens`
-      * `_otherwise`
-      * `_builder`
+      * `_info`: instance of `_WhenBlockInfo` storing condition information
+      * `_elsewhens`: list of elsewhen blocks
+      * `_otherwise`: otherwise block
+      * `_builder`: corresponding builder instance
     * Properties
-      * `builder`
-      * `root`
-      * `condition`
-      * `otherwise_block`
+      * `builder`: public API to `_builder`
+      * `root`: return `_parent`'s root if it exists, else return self
+      * `condition`: public API to condition information
+      * `otherwise_block`: pbulic API to otherwise block
     * Methods
-      * `new_elsewhen_block`
-      * `new_otherwise_block`
-      * `elsewhen_blocks`
-      * `__enter__`
-      * `_get_exit_block`
+      * `new_elsewhen_block`: public API to create a new elsewhen block
+      * `new_otherwise_block`: public API to create a new otherwise block
+      * `elsewhen_blocks`: public API to reference `_elsewhen_blocks`
+      * `__enter__`: unset previous block in global state to mark the start of
+        a fresh when context
+      * `_get_exit_block`: return to parent block
 
   * `_ElseWhenBlock`
     * Overview
     * Attributes
-      * `_info`
+      * `_info`: instance of `_ElseWHenBlockInfo` storing condition information
     * Properties
-      * `root`
-      * `condition`
-      * `otherwise_block`
+      * `root`: always has a parent `_WhenBlock`, return its root
+      * `condition`: public API to condition information
+      * `otherwise_block`: None, otherwise block is tracked by parent
     * Methods
-      * `new_elsewhen_block`
-      * `new_otherwise_block`
-      * `elsewhen_blocks`
-      * `_get_exit_block`
+      * `new_elsewhen_block`: dispatch to parent
+      * `new_otherwise_block`: dispatch to parent
+      * `elsewhen_blocks`: Empty, elsewhens tracked by parent
+      * `_get_exit_block`: dispatch to parent
 
   * `_OtherwiseBlock`
     * Overview
     * Attributes
-      * `_info`
+      * `_info`: None, no condition
     * Properties
-      * `root`
-      * `condition`
-      * `otherwise_block`
+      * `root`: always has a parent `_WhenBlock`, return its root
+      * `condition`: None
+      * `otherwise_block`: None
     * Methods
-      * `new_elsewhen_block`
-      * `new_otherwise_block`
-      * `elsewhen_blocks`
-      * `_get_exit_block`
-  * `_curr_block`, `_prev_block`
-  * `no_when`
-  * `temp_when`
-  * `get_curr_block`
-  * `_set_curr_block`
-  * `_reset_curr_block`
-  * `_get_prev_block`
-  * `_reset_prev_block`
-  * `reset_context`
-  * `_get_else_block`
-  * `_get_then_ops`
-  * `_get_else_ops`
-  * `_get_assignees_and_latches`
-  * `find_inferred_latches`
-  * `when`
-  * `elsewhen`
-  * `otherwise`
+      * `new_elsewhen_block`: error, nothing follows an otherwise block.
+      * `new_otherwise_block`: error, nothing follows an otherwise block.
+      * `elsewhen_blocks`: Empty
+      * `_get_exit_block`: dispatch ot parent
+  * `_curr_block`, `_prev_block`: global values used to track active and
+    previous when contexts
+  * `no_when`: temporarily remove active when context
+  * `temp_when`: temporarily change active when context
+  * `get_curr_block`: get current active when context
+  * `_set_curr_block`: set curent active when context
+  * `_reset_curr_block`: clear current active when context
+  * `_get_prev_block`: get previous active when context
+  * `_reset_prev_block`: clear previous active when context
+  * `reset_context`: reset current and previous contexts
+  * `_get_else_block`: given a block, get the next block in the chain (viewing
+    it as nested if/elses)
+  * `_get_then_ops`: iterate over conditional wires for current block, then over
+    the child blocks
+  * `_get_else_ops`: iterate over the next set of ops for an elsewhen or otherwise
+  * `_get_assignees_and_latches`: used for latch inferences to track assigned
+    values and latched values for a set of ops corresponding to a block
+  * `find_inferred_latches`: use `_get_assignees_and_latches` to see if there
+    are any latches
+  * `when`, `elsewhen`, `otherwise`: public APIs to interact with the when context
+    global state to construct corresponding objects tracking the logic
 
 
 * `wire_container.py`
