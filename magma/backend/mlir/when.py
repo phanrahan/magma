@@ -21,7 +21,7 @@ class WhenCompiler:
         self._module = module
         self._operands = self._module.operands
         self._flatten_all_tuples = \
-            self._module_visitor._ctx.opts.flatten_all_tuples
+            self._module_visitor.opts.flatten_all_tuples
 
         # Track outer_block so array_ref/constants are placed outside the always
         # comb to reduce code repetition
@@ -142,8 +142,8 @@ class WhenCompiler:
         return wire, builder.index
 
     def _make_operand(self, wire, index):
-        """If the operand is an element of wire, emit the requires array
-        reference ops (extract, get, or slice) to retrieve the desired index"""
+        """If the operand is an element of wire, emit the required array
+        reference ops (extract, get, or slice) to retrieve the desired index."""
         if not index:
             return wire
         i = index[0]
@@ -156,7 +156,7 @@ class WhenCompiler:
 
     def _build_wire_map(self, connections):
         """Collect a map of output wires to their drivers.
-        If it's an array that's been elaborated, we collect the drives in a
+        If it's an array that's been elaborated, we collect the drivers in a
         dictionary using their index as a key to sort.
         """
         wire_map = {}

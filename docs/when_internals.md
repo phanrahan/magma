@@ -16,7 +16,68 @@ relavant code.
 * `backend/mlir/hardware_module.py`
   * `ModuleVisitor` dispatches to `WhenCompiler` when encounter a when
     primitive instance.
-* `backend/mlir/when.py`: TODO
+* `backend/mlir/when.py`
+  * `WhenCompiler`
+    * Overview
+    * Attributes
+      * `_module_visitor`: handle to `ModuleVisitor` instance from
+        `backend/mlir/harware_module.py`, used to reference the context for
+        creating values, compile options (e.g. `flatten_all_tuples`), and value
+        creation helpers (e.g. `make_array_ref`).
+      * `_module`: reference to the when primitive MLIR module being compiled
+      * `_operands`: reference to `_module.operands`
+      * `_flatten_all_tuples`: reference to `flatten_all_tuples` compile option
+      * `_outer_block`: get the current active MLIR block, this is used to
+        create value references in the enclosing scope, which aims to reduce
+        code duplication (since references are cached per block).
+      * `_builder`: reference to the magma builder object corresponding to the
+        when instance being compiled
+      * `_input_to_index`, `_output_to_index`: copies of the builder index maps
+        where tuple values are flattened to match the MLIR `flatten_all_tuples`
+        logic
+      * `_output_wires`: a list of mlir values corresponding to each module
+        output
+    * Methods
+      * `_get_input_index`: retrieve an input magma value's index from the
+          `_input_to_index` map
+      * `_get_operand`: retrieve the MLIR operand value for a magma value
+        (using `_get_input_index` to lookup the position in `_operands`)
+      * `_flatten_index_map`: flattens tuples values in  the builder primitive
+        index maps to match the MLIR flatten tuples logic
+      * `_make_output_wires`: construct the `RegOp` instances for each of the
+        module results
+      * `_flatten_value`: given a magma value, flatten it into a list of
+        children (for flatten all tuples)
+      * `_get_parent`: traverse the ancestor chain for an array to see if it's
+        contained in the provided index map.  If so, use the index to lookup
+        the corresponding MLIR value in the provided collection and return
+        a reference to the corresponding array ancestor.  Used to pack
+        assignments for an array value.
+      * `_check_array_child_wire`: see if a value is a child of an array that is
+        in the index map.  If so, return the parent wire and an index
+        corresponding to the current child.
+      * `_make_operand`: If the operand is an element of wire, emit the
+        required array reference ops (extract, get, or slice) to retrieve the desired index.
+      * `_build_wire_map`: Collect a map of output wires to their drivers. If
+        it's an array that's been elaborated, we collect the drivers in a
+        dictionary using their index as a key to sort.
+      * `_make_arr_list`: Create a nested list structure matching the
+        dimensions of T, used to populate the elements of an array create op.
+      * `_build_array_value`: Unpack the contents of value into a nested list
+        structure
+      * `_combine_array_assign`: Sort drivers by index, use concat or create
+        depending on type
+      * `_make_assignments`: Use `_build_wire_map` to contruct a mapping from
+        output wire to driver.  Use `_build_array_value` and
+        `_combine_array_assign` to handle collection elaborated drivers for a
+        bulk assign
+      * `_process_connections`: given a when block, `_make_assignments` for the
+        conditional wires and then process the children
+      * `_process_when_block`: If no condition, we are in an otherwise case and
+        simply emit the block body (which is inside a previous IfOp).
+        Otherwise, we emit an IfOp with the true body corresponding to this
+        block, then process the sibilings in the else block
+      * `compile`: public API to run the compile logic for a module
 * `definition_context.py`: 
   * `DefinitionContext.place_instances` treats when builder's differently
     because they are finalized at a later stage

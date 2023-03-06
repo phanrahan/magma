@@ -277,6 +277,10 @@ class ModuleVisitor:
         self._ctx = ctx
         self._visited = set()
 
+    @property
+    def opts(self):
+        return self._ctx.opts
+
     def new_value(self, T):
         return self._ctx.new_value(T)
 
