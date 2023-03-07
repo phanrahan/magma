@@ -1,2 +1,2 @@
 test_coreir/build
-gold/test_bind2_basic_split_verilog.mlir
+gold/test_bind2_*.mlir

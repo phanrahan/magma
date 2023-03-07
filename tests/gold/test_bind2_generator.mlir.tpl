@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @LogicAsserts(%I: i1, %O: i1, %other: i1) -> () {
+    hw.module @LogicAsserts(%I: i1, %O: i1, %other: i1) -> () attributes {output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_generator_bind_files.list">} {
         sv.verbatim "{{0}} {{1}} {{2}}" (%I, %O, %other) : i1, i1, i1
     }
     hw.module @Logic(%I: i1) -> (O: i1) {
@@ -9,7 +9,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         hw.output %0 : i1
     }
     sv.bind #hw.innerNameRef<@Logic::@Logic.LogicAsserts_inst0>
-    hw.module @LogicAsserts_unq1(%I: i2, %O: i2, %other: i1) -> () {
+    hw.module @LogicAsserts_unq1(%I: i2, %O: i2, %other: i1) -> () attributes {output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_generator_bind_files.list">} {
         sv.verbatim "{{0}} {{1}} {{2}}" (%I, %O, %other) : i2, i2, i1
     }
     hw.module @Logic_unq1(%I: i2) -> (O: i2) {

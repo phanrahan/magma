@@ -10,6 +10,12 @@ import magma.testing
 
 
 def _assert_compilation(ckt, basename, suffix, opts):
+    # Specialize gold file for cwd.
+    cwd = pathlib.Path(__file__).parent
+    with open(f"{cwd}/gold/{basename}.{suffix}.tpl", "r") as f_tpl:
+        with open(f"{cwd}/gold/{basename}.{suffix}", "w") as f_out:
+            tpl = string.Template(f_tpl.read())
+            f_out.write(tpl.substitute(cwd=cwd))
     m.compile(f"build/{basename}", ckt, **opts)
     assert m.testing.check_files_equal(
         __file__,
@@ -48,13 +54,6 @@ def test_basic(backend, split_verilog):
     if split_verilog:
         opts.update({"split_verilog": True})
         basename = basename + "_split_verilog"
-    # Specialize gold file for cwd.
-    if split_verilog:
-        cwd = pathlib.Path(__file__).parent
-        with open(f"{cwd}/gold/{basename}.{suffix}.tpl", "r") as f_tpl:
-            with open(f"{cwd}/gold/{basename}.{suffix}", "w") as f_out:
-                tpl = string.Template(f_tpl.read())
-                f_out.write(tpl.substitute(cwd=cwd))
     _assert_compilation(Top, basename, suffix, opts)
 
 

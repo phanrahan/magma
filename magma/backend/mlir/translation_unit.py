@@ -4,6 +4,7 @@ import weakref
 
 from magma.backend.mlir.builtin import builtin
 from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
+from magma.backend.mlir.errors import MlirCompilerInternalError
 from magma.backend.mlir.hardware_module import HardwareModule
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.mlir import MlirSymbol, push_block
@@ -60,7 +61,7 @@ class TranslationUnit:
         self._symbol_name_generator = ScopedNameGenerator(
             disallow_duplicates=self._opts.disallow_duplicate_symbols,
         )
-        self._bind_files = []
+        self._external_bind_files = []
         self._xmr_paths = {}
 
     @property
@@ -117,8 +118,8 @@ class TranslationUnit:
         name = self._symbol_name_generator(**kwargs)
         return MlirSymbol(name)
 
-    def add_bind_file(self, filename: str):
-        self._bind_files.append(filename)
+    def add_external_bind_file(self, filename: str):
+        self._external_bind_files.append(filename)
 
     def compile(self):
         deps = dependencies(self._magma_top, include_self=True)
@@ -141,16 +142,30 @@ class TranslationUnit:
                 self._opts.basename,
                 suffix,
             )
-        self._write_listings_file()
+        self._process_bound_modules()
 
     @staticmethod
     def _make_key(magma_defn_or_decl: CircuitKind) -> str:
         return magma_defn_or_decl.name
 
-    def _write_listings_file(self):
-        if not self._bind_files:
+    def _process_bound_modules(self):
+        filelist_filename = self._opts.basename + "_bind_files.list"
+        has_native_bound_modules = False
+        for hardware_module in self._hardware_modules.values():
+            if hardware_module.hw_module is None:
+                continue
+            if not is_bound_module(hardware_module.magma_defn_or_decl):
+                continue
+            has_native_bound_modules = True
+            hardware_module.hw_module.attr_dict["output_filelist"] = (
+                hw.FileListAttr(filelist_filename)
+            )
+        if not self._external_bind_files:
             return
-        filename = self._opts.basename + "_bind_files.list"
-        with open(filename, "w") as f:
-            listing = "\n".join(self._bind_files)
-            f.write(listing)
+        if has_native_bound_modules:
+            raise MlirCompilerInternalError(
+                "Mix of native and external (likely CoreIR compiled) bind "
+                "modules not supported."
+            )
+        with open(filelist_filename, "w") as f:
+            f.write("\n".join(self._external_bind_files))
