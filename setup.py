@@ -1,11 +1,12 @@
 from setuptools import setup
 
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='magma-lang',
-    version='2.2.43',
+    version='2.2.55',
     url='https://github.com/phanrahan/magma',
     license='MIT',
     maintainer='Lenny Truong',
@@ -42,6 +43,7 @@ setup(
         "ast_tools>=0.0.16",
         "staticfg",
         "networkx",
+        "uinspect"
     ],
     python_requires='>=3.6',
     long_description=long_description,

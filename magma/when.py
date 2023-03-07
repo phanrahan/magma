@@ -5,7 +5,15 @@ import functools
 import itertools
 from typing import Any, Iterable, Optional, Set, Tuple, Union
 
+from magma.debug import get_debug_info, debug_info as DebugInfo
 from magma.ref import get_ref_inst
+
+
+@functools.lru_cache(None)
+def _bit_type():
+    # NOTE(leonardt): Circular dependency.
+    from magma.bit import Bit
+    return Bit
 
 
 @functools.lru_cache(None)
@@ -219,7 +227,9 @@ def get_all_blocks(
 
 @dataclasses.dataclass
 class _WhenBlockInfo:
-    condition: Any  # TODO(rsetaluri): Should actually be bit
+    # NOTE(leonardt): We can't use Bit here because of circular dependency, so
+    # instead we enforce it in the public constructors (e.g. m.when).
+    condition: Any
 
 
 @dataclasses.dataclass
@@ -228,15 +238,23 @@ class _ElseWhenBlockInfo(_WhenBlockInfo):
 
 
 class _WhenBlock(_BlockBase):
-    def __init__(self, parent: Optional[_BlockBase], info: _WhenBlockInfo):
+    def __init__(
+            self,
+            parent: Optional[_BlockBase],
+            info: _WhenBlockInfo,
+            debug_info: Optional[DebugInfo] = None,
+    ):
         super().__init__(parent)
         self._info = info
         self._elsewhens = list()
         self._otherwise = None
         self._builder = None
         if self._parent is None:
+            # NOTE(rsetaluri): Circular dependency.
             from magma.primitives.when import WhenBuilder
             self._builder = WhenBuilder(self)
+            if debug_info is not None:
+                self._builder.debug_info = debug_info
 
     def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
         block = _ElseWhenBlock(self, info)
@@ -508,14 +526,18 @@ def find_inferred_latches(block: _BlockBase) -> Set:
 
 
 def when(cond):
+    if not isinstance(cond, _bit_type()):
+        raise TypeError(f"Invalid when cond {cond}, should be Bit")
     info = _WhenBlockInfo(cond)
     curr_block = _get_curr_block()
     if curr_block is None:
-        return _WhenBlock(None, info)
+        return _WhenBlock(None, info, get_debug_info(3))
     return curr_block.spawn(info)
 
 
 def elsewhen(cond):
+    if not isinstance(cond, _bit_type()):
+        raise TypeError(f"Invalid elsewhen cond {cond}, should be Bit")
     info = _ElseWhenBlockInfo(cond)
     prev_block = _get_prev_block()
     if prev_block is None:

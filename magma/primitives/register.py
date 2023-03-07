@@ -10,6 +10,7 @@ from magma.common import ParamDict
 from magma.bits import Bits, UInt, SInt
 from magma.circuit import coreir_port_mapping, Circuit
 from magma.conversions import as_bits, from_bits, bit
+from magma.debug import magma_helper_function
 from magma.interface import IO
 from magma.generator import Generator2
 from magma.t import Type, Kind, In, Out, Direction
@@ -239,6 +240,7 @@ class Register(AbstractRegister):
         return getattr(inst, self.CE_name, None)
 
 
+@magma_helper_function
 def register(value, **kwargs):
     T = type(value).qualify(Direction.Undirected)
     inst_kwargs = {}

@@ -59,14 +59,16 @@ class ConfigManager:
     __entries = {}
 
     def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            ConfigManager.__entries[key] = value
+        self._register(**kwargs)
 
     def _register(self, **kwargs):
         for key, value in kwargs.items():
             if key in ConfigManager.__entries:
                 raise RuntimeError(f"Config with key '{key}' already exists")
             ConfigManager.__entries[key] = value
+
+    def register(self, **kwargs):
+        self._register(**kwargs)
 
     def __get(self, key):
         return ConfigManager.__entries[key].get()
@@ -89,7 +91,7 @@ class ConfigManager:
 
 config = ConfigManager(
     compile_dir=RuntimeConfig("normal"),
-    debug_mode=RuntimeConfig(False),
+    debug_mode=RuntimeConfig(False)
 )
 
 

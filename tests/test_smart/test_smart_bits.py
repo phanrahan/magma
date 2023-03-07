@@ -548,3 +548,33 @@ def test_mux():
         io.O0 @= O0
 
     return _Test, _Gold
+
+
+@_run_repr_test
+def test_concat_subnode():
+
+    class _Test(m.Circuit):
+        name = "test_mux"
+        io = m.IO(
+            I0=m.In(m.smart.SmartBits[4]),
+            I1=m.In(m.smart.SmartBits[4]),
+            I2=m.In(m.smart.SmartBits[12]),
+            S=m.In(m.smart.SmartBits[8]),
+            O0=m.Out(m.smart.SmartBits[16]),
+        )
+        io.O0 @= m.smart.mux([m.smart.concat(io.I0, io.I1), io.I2], io.S)
+
+    class _Gold(m.Circuit):
+        name = "test_mux"
+        io = m.IO(
+            I0=m.In(m.UInt[4]),
+            I1=m.In(m.UInt[4]),
+            I2=m.In(m.UInt[12]),
+            S=m.In(m.UInt[8]),
+            O0=m.Out(m.UInt[16]),
+        )
+        O0 = m.UInt[16]()  # force elaboration for repr test
+        O0 @= m.zext_to(m.mux([m.zext_to(m.concat(io.I0, io.I1), 12), io.I2], io.S[0]), 16)
+        io.O0 @= O0
+
+    return _Test, _Gold

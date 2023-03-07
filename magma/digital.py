@@ -3,7 +3,7 @@ import weakref
 from abc import ABCMeta
 import hwtypes as ht
 from .t import Kind, Direction, Type
-from .debug import debug_wire, get_callee_frame_info
+from .debug import debug_wire, get_debug_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
@@ -136,9 +136,10 @@ class DigitalMeta(ABCMeta, Kind):
             return True
         rhs = magma_type(rhs)
         # allows undirected types to match (e.g. for temporary values)
-        return (issubclass(rhs.flip(), cls) or issubclass(cls, rhs.flip()) or
-                cls.qualify(Direction.Undirected) is rhs or
-                rhs.qualify(Direction.Undirected) is cls)
+        return (
+            issubclass(rhs.undirected_t, cls.undirected_t)
+            or issubclass(cls.undirected_t, rhs.undirected_t)
+        )
 
     def is_bindable(cls, rhs):
         return issubclass(cls, magma_type(rhs))
@@ -163,7 +164,7 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
         return False
 
     def __call__(self, output):
-        return self.wire(output, get_callee_frame_info())
+        return self.wire(output, get_debug_info(3))
 
     @debug_wire
     def wire(self, o, debug_info):

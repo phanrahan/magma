@@ -20,7 +20,7 @@ def test_input_as_output(caplog):
         buf = Buf()
         wire(io.O, buf.I)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:21\033[0m: Cannot wire main.O (In(Bit)) to main.buf.I (In(Bit))
+\033[1mtests/test_wire/test_errors.py:21\033[0m: Using `main.O` (an input) as an output
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -38,7 +38,7 @@ def test_output_as_input(caplog):
         a = A()
         wire(io.I, a.O)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:39\033[0m: Cannot wire main.I (Out(Bit)) to main.a.O (Out(Bit))
+\033[1mtests/test_wire/test_errors.py:39\033[0m: Using `main.a.O` (an output) as an input
 >>         wire(io.I, a.O)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)

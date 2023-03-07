@@ -106,9 +106,15 @@ def test_defn_wiring_error(caplog):
 
     assert not m.isdefinition(_Foo)
     assert has_error(caplog,
-                     "Cannot wire _Foo.I (Out(Bit)) to _Foo.O (Out(Bit))")
+                     """\
+tests/test_circuit/test_new_style_syntax.py:104: Using `_Foo.O` (an output) as an input
+>>         m.wire(io.I, io.O)\
+""")
     assert has_error(caplog,
-                     "Cannot wire _Foo.I (Out(Bit)) to _Foo.O1 (In(Bits[1]))")
+                     """\
+tests/test_circuit/test_new_style_syntax.py:105: Cannot wire _Foo.I (Out(Bit)) to _Foo.O1 (In(Bits[1]))
+>>         m.wire(io.I, io.O1)\
+""")
 
 
 @wrap_with_context_manager(logging_level("DEBUG"))
@@ -124,14 +130,22 @@ def test_inst_wiring_error(caplog):
         m.wire(bar.O, io.O)
 
     assert has_error(
-        caplog,
-        "Cannot wire _Foo.I (Out(Bit)) to _Foo._Bar_inst0.I (In(Bits[1]))")
+        caplog, """\
+tests/test_circuit/test_new_style_syntax.py:129: Cannot wire _Foo.I (Out(Bit)) to _Foo._Bar_inst0.I (In(Bits[1]))
+>>         m.wire(io.I, bar.I)\
+""")
     assert has_error(
         caplog,
-        "Cannot wire _Foo._Bar_inst0.O (Out(Bits[1])) to _Foo.O (In(Bit))")
+        """\
+tests/test_circuit/test_new_style_syntax.py:130: Cannot wire _Foo._Bar_inst0.O (Out(Bits[1])) to _Foo.O (In(Bit))
+>>         m.wire(bar.O, io.O)\
+""")
     assert has_error(caplog, "_Foo.O not driven")
     assert has_error(caplog, "_Foo.O: Unconnected")
-    assert has_error(caplog, "_Foo._Bar_inst0.I not driven")
+    assert has_error(caplog, """\
+tests/test_circuit/test_new_style_syntax.py:128: _Foo._Bar_inst0.I not driven
+>>         bar = _Bar()\
+""")
     assert has_error(caplog, "_Foo._Bar_inst0.I: Unconnected")
 
 

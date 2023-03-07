@@ -31,7 +31,7 @@ class InlineVerilogError(RuntimeError):
 def _get_view_inst_parent(view):
     while not isinstance(view, InstView):
         assert isinstance(view, PortView), type(view)
-        return _get_view_inst_parent(view.parent)
+        return _get_view_inst_parent(view.parent_view)
     return view
 
 

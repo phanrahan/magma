@@ -10,6 +10,7 @@ from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
+from magma.ref import AnonRef
 
 
 class SmartExprMeta(MagmaProtocolMeta):
@@ -18,6 +19,23 @@ class SmartExprMeta(MagmaProtocolMeta):
 
 class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
     __hash__ = object.__hash__
+
+    def __init__(self):
+        self._name = AnonRef()
+        self._value = None
+
+    @property
+    def name(self):
+        if self._value is None:
+            return self._name
+        return self._value.name
+
+    @name.setter
+    def name(self, value):
+        if self._value is None:
+            self._name = value
+        else:
+            self._value.name = value
 
     @property
     @abc.abstractmethod
@@ -140,9 +158,13 @@ class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
     def sext(self, width) -> 'SmartExtendOp':
         return SmartExtendOp(width, True, self)
 
+    def const(self) -> bool:
+        return False
+
 
 class SmartOp(SmartExpr, metaclass=SmartExprMeta):
     def __init__(self, op, *args):
+        super().__init__()
         self._op = op
         self._args = args
 
@@ -395,10 +417,10 @@ class SmartBitsMeta(SmartExprMeta):
 
 
 class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
-    def __init__(self, value=None):
+    def __init__(self, value=None, name=None):
         super().__init__(self)
         if value is None:
-            value = type(self)._to_magma_()()
+            value = type(self)._to_magma_()(name=name)
         self._value = value
 
     def __len__(self):

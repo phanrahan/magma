@@ -3,9 +3,11 @@ import collections
 import functools
 import weakref
 from .circuit import (DefineCircuitKind, Circuit, DebugCircuit,
-                      DebugDefineCircuitKind)
+                      DebugDefineCircuitKind, NamerDict)
 from . import cache_definition
 from magma.common import ParamDict
+from magma.config import config
+from magma.debug import get_debug_info
 from hwtypes import BitVector
 
 
@@ -70,7 +72,9 @@ def _make_key(cls, *args, **kwargs):
 
 
 def _make_type(cls, *args, **kwargs):
-    dummy = type.__new__(cls, "", (), {})
+    dummy = type.__new__(cls, "", (), {
+        "_namer_dict": NamerDict()
+    })
     name = cls.__name__
     bases = (cls._base_cls_,)
     dct = cls._base_metacls_.__prepare__(name, bases)
@@ -110,7 +114,7 @@ class _Generator2Meta(type):
             len(args) == 3
             and type(args[0]) is str
             and type(args[1]) is tuple
-            and type(args[2]) is dict
+            and (type(args[2]) is dict or type(args[2]) is NamerDict)
             and "__module__" in args[2]
         )
         if is_base_cls:
@@ -135,11 +139,18 @@ class Generator2(metaclass=_Generator2Meta):
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
+        if "debug_info" not in kwargs:
+            kwargs["debug_info"] = get_debug_info(3)
         return type(cls)._base_metacls_.__call__(cls, *args, **kwargs)
 
     @classmethod
     def bind(cls, monitor):
         cls.bind_generators.append(monitor)
+
+    def __setattr__(cls, key, value):
+        if config.use_namer_dict:
+            cls._namer_dict[key] = value
+        super().__setattr__(key, value)
 
 
 class _DebugGeneratorMeta(_Generator2Meta):

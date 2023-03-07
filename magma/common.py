@@ -22,6 +22,12 @@ class Stack:
     def peek(self):
         return self._stack[-1]
 
+    def peek_default(self, default: Any) -> Any:
+        try:
+            return self._stack[-1]
+        except IndexError:
+            return default
+
     def __bool__(self) -> bool:
         return bool(self._stack)
 
@@ -304,3 +310,32 @@ class MroVisitor(abc.ABC):
     @abc.abstractmethod
     def generic_visit(self, node: Any, *args, **kwargs):
         raise NotImplementedError()
+
+
+def prologue(prologue_fn):
+
+    def decorator(fn):
+
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            prologue_fn(*args, **kwargs)
+            return fn(*args, **kwargs)
+
+        return wrapped
+
+    return decorator
+
+
+def epilogue(epilogue_fn):
+
+    def decorator(fn):
+
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            ret = fn(*args, **kwargs)
+            epilogue_fn(*args, **kwargs)
+            return ret
+
+        return wrapped
+
+    return decorator

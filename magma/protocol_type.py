@@ -71,6 +71,14 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         # To access underlying magma value.
         raise NotImplementedError()
 
+    @property
+    def parent(self):
+        return self._get_magma_value_().parent
+
+    @parent.setter
+    def parent(self, value):
+        self._get_magma_value_().parent = value
+
     @classmethod
     def is_clock(cls):
         return cls._to_magma_().is_clock()
@@ -139,6 +147,14 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
 
     def set_enclosing_when_context(self, ctx):
         self._get_magma_value_().set_enclosing_when_context(ctx)
+
+    @property
+    def name(self):
+        return self._get_magma_value_().name
+
+    @name.setter
+    def name(self, value):
+        self._get_magma_value_().name = value
 
 
 def magma_type(T):

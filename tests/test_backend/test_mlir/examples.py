@@ -297,8 +297,8 @@ class complex_wire(m.Circuit):
         O @= tmp
 
 
-m.backend.coreir.insert_coreir_wires.insert_coreir_wires(simple_wire)
-m.backend.coreir.insert_coreir_wires.insert_coreir_wires(complex_wire)
+m.backend.coreir.insert_coreir_wires.insert_coreir_wires(simple_wire, flatten=False)
+m.backend.coreir.insert_coreir_wires.insert_coreir_wires(complex_wire, flatten=False)
 
 
 class simple_clock_cast(m.Circuit):
@@ -563,3 +563,10 @@ class complex_magma_protocol(m.Circuit):
     T = simple_magma_protocol.T
     io = m.IO(I=m.In(T), O=m.Out(T))
     io.O @= simple_magma_protocol()(io.I)
+
+
+class simple_div(m.Circuit):
+    T = m.Bits[16]
+    io = m.IO(a=m.In(T), b=m.In(T), y=m.Out(T), z=m.Out(T))
+    io.y @= m.uint(io.a) / m.uint(io.b)
+    io.z @= m.sint(io.a) / m.sint(io.b)

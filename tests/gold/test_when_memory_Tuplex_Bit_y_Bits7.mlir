@@ -34,59 +34,52 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %8 = hw.constant 127 : i7
         %9 = hw.constant 0 : i5
         %10 = hw.constant 0 : i1
-        %11 = hw.constant 0 : i5
-        %12 = hw.constant 0 : i7
-        %19 = sv.reg : !hw.inout<i5>
-        %2 = sv.read_inout %19 : !hw.inout<i5>
-        %20 = sv.reg : !hw.inout<i1>
-        %13 = sv.read_inout %20 : !hw.inout<i1>
-        %21 = sv.reg : !hw.inout<i7>
-        %14 = sv.read_inout %21 : !hw.inout<i7>
-        %22 = sv.reg : !hw.inout<i1>
-        %5 = sv.read_inout %22 : !hw.inout<i1>
-        %23 = sv.reg : !hw.inout<i5>
-        %1 = sv.read_inout %23 : !hw.inout<i5>
-        %24 = sv.reg : !hw.inout<i1>
-        %15 = sv.read_inout %24 : !hw.inout<i1>
-        %25 = sv.reg : !hw.inout<i7>
-        %16 = sv.read_inout %25 : !hw.inout<i7>
-        %26 = sv.reg : !hw.inout<i1>
-        %17 = sv.read_inout %26 : !hw.inout<i1>
-        %27 = sv.reg : !hw.inout<i7>
-        %18 = sv.read_inout %27 : !hw.inout<i7>
-        %28 = sv.reg : !hw.inout<i1>
-        %3 = sv.read_inout %28 : !hw.inout<i1>
-        %29 = sv.reg : !hw.inout<i7>
-        %4 = sv.read_inout %29 : !hw.inout<i7>
+        %11 = hw.constant 0 : i7
+        %12 = hw.constant 0 : i1
+        %13 = hw.constant 0 : i5
+        %16 = sv.reg : !hw.inout<i5>
+        %2 = sv.read_inout %16 : !hw.inout<i5>
+        %17 = sv.reg : !hw.inout<i1>
+        %3 = sv.read_inout %17 : !hw.inout<i1>
+        %18 = sv.reg : !hw.inout<i7>
+        %4 = sv.read_inout %18 : !hw.inout<i7>
+        %19 = sv.reg : !hw.inout<i1>
+        %5 = sv.read_inout %19 : !hw.inout<i1>
+        %20 = sv.reg : !hw.inout<i5>
+        %1 = sv.read_inout %20 : !hw.inout<i5>
+        %21 = sv.reg : !hw.inout<i1>
+        %14 = sv.read_inout %21 : !hw.inout<i1>
+        %22 = sv.reg : !hw.inout<i7>
+        %15 = sv.read_inout %22 : !hw.inout<i7>
         sv.alwayscomb {
-            sv.bpassign %19, %9 : i5
-            sv.bpassign %22, %10 : i1
-            sv.bpassign %23, %11 : i5
-            sv.bpassign %28, %10 : i1
-            sv.bpassign %29, %12 : i7
+            sv.bpassign %16, %9 : i5
+            sv.bpassign %17, %12 : i1
+            sv.bpassign %18, %11 : i7
+            sv.bpassign %19, %12 : i1
+            sv.bpassign %20, %13 : i5
             sv.if %en0 {
-                sv.bpassign %19, %addr0 : i5
-                sv.bpassign %22, %0 : i1
-                sv.bpassign %23, %addr1 : i5
-                sv.bpassign %26, %6 : i1
-                sv.bpassign %27, %7 : i7
-                sv.bpassign %28, %data0_x : i1
-                sv.bpassign %29, %data0_y : i7
+                sv.bpassign %16, %addr0 : i5
+                sv.bpassign %17, %data0_x : i1
+                sv.bpassign %18, %data0_y : i7
+                sv.bpassign %19, %0 : i1
+                sv.bpassign %20, %addr1 : i5
+                sv.bpassign %21, %6 : i1
+                sv.bpassign %22, %7 : i7
             } else {
                 sv.if %en1 {
-                    sv.bpassign %19, %addr1 : i5
-                    sv.bpassign %22, %0 : i1
-                    sv.bpassign %23, %addr0 : i5
-                    sv.bpassign %26, %6 : i1
-                    sv.bpassign %27, %7 : i7
-                    sv.bpassign %28, %data1_x : i1
-                    sv.bpassign %29, %data1_y : i7
+                    sv.bpassign %16, %addr1 : i5
+                    sv.bpassign %17, %data1_x : i1
+                    sv.bpassign %18, %data1_y : i7
+                    sv.bpassign %19, %0 : i1
+                    sv.bpassign %20, %addr0 : i5
+                    sv.bpassign %21, %6 : i1
+                    sv.bpassign %22, %7 : i7
                 } else {
-                    sv.bpassign %26, %0 : i1
-                    sv.bpassign %27, %8 : i7
+                    sv.bpassign %21, %0 : i1
+                    sv.bpassign %22, %8 : i7
                 }
             }
         }
-        hw.output %17, %18 : i1, i7
+        hw.output %14, %15 : i1, i7
     }
 }

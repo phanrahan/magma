@@ -7,11 +7,11 @@ module complex_wire(
   output            O1,
   output [3:0][7:0] O2);
 
-  wire [7:0]  tmp0 = I0;
-  wire        tmp1 = I1;
-  wire [31:0] tmp2 = {I2[2'h3], I2[2'h2], I2[2'h1], I2[2'h0]};
+  wire [7:0]      tmp0 = I0;
+  wire            tmp1 = I1;
+  wire [3:0][7:0] tmp2 = I2;
   assign O0 = tmp0;
   assign O1 = tmp1;
-  assign O2 = {{tmp2[31:24]}, {tmp2[23:16]}, {tmp2[15:8]}, {tmp2[7:0]}};
+  assign O2 = tmp2;
 endmodule
 

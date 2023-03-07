@@ -27,7 +27,8 @@ from magma.backend.mlir.magma_common import (
     visit_magma_value_or_value_wrapper_by_direction,
 )
 from magma.backend.mlir.mlir import (
-    MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block
+    MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block,
+    push_location, get_block_stack
 )
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
@@ -54,11 +55,13 @@ from magma.primitives.memory import MultiPortMemory
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.primitives.when import iswhen
+from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
+from magma.ref import ArrayRef, TupleRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
-from magma.value_utils import make_selector
+from magma.value_utils import make_selector, TupleSelector, ArraySelector
 from magma.view import PortView
 
 
@@ -90,6 +93,19 @@ def _make_compile_guard_block(compile_guard: Mapping) -> MlirBlock:
         return if_def.then_block
     assert compile_guard["type"] == "undefined"
     return if_def.else_block
+
+
+def _maybe_set_location_info(op, debug_info):
+    if debug_info is None:
+        return
+    loc = builtin.FileLineColLoc(debug_info.filename, debug_info.lineno, 0)
+    op.location = loc
+
+
+def _make_location_info(debug_info):
+    if debug_info is None:
+        return builtin.UnknownLoc()
+    return builtin.FileLineColLoc(debug_info.filename, debug_info.lineno, 0)
 
 
 @wrap_with_not_implemented_error
@@ -283,6 +299,70 @@ class ModuleVisitor:
             return result
         raise TypeError(T)
 
+    @functools.lru_cache()
+    def make_array_ref(self, arr: MlirValue, i: Union[int, tuple]) -> MlirValue:
+        if isinstance(i, tuple):  # slice
+            start, stop, step = i
+            assert step in [1, None], "Expected step 1 slice"
+            n = stop - start
+        else:
+            start = i
+            n = 1
+
+        if isinstance(arr.type, builtin.IntegerType):
+            operand = self._ctx.new_value(builtin.IntegerType(n))
+            comb.ExtractOp(operands=[arr], results=[operand], lo=start)
+            return operand
+
+        num_sel_bits = clog2(arr.type.dims[0])
+        start = self.make_constant(Bits[num_sel_bits], start)
+
+        if isinstance(i, tuple):
+            operand = self._ctx.new_value(hw.ArrayType((n, ), arr.type.T))
+            hw.ArraySliceOp(operands=[arr, start], results=[operand])
+            return operand
+
+        operand = self._ctx.new_value(arr.type.T)
+        hw.ArrayGetOp(operands=[arr, start], results=[operand])
+        return operand
+
+    def _make_concat(self, operands, result):
+        """Collect single elements and put them into an array create op,
+        this allows slices to be concatenated with the surround elements.
+        """
+        T = result.type
+        if isinstance(T, builtin.IntegerType):
+            # comb concat supports single elem/slices
+            return comb.ConcatOp(operands=operands, results=[result])
+        new_operands = []  # packed single elements
+        i = 0
+        while i < len(operands):
+            if i == len(operands):
+                break
+            if operands[i].type != T.T:
+                # Found slice
+                new_operands.append(operands[i])
+                i += 1
+                continue
+
+            # Collect elements until we encounter a slice or the end.
+            elems = []
+            while i < len(operands) and operands[i].type == T.T:
+                elems.append(operands[i])
+                i += 1
+
+            if len(elems) == len(operands):
+                # Found a whole create op
+                return hw.ArrayCreateOp(operands=elems, results=[result])
+
+            # Add create for current elements
+            elems_T = hw.ArrayType((len(elems),), T.T)
+            curr_result = self._ctx.new_value(elems_T)
+            hw.ArrayCreateOp(operands=elems, results=[curr_result])
+            new_operands.append(curr_result)
+
+        hw.ArrayConcatOp(operands=new_operands, results=[result])
+
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -399,13 +479,35 @@ class ModuleVisitor:
     @wrap_with_not_implemented_error
     def visit_coreir_wire(self, module: ModuleWrapper) -> bool:
         inst = module.module
-        mlir_type = hw.InOutType(module.operands[0].type)
-        wire = self._ctx.new_value(mlir_type)
-        sym = self._ctx.parent.get_or_make_mapped_symbol(
-            inst, name=f"{self._ctx.name}.{inst.name}", force=True)
-        sv.WireOp(results=[wire], name=inst.name, sym=sym)
-        sv.AssignOp(operands=[wire, module.operands[0]])
-        sv.ReadInOutOp(operands=[wire], results=module.results)
+
+        def _visit(value, counter):
+            index = next(counter)
+            mlir_type = hw.InOutType(module.operands[index].type)
+            wire = self._ctx.new_value(mlir_type)
+            name = inst.name
+            # TODO(rsetaluri): Making a selector and inspecting it in order to
+            # find the name is a kind of hacky way to get the qualified name of
+            # the sub-field of the value. Instead we should have a common API
+            # (what "qualifiedname" really should be...) to obtain this name.
+            selector = make_selector(value)
+            if isinstance(selector, (TupleSelector, ArraySelector)):
+                name += str(selector).replace(".", "_")
+            else:
+                assert index == 0
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                value, name=f"{self._ctx.name}.{name}", force=True
+            )
+            sv.WireOp(results=[wire], name=name, sym=sym)
+            sv.AssignOp(operands=[wire, module.operands[index]])
+            sv.ReadInOutOp(operands=[wire], results=[module.results[index]])
+
+        counter = itertools.count()
+        visit_magma_value_or_value_wrapper_by_direction(
+            inst.I,
+            lambda v: _visit(v, counter),
+            _assert_false,
+            flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+        )
         return True
 
     @wrap_with_not_implemented_error
@@ -577,6 +679,18 @@ class ModuleVisitor:
         output_to_index = {}
 
         def _visit(value, counter, value_to_index):
+            if isinstance(value.name, TupleRef) and value in value_to_index:
+                # tuples are flattened by the
+                # `visit_magma_value_or_value_wrapper_by_direction`, so we avoid
+                # adding them twice which invalidates the count logic
+                return
+            for ref in value.name.root_iter(
+                stop_if=lambda ref: not isinstance(ref, (ArrayRef, TupleRef))
+            ):
+                if ref.parent_value in value_to_index:
+                    # Don't add, only need its parent
+                    return
+
             # NOTE(leonardt): value may already be in value_to_index, in which
             # case we update it to a new index.  This is okay and it just means
             # that `value` occurs as more than one input (for example, it could
@@ -612,6 +726,10 @@ class ModuleVisitor:
             sv.RegOp(results=[wire])
             sv.ReadInOutOp(operands=[wire], results=[result])
 
+        # Track outer_block so array_ref/constants are placed outside the always
+        # comb to reduce code repetition
+        outer_block = get_block_stack().peek()
+
         def _collect_visited(value):
             fields = []
             visit_magma_value_or_value_wrapper_by_direction(
@@ -621,13 +739,119 @@ class ModuleVisitor:
             )
             return fields
 
-        def _make_assignments(connections):
+        def _get_parent(val, collection, to_index):
+            for ref in val.name.root_iter(
+                stop_if=lambda ref: not isinstance(ref, ArrayRef)
+            ):
+                try:
+                    idx = to_index[ref.array]
+                except KeyError:
+                    pass  # try next parent
+                else:
+                    return collection[idx], ref.array
+            return None, None  # didn't find parent
+
+        def _check_array_child_wire(val, collection, to_index):
+            """If val is a child of an array, get the root wire
+            (so we add to a collection of drivers for a bulk assign)
+            """
+            wire, parent = _get_parent(val, collection, to_index)
+            if wire is None:
+                return None, None
+
+            class _IndexBuilder:
+                def __init__(self):
+                    self.index = tuple()
+
+                def __getitem__(self, idx):
+                    self.index += (idx, )
+                    return self
+
+            builder = _IndexBuilder()
+            make_selector(val, stop_at=parent).select(builder)
+            return wire, builder.index
+
+        def _make_operand(wire, index):
+            if not index:
+                return wire
+            i = index[0]
+            if isinstance(i, slice):
+                # convert to tuple for hashing
+                i = (i.start, i.stop, i.step)
+            with push_block(outer_block):
+                operand = self.make_array_ref(wire, i)
+            return _make_operand(operand, index[1:])
+
+        def _build_wire_map(connections):
+            """Collect a map of output wires to their drivers.
+            If it's an array that's been elaborated, we collect the drives in a
+            dictionary using their index as a key to sort.
+            """
+            wire_map = {}
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
-                    operand = module.operands[input_to_index[driver_elt]]
-                    wire = wires[output_to_index[drivee_elt]]
-                    sv.BPAssignOp(operands=[wire, operand])
+
+                    operand_wire, operand_index = _check_array_child_wire(
+                        driver_elt, module.operands, input_to_index)
+                    if operand_wire:
+                        operand = _make_operand(operand_wire, operand_index)
+                    else:
+                        operand = module.operands[input_to_index[driver_elt]]
+
+                    drivee_wire, drivee_index = _check_array_child_wire(
+                        drivee_elt, wires, output_to_index)
+                    if drivee_wire:
+                        wire_map.setdefault(drivee_wire, {})
+                        drivee_index = tuple(
+                            i if not isinstance(i, slice) else i.start
+                            for i in drivee_index
+                        )
+                        wire_map[drivee_wire][drivee_index] = operand
+                    else:
+                        drivee_wire = wires[output_to_index[drivee_elt]]
+                        wire_map[drivee_wire] = operand
+            return wire_map
+
+        def _make_arr(T):
+            if isinstance(T, builtin.IntegerType):
+                return [None for _ in range(T.n)]
+            assert isinstance(T, hw.ArrayType), T
+            return [_make_arr(T.T) for _ in range(T.dims[0])]
+
+        def _build_array_value(T, value):
+            arr = _make_arr(T)
+            for idx, elem in value.items():
+                curr = arr
+                for i in idx[:-1]:
+                    curr = curr[i]
+                curr[idx[-1]] = elem
+            return arr
+
+        def _combine_array_assign(T, value):
+            """Sort drivers by index, use concat or create depending on type"""
+            if isinstance(value, MlirValue):
+                return value
+            if all(x is None for x in value):
+                return None
+            result = self._ctx.new_value(T)
+            operands = value
+            if not isinstance(T, builtin.IntegerType):
+                # recursive combine children
+                assert len(T.dims) == 1, "Expected 1d array"
+                operands = [_combine_array_assign(T.T, value[i])
+                            for i in range(T.dims[0])]
+            # Filter None elements (indices covered by a previous slice)
+            operands = [x for x in reversed(operands) if x is not None]
+            self._make_concat(operands, result)
+            return result
+
+        def _make_assignments(connections):
+            for wire, value in _build_wire_map(connections).items():
+                if isinstance(value, dict):
+                    value = _build_array_value(wire.type.T, value)
+                    value = _combine_array_assign(wire.type.T, value)
+                sv.BPAssignOp(operands=[wire, value])
 
         def _process_when_block(block):
             connections = (
@@ -745,6 +969,13 @@ class ModuleVisitor:
             return self.visit_when(module)
 
     @wrap_with_not_implemented_error
+    def visit_magma_wire(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, Wire) and not defn.flattened
+        return self.visit_coreir_wire(module)
+
+    @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -856,7 +1087,7 @@ class ModuleVisitor:
         xmr = defn.value
         paths = self._ctx.parent.xmr_paths[xmr]
         assert len(paths) == len(module.results)
-        base = defn.value.parent.path()
+        base = defn.value.parent_view.path()
         for result, path in zip(module.results, paths):
             in_out = self._ctx.new_value(hw.InOutType(result.type))
             path = base + path
@@ -895,6 +1126,8 @@ class ModuleVisitor:
         assert isinstance(inst, AnonymousCircuitType)
         defn = type(inst)
         elaborate_magma_registers = self._ctx.opts.elaborate_magma_registers
+        if isinstance(defn, Wire) and not defn.flattened:
+            return self.visit_magma_wire(module)
         if isinstance(defn, Mux):
             return self.visit_magma_mux(module)
         if isinstance(defn, Register) and not elaborate_magma_registers:
@@ -954,15 +1187,8 @@ class ModuleVisitor:
                 return True
             return self.visit_array_slice(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
-            T = inst_wrapper.attrs["T"]
-            if isinstance(T, BitsMeta) or issubclass(T.T, Bit):
-                comb.ConcatOp(
-                    operands=list(reversed(module.operands)),
-                    results=module.results)
-                return True
-            hw.ArrayCreateOp(
-                operands=list(reversed(module.operands)),
-                results=module.results)
+            self._make_concat(list(reversed(module.operands)),
+                              module.results[0])
             return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):
             index = inst_wrapper.attrs["index"]
@@ -989,7 +1215,8 @@ class ModuleVisitor:
         if isinstance(module.module, DefineCircuitKind):
             return True
         if isinstance(module.module, AnonymousCircuitType):
-            return self.visit_instance(module)
+            with push_location(_make_location_info(module.module.debug_info)):
+                return self.visit_instance(module)
         if isinstance(module.module, MagmaInstanceWrapper):
             return self.visit_instance_wrapper(module)
 
@@ -1260,7 +1487,13 @@ class HardwareModule:
 
     def compile(self):
         self._hw_module = self._compile()
+        if self._hw_module is None:
+            return
         self._add_module_parameters(self._hw_module)
+        _maybe_set_location_info(
+            self._hw_module,
+            self._magma_defn_or_decl.debug_info
+        )
 
     def _compile(self) -> hw.ModuleOpBase:
         if treat_as_primitive(self._magma_defn_or_decl, self):
@@ -1322,11 +1555,7 @@ class HardwareModule:
         bind_processor.postprocess()
         return op
 
-    def _add_module_parameters(
-            self, maybe_hw_module: Optional[hw.ModuleOpBase]):
-        if maybe_hw_module is None:
-            return
-        hw_module = maybe_hw_module
+    def _add_module_parameters(self, hw_module: hw.ModuleOpBase):
         defn_or_decl = self._magma_defn_or_decl
         try:
             param_types = defn_or_decl.coreir_config_param_types

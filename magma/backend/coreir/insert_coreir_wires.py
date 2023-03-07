@@ -1,6 +1,9 @@
 from magma.array import Array
+from magma.bits import Bits
+from magma.digital import Digital
 from magma.clock import AsyncReset, AsyncResetN, Clock, _ClockType
-from magma.conversions import as_bits, from_bits, bit, convertbit
+from magma.conversions import as_bits, from_bits, bit, convertbit, convertbits
+from magma.debug import maybe_get_debug_info
 from magma.digital import Digital
 from magma.generator import Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
@@ -17,10 +20,11 @@ def _sanitize_name(name):
 
 
 class InsertCoreIRWires(DefinitionPass):
-    def __init__(self, main):
+    def __init__(self, main, flatten: bool = True):
         super().__init__(main)
         self.seen = set()
         self.wire_map = {}
+        self._flatten = flatten
 
     def _make_wire(self, driver, value, definition):
         is_bits = (isinstance(driver.name, ArrayRef) and
@@ -42,7 +46,8 @@ class InsertCoreIRWires(DefinitionPass):
                 driver.name.name = "_" + driver.name.name
 
             name = f"{driver_name}"
-            wire_inst = Wire(T)(name=name)
+            wire_inst = Wire(T, flatten=self._flatten)(name=name)
+            wire_inst.debug_info = maybe_get_debug_info(value)
             self.wire_map[driver] = wire_inst
         wire_inst = self.wire_map[driver]
         wire_input = wire_inst.I
@@ -55,18 +60,25 @@ class InsertCoreIRWires(DefinitionPass):
             # the entire bits (this avoids an "undriven" error when only one
             # index of the bits is used)
 
-        if not is_bits and not isinstance(driver, Digital):
+        if self._flatten and not is_bits and not isinstance(driver, Digital):
             driver = as_bits(driver)
             wire_output = from_bits(T, wire_output)
 
         # Could be already wired for fanout cases
         if not wire_input.driven():
             wire_input @= driver
-        if (isinstance(value, _ClockType) and
-                not isinstance(wire_output, type(value))):
+
+        value_T = type(value)
+        if not isinstance(wire_output, value_T):
             # This mean it was cast by the user (e.g. m.clock(value)), so we
             # need to "recast" the wire output
-            wire_output = convertbit(wire_output, type(value))
+            if isinstance(value, Digital):
+                wire_output = convertbit(wire_output, value_T)
+            elif isinstance(value, Array):
+                wire_output = convertbits(
+                    wire_output, len(value_T), value_T,
+                    issubclass(value_T, Bits)
+                )
         value @= wire_output
 
     def _insert_wire(self, value, definition):

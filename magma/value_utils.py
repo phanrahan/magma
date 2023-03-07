@@ -87,22 +87,25 @@ class ArraySelector(Selector):
         return f"[{self.index}]{self._child_str()}"
 
 
-def _make_selector_impl(value, child):
+def _make_selector_impl(value, child, stop_at):
     value = _unwrap_protocol_value(value)
-    ref = value.name
-    if isinstance(ref, ArrayRef):
-        child = ArraySelector(child, ref.index)
-        return _make_selector_impl(ref.array, child)
-    if isinstance(ref, TupleRef):
-        child = TupleSelector(child, ref.index)
-        return _make_selector_impl(ref.tuple, child)
+    if value is not stop_at:
+        ref = value.name
+        if isinstance(ref, ArrayRef):
+            child = ArraySelector(child, ref.index)
+            return _make_selector_impl(ref.array, child, stop_at)
+        if isinstance(ref, TupleRef):
+            child = TupleSelector(child, ref.index)
+            return _make_selector_impl(ref.tuple, child, stop_at)
     if child is not None:
         return child
     return Selector(None)
 
 
-def make_selector(value):
-    return _make_selector_impl(value, None)
+def make_selector(value, stop_at=None):
+    """stop_at (optional): indicate parent value to 'stop at', useful if you
+    want a partial selector of a child"""
+    return _make_selector_impl(value, None, stop_at)
 
 
 class _FillVisitor(ValueVisitor):

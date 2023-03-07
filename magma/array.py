@@ -9,7 +9,7 @@ from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import Bit
 from .bitutils import int2seq
-from .debug import debug_wire, get_callee_frame_info, debug_unwire
+from .debug import debug_wire, get_debug_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
@@ -390,6 +390,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
             # If args is not empty, that means this array is being constructed
             # with existing values, so populate the `_ts` dictionary eagerly
             self._ts = {i: t for i, t in enumerate(_make_array(self, args))}
+            self._resolved = True
         else:
             self._ts = {}
 
@@ -503,7 +504,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         return type(self)[len(res_bits), self.T](res_bits)
 
     def __call__(self, o):
-        return self.wire(o, get_callee_frame_info())
+        return self.wire(o, get_debug_info(3))
 
     def as_list(self):
         return [self[i] for i in range(len(self))]
@@ -604,13 +605,6 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         for i, child in self._enumerate_children():
             child.wire(o[i], debug_info)
 
-    def _should_wire_children(self, o):
-        return (
-            self.has_elaborated_children() or
-            o.has_elaborated_children() or
-            self.T.is_mixed()
-        )
-
     @debug_wire
     def wire(self, o, debug_info):
         o = magma_value(o)
@@ -707,6 +701,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
                                                          + index)
             elif not self._check_slice_overlap(index):
                 self._ts[index] = self._make_t(index)
+            self._ts[index].parent = self
         return self._ts[index]
 
     def _resolve_overlapping_indices(self, slice_, value):
@@ -729,6 +724,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
             for i in range(start, stop):
                 # _get_t to populate slice children and resolve any overlaps
                 value._ts[i - start] = self._get_t(i)
+            value._resolved = True
         return overlapping
 
     def _get_slice(self, slice_):
@@ -739,6 +735,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
             slice_value = slice_T(name=ArrayRef(self, slice_))
             slice_value.set_enclosing_when_context(self._enclosing_when_context)
             self._slices[key] = slice_value
+            slice_value.parent = self
             if self._resolve_overlapping_indices(slice_, slice_value):
                 return slice_value
             self._slices_by_start_index[key[0]] = (slice_, slice_value)
@@ -833,7 +830,6 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
                                           offset + key.stop))
         else:
             raise NotImplementedError(key, type(key))
-        self._resolve_bulk_wire()
         return result
 
     def flatten(self):
@@ -875,6 +871,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
                 T._unresolved_slices[key] = result
             else:
                 T._ts[i] = result
+        T._resolved = True
 
         if len(T._ts) == self.N:
             if Array._iswhole(T.ts):

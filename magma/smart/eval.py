@@ -5,6 +5,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set
 from magma.bits import Bits
 from magma.bitutils import clog2
 from magma.common import MroVisitor, Stack
+from magma.ref import TempNamedRef
 from magma.smart.smart_bits import (
     SmartExprMeta,
     SmartExpr,
@@ -236,6 +237,10 @@ class _ResultSignednessDeterminator(_Visitor):
         super().generic_visit(node)
         self._signednesses[node] = self._signednesses[node.children[0]]
 
+    def visit_SmartConcatOp(self, node: _Node):
+        super().generic_visit(node)
+        self._signednesses[node] = False
+
 
 class _SignednessInserter(_Transformer):
     def __init__(
@@ -403,5 +408,11 @@ def evaluate_assignment(lhs: SmartBits, rhs: SmartExpr) -> SmartBits:
     signednesses = _determine_result_signednesses(root)
     root = _insert_signednesses(root, widths, signednesses)
     root = _push_down_extensions(root, widths, signednesses)
-    result = SmartBits.from_bits(_evaluate(root))
-    return _force_width(result, len(lhs))
+    evaluated = SmartBits.from_bits(_evaluate(root))
+    result = _force_width(evaluated, len(lhs))
+    if not rhs.name or isinstance(rhs, SmartBits):
+        return result
+    # SmartExpr was given a lazy name, apply it now.
+    temp = type(result).undirected_t(name=rhs.name)
+    temp @= result
+    return temp

@@ -2,13 +2,13 @@ import functools
 import itertools
 from typing import Dict, Optional, Union, Set
 
-from magma.bit import Bit
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
+from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
-from magma.ref import DerivedRef
+from magma.ref import ArrayRef, TupleRef
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -149,6 +149,23 @@ class WhenBuilder(CircuitBuilder):
     def output_to_index(self) -> Dict[Type, int]:
         return self._output_to_index.copy()
 
+    def _check_existing_array_child(self, value, value_to_name, value_to_index):
+        """If value is a child of an array that has already been added, we
+        return the child of the existing value, rather than adding a new port,
+        which allows us to maintain bulk assignments in the eventual generated
+        if statement, rather that elaborating into per-child assignments
+        """
+        curr_root = None
+        for ref in value.name.root_iter(
+            stop_if=lambda ref: not isinstance(ref, (ArrayRef, TupleRef))
+        ):
+            if ref.parent_value in value_to_index:
+                curr_root = ref.parent_value
+        if not curr_root:
+            return
+        root_port = getattr(self, value_to_name[curr_root])
+        return make_selector(value, stop_at=curr_root).select(root_port)
+
     def _generic_add(
             self,
             value,
@@ -163,10 +180,29 @@ class WhenBuilder(CircuitBuilder):
             return
         value_to_index[value] = next(index_counter)
         port_name = f"{name_prefix}{next(name_counter)}"
-        self._add_port(port_name, type_qualifier(type(value).undirected_t))
-        with no_when():
-            wire(getattr(self, port_name), value)
         value_to_name[value] = port_name
+
+        port = self._check_existing_array_child(value, value_to_name,
+                                                value_to_index)
+        # NOTE(leonardt): when we add support for flatten_all_tuples=False, we
+        # should also add similar logic here to avoid flattening assignments
+        if port is None:
+            self._add_port(port_name, type_qualifier(type(value).undirected_t))
+            port = getattr(self, port_name)
+            port.is_when_port = True
+
+        with no_when():
+            if value.is_input() and isinstance(value, Enable):
+                value.wire(
+                    port,
+                    driven_implicitly_by_when=value.driven_implicitly_by_when
+                )
+            elif port.is_input() and port.driven():
+                port.rewire(value)
+            else:
+                wire(port, value)
+                port.debug_info = self.debug_info
+                value.debug_info = self.debug_info
 
     def add_drivee(self, value: Type):
         self._generic_add(
@@ -209,24 +245,7 @@ class WhenBuilder(CircuitBuilder):
     def remove_default_driver(self, drivee: Type):
         del self._default_drivers[drivee]
 
-    def _update_resolved_refs(self):
-        """When a value driven by a when is resolved, its children are added as
-        outputs.  The user may have referenced the unresolved when output using
-        .value(), so at this point, we update all the references by checking if
-        any resolved outputs are being used to drive values.
-        """
-        for value, name in self._output_to_name.items():
-            if not isinstance(value.name, DerivedRef):
-                continue
-            if value.name._parent not in self._output_to_name:
-                continue
-            # Found resolved port, rewire to child output.
-            port = getattr(self, self._output_to_name[value.name._parent])
-            for drivee in port[value.name.index].driving():
-                drivee.rewire(getattr(self, name))
-
     def _finalize(self):
-        self._update_resolved_refs()
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)

@@ -1,8 +1,6 @@
-import io
 from typing import Dict
 
 from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
-from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
 from magma.backend.mlir.compile_to_mlir import compile_to_mlir
 from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
 from magma.backend.mlir.mlir_to_verilog import (
@@ -38,19 +36,20 @@ class MlirCompiler(Compiler):
             return "v"
         return "mlir"
 
-    def _run_passes(self):
+    def run_pre_uniquification_passes(self):
         if self.opts.get("flatten_all_tuples", False):
             elaborate_tuples(self.main)
-
-        insert_coreir_wires(self.main)
-        wire_clocks(self.main)
         # NOTE(leonardt): finalizing whens must happen after any
         # passes that modify the circuit.  This is because passes
         # could introduce more conditional logic, or they could
         # trigger elaboration on values used in existing coditiona
         # logic (which modifies the when builder)
         finalize_whens(self.main)
+
+    def _run_passes(self):
         raise_logs_as_exceptions_pass(self.main)
+        insert_coreir_wires(self.main, flatten=False)
+        wire_clocks(self.main)
 
     def compile(self):
         self._run_passes()

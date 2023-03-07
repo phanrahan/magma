@@ -252,3 +252,36 @@ def test_insert_coreir_wires_temp_array_not_whole_anon():
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_temp_array_not_whole_anon.v",
                              f"gold/insert_coreir_wires_temp_array_not_whole_anon.v")
+
+
+def test_insert_coreir_wires_recast():
+
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(m.SInt[8]), O=m.Out(m.UInt[8]))
+
+        x = m.SInt[8](name="x")
+        x @= io.I - 1
+        io.O @= m.uint(x) + 1
+
+    # Check that compilation succeeds without error.
+    m.compile(f"build/insert_coreir_wires_recast", Main, output="mlir")
+
+
+def test_insert_coreir_wires_product():
+
+    class T(m.Product):
+        x = m.Bit
+        y = m.Bit
+
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(T), O=m.Out(T))
+
+        x = T(name="x")
+        x @= io.I
+        io.O @= x
+
+    m.compile(f"build/insert_coreir_wires_product", Main, output="mlir",
+              flatten_all_tuples=True)
+    assert check_files_equal(__file__,
+                             "build/insert_coreir_wires_product.mlir",
+                             "gold/insert_coreir_wires_product.mlir")

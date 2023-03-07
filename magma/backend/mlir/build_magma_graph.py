@@ -104,8 +104,8 @@ def _visit_driver(
     if isinstance(ref, AnonRef):
         if isinstance(driver, Array):
             T = type(driver)
-            creator = MagmaArrayCreateOp(T)
-            for i, element in enumerate(driver):
+            creator = MagmaArrayCreateOp(driver)
+            for i, element in driver._enumerate_children():
                 creator_input = getattr(creator, f"I{i}")
                 _visit_driver(ctx, creator_input, element, creator)
             info = dict(src=creator.O, dst=value)

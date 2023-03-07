@@ -9,6 +9,7 @@ from magma.bits import Bits, UInt, SInt
 from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
 from magma.common import is_int
+from magma.debug import magma_helper_function
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.protocol_type import MagmaProtocol, magma_type
@@ -46,31 +47,46 @@ class Mux(Generator2):
             T = Bits[len(T)]
         if issubclass(T, (bool, ht.Bit)):
             T = Bit
+
         # TODO(rsetaluri): Type should be hashable so the generator instance can
         # be cached.
         T_str = type_to_sanitized_string(T)
         self.name = f"Mux{height}x{T_str}"
-        N = magma_type(T).flat_length()
 
         ports = {f"I{i}": In(T) for i in range(height)}
         T_S = Bit if height == 2 else Bits[clog2(height)]
         ports["S"] = In(T_S)
         ports["O"] = Out(T)
 
-        self.io = io = IO(**ports)
+        self.io = IO(**ports)
 
-        mux = CoreIRCommonLibMuxN(height, N)()
-        data = [as_bits(getattr(io, f"I{i}")) for i in range(height)]
-        mux.I.data @= Array[height, Bits[N]](data)
-        if height == 2:
-            mux.I.sel[0] @= io.S
+        self.height = height
+        self.T = T
+
+        self.primitive = True
+        self.stateful = False
+
+        def _simulate(_, __, ___):
+            raise NotImplementedError()
+
+        self.simulate = _simulate
+
+    def elaborate(self):
+        N = magma_type(self.T).flat_length()
+        mux = CoreIRCommonLibMuxN(self.height, N)()
+        data = [as_bits(self.io[f"I{i}"]) for i in range(self.height)]
+        mux.I.data @= Array[self.height, Bits[N]](data)
+        sel = mux.I.sel
+        if self.height == 2:
+            sel = sel[0]
+        sel @= self.io.S
+        if issubclass(self.T, MagmaProtocol):
+            out = Out(self.T)._from_magma_value_(
+                from_bits(self.T._to_magma_(), mux.O)
+            )
         else:
-            mux.I.sel @= io.S
-        if issubclass(T, MagmaProtocol):
-            out = Out(T)._from_magma_value_(from_bits(T._to_magma_(), mux.O))
-        else:
-            out = from_bits(T, mux.O)
-        io.O @= out
+            out = from_bits(self.T, mux.O)
+        self.io.O @= out
 
 
 def _infer_mux_type(args):
@@ -127,6 +143,7 @@ def _infer_mux_type(args):
 infer_mux_type = _infer_mux_type
 
 
+@magma_helper_function
 def mux(I: Union[Sequence, Array], S, **kwargs):
     """
     How type inference works on I:
@@ -165,6 +182,7 @@ Bit._mux = staticmethod(mux)
 # NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular
 # dependency between Mux and Array. See the discussion on
 # https://github.com/phanrahan/magma/pull/658.
+@magma_helper_function
 def _dynamic_mux_select(this, key):
     return mux(this.ts, key)
 
@@ -172,6 +190,7 @@ def _dynamic_mux_select(this, key):
 Array.dynamic_mux_select = _dynamic_mux_select
 
 
+@magma_helper_function
 def dict_lookup(dict_, select, default=0):
     """
     Use `select` as an index into `dict` (similar to a case statement)
@@ -185,6 +204,7 @@ def dict_lookup(dict_, select, default=0):
     return output
 
 
+@magma_helper_function
 def list_lookup(list_, select, default=0):
     """
     Use `select` as an index into `list` (similar to a case statement)

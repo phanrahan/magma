@@ -15,7 +15,7 @@ from .common import deprecated
 from .ref import TupleRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
-from .debug import debug_wire, get_callee_frame_info, debug_unwire
+from .debug import debug_wire, get_debug_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
@@ -205,6 +205,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 self._ts[i] = t
                 if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
+            self._resolved = True
 
         self._keys_list = list(self.keys())
 
@@ -282,7 +283,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             raise KeyError(key)
         if key not in self._ts:
             self._ts[key] = self._make_t(key)
-            self._resolve_bulk_wire()
+            self._ts[key].parent = self
         return self._ts[key]
 
     @property
@@ -305,7 +306,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
         return sum(magma_type(T).flat_length() for T in cls.types())
 
     def __call__(self, o):
-        return self.wire(o, get_callee_frame_info())
+        return self.wire(o, get_debug_info(3))
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -329,13 +330,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 debug_info=debug_info
             )
             return
-        should_elaborate = (
-            self.is_mixed()
-            or o.is_mixed()
-            or self.has_elaborated_children()
-            or o.has_elaborated_children()
-        )
-        if should_elaborate:
+        if self._should_wire_children(o):
             for self_elem, o_elem in zip(self, o):
                 self_elem = magma_value(self_elem)
                 o_elem = magma_value(o_elem)
@@ -483,7 +478,8 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
         return True
 
     def set_enclosing_when_context(self, ctx):
-        for value in self:
+        self._enclosing_when_context = ctx
+        for value in self._ts.values():
             value.set_enclosing_when_context(ctx)
 
 
