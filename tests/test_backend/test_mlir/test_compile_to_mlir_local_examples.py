@@ -4,6 +4,7 @@ import pathlib
 import pytest
 
 import magma as m
+from magma.common import only
 from magma.config import config
 from magma.debug import debug_info
 from magma.passes.finalize_whens import finalize_whens
@@ -130,6 +131,7 @@ def test_compile_to_mlir_extend_non_power_of_two_muxes(
         "extend_non_power_of_two_muxes": True,
         "flatten_all_tuples": flatten_all_tuples,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)
 
@@ -155,6 +157,7 @@ def test_compile_to_mlir_disallow_duplicate_symbols(
     kwargs = {
         "disallow_duplicate_symbols": disallow_duplicate_symbols,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     if disallow_duplicate_symbols:
         ctx_mgr = pytest.raises(RuntimeError)
@@ -186,6 +189,7 @@ def test_compile_to_mlir_location_info_style(location_info_style: str):
     kwargs = {
         "location_info_style": location_info_style,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     kwargs.update({"check_verilog": False})
     # Attach dummy debug info to ckt.
@@ -208,6 +212,7 @@ def test_compile_to_mlir_explicit_bitcast(ckt, explicit_bitcast: bool):
     kwargs = {
         "explicit_bitcast": explicit_bitcast,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     kwargs.update({"check_verilog": False})
     run_test_compile_to_mlir(ckt, **kwargs)
@@ -227,6 +232,7 @@ def test_compile_to_mlir_disallow_expression_inlining_in_ports(
     kwargs = {
         "disallow_expression_inlining_in_ports": disallow_expression_inlining_in_ports,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     kwargs.update({"check_verilog": False})
     run_test_compile_to_mlir(ckt, **kwargs)
@@ -258,6 +264,7 @@ def test_compile_to_mlir_disallow_local_variables(disallow_local_variables: bool
     kwargs = {
         "disallow_local_variables": disallow_local_variables,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)
 
@@ -270,7 +277,7 @@ def test_compile_to_mlir_split_verilog(ckt):
     kwargs = {
         "split_verilog": True,
         "gold_name": gold_name,
-        "basename": basename,
+        "basename": str(basename),
         "sv": False,
     }
     run_test_compile_to_mlir(ckt, **kwargs)

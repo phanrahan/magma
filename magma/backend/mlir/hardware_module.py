@@ -1272,9 +1272,6 @@ class NativeBindProcessor(BindProcessorInterface):
             inst_sym = self._ctx.parent.get_mapped_symbol(bound_instance)
             ref = hw.InnerRefAttr(defn_sym, inst_sym)
             sv.BindOp(instance=ref)
-        if self._syms or bound_instances:
-            bind_filename = f"{self._ctx.opts.basename}.sv"
-            self._ctx.parent.add_bind_file(bind_filename)
 
 
 class CoreIRBindProcessor(BindProcessorInterface):
@@ -1287,7 +1284,7 @@ class CoreIRBindProcessor(BindProcessorInterface):
             filename = path / f"{name}.sv"
             with open(filename, "w") as f:
                 f.write(content)
-            self._ctx.parent.add_bind_file(filename.name)
+            self._ctx.parent.add_external_bind_file(filename.name)
 
     def postprocess(self):
         return

@@ -78,6 +78,14 @@ class OutputFileAttr(MlirAttribute):
         return f"{s}>"
 
 
+@dataclasses.dataclass(frozen=True)
+class FileListAttr(MlirAttribute):
+    filename: str
+
+    def emit(self) -> str:
+        return f"#hw.output_filelist<\"{self.filename}\">"
+
+
 @dataclasses.dataclass
 class ModuleOpBase(MlirOp):
     operands: List[MlirValue]

@@ -7,7 +7,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %1 = hw.struct_extract %I["x"] : !hw.struct<x: i1, y: i1>
         hw.output %0 : !hw.struct<x: i1, y: i1>
     }
-    hw.module @TopXMRAsserts_mlir(%I: !hw.struct<x: i1, y: i1>, %O: !hw.struct<x: i1, y: i1>, %a: !hw.struct<x: i1, y: i1>, %b: i1) -> () {
+    hw.module @TopXMRAsserts_mlir(%I: !hw.struct<x: i1, y: i1>, %O: !hw.struct<x: i1, y: i1>, %a: !hw.struct<x: i1, y: i1>, %b: i1) -> () attributes {output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_xmr_bind_files.list">} {
         %0 = hw.struct_extract %I["x"] : !hw.struct<x: i1, y: i1>
         %1 = hw.struct_extract %I["y"] : !hw.struct<x: i1, y: i1>
         %2 = hw.struct_extract %O["x"] : !hw.struct<x: i1, y: i1>
