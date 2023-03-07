@@ -1074,7 +1074,7 @@ class ModuleVisitor:
             sym = self._ctx.parent.get_or_make_mapped_symbol(
                 inst, name=f"{inst.defn.name}.{inst.name}", force=True
             )
-            attrs["doNotPrint"] = 1
+            attrs["doNotPrint"] = builtin.BoolAttr(True)
         make_hw_instance_op(
             name=inst.name,
             module=module_type,
@@ -1260,7 +1260,7 @@ class NativeBindProcessor(BindProcessorInterface):
                 operands=operands,
                 results=[],
                 sym=sym)
-            inst.attr_dict["doNotPrint"] = 1
+            inst.attr_dict["doNotPrint"] = builtin.BoolAttr(True)
             self._syms.append(sym)
 
     def postprocess(self):
