@@ -122,13 +122,14 @@ class TranslationUnit:
                 if hardware_module.hw_module:
                     self.set_hardware_module(dep, hardware_module)
         if self._opts.split_verilog:
-            if self._opts.basename is None or self._opts.suffix is None:
+            if self._opts.basename is None:
                 raise ValueError(
-                    "Must specify basename and suffix if split_verilog is set"
+                    "Must specify basename if split_verilog is set"
                 )
+            suffix = "sv" if self._opts.sv else "v"
             _prepare_for_split_verilog(
                 self._hardware_modules.values(),
-                f"{self._opts.basename}.{self._opts.suffix}",
+                f"{self._opts.basename}.{suffix}",
             )
         self._write_listings_file()
 
