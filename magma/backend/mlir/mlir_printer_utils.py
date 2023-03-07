@@ -47,5 +47,7 @@ def print_signature(
 
 
 def print_attr_dict(attr_dict: Mapping, printer: PrinterBase):
-    attr_dict_to_string = ", ".join(f"{k} = {v}" for k, v in attr_dict.items())
+    attr_dict_to_string = ", ".join(
+        f"{k} = {v.emit()}" for k, v in attr_dict.items()
+    )
     printer.print(f"{{{attr_dict_to_string}}}")

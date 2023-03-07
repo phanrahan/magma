@@ -53,6 +53,22 @@ class IntegerAttr(MlirAttribute):
         return str(self.value)
 
 
+@dataclasses.dataclass(frozen=True)
+class BoolAttr(MlirAttribute):
+    value: bool
+
+    def emit(self) -> str:
+        return "true" if self.value else "false"
+
+
+@dataclasses.dataclass(frozen=True)
+class StringAttr(MlirAttribute):
+    value: str
+
+    def emit(self) -> str:
+        return f"\"{self.value}\""
+
+
 @dataclasses.dataclass
 class ModuleOp(MlirOp):
     def __post_init__(self):

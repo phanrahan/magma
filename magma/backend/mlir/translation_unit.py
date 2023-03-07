@@ -22,8 +22,8 @@ def _set_module_attrs(mlir_module: builtin.ModuleOp, opts: CompileToMlirOpts):
     if opts.disallow_local_variables:
         lowering_options.append("disallowLocalVariables")
     if lowering_options:
-        mlir_module.attr_dict["circt.loweringOptions"] = (
-            f"\"{','.join(lowering_options)}\""
+        mlir_module.attr_dict["circt.loweringOptions"] = builtin.StringAttr(
+            f"{','.join(lowering_options)}"
         )
 
 

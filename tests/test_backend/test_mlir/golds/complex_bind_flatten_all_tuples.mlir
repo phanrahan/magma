@@ -15,7 +15,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %4, %5 : i1
         }
         %3 = sv.read_inout %4 : !hw.inout<i1>
-        hw.instance "complex_bind_asserts_inst" sym @complex_bind.complex_bind_asserts_inst @complex_bind_asserts(I_I: %I_I: i1, O: %3: i1, CLK: %CLK: i1, I0: %0: i1) -> () {doNotPrint = 1}
+        hw.instance "complex_bind_asserts_inst" sym @complex_bind.complex_bind_asserts_inst @complex_bind_asserts(I_I: %I_I: i1, O: %3: i1, CLK: %CLK: i1, I0: %0: i1) -> () {doNotPrint = true}
         hw.output %3 : i1
     }
     sv.bind #hw.innerNameRef<@complex_bind::@complex_bind.complex_bind_asserts_inst>
