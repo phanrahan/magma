@@ -6,7 +6,7 @@ from typing import Optional
 class CompileToMlirOpts:
     flatten_all_tuples: bool = False
     basename: Optional[str] = None
-    suffix: Optional[str] = None
+    sv: bool = False
     use_native_bind_processor: bool = False
     verilog_prefix: Optional[str] = None
     user_namespace: Optional[str] = None

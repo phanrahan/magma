@@ -271,7 +271,7 @@ def test_compile_to_mlir_split_verilog(ckt):
         "split_verilog": True,
         "gold_name": gold_name,
         "basename": basename,
-        "suffix": "v",
+        "sv": False,
     }
     run_test_compile_to_mlir(ckt, **kwargs)
     if config.test_mlir_check_verilog:
