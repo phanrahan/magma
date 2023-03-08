@@ -67,6 +67,16 @@ interleave arbitrary code in between cases of a when statement chain, an
 illegal pattern with native Python `if` statements.
 
 ### Frontend
+#### Context Managers
+The `m.when` context manager presents the main entrypoint into the `when` code.
+This context manager is used with the Python `with` statement to create a
+conditional wiring context.  Wiring statements within the block are conditioned
+on the argument passed to the `m.when` constructor.  The `m.elsewhen` and
+`m.otherwise` context managers provide the equivalent logic for the `elif` and
+`else` cases.
+#### Introspection
+The user may call `trace` on a conditionally driven value, which will return a
+reference to the output of a when primitive instance.
 ### IR
 ### Backend
 
