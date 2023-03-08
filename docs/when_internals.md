@@ -1,5 +1,64 @@
 # When Internals
+## Architecture
+### Overview
+The `when` syntax is designed to provide the ability to perform *conditional*
+wiring operations inside a context managed by the Python `with` statement.
+This provides magma the ability to overload wiring behavior inside a Python
+block without performing a code transformation.  Benefits include interleaving
+of native Python `if` statements with magma `when` statements, straightforward
+tracebacks for errors (avoids indirection of generated code), and better
+performance (avoids parsing/serialization/execution of code).
 
+#### Contexts
+Using the when context managers creates an environment where magma's default
+wiring behavior changes.  Inside the scope of the context manager, wiring
+operations are marked as conditional with respect to the boolean value provided
+by the user in the creation of the context.  The when syntax provides a
+provides three variants that correspond to standard `if` statement semantics:
+`when` (`if`), `elsewhen` (`elif`), and `otherwise` (`else`).  These contexts
+can be nested arbitrarily.
+
+If a value is created inside a context (e.g. a module is instanced for an
+operator), the value is treated as unconditionally wired unless a nested
+context is created.  This allows the user to create instances inside a when
+context and have them unconditionally wired, rather than forcing them to create
+the instance externally.
+
+#### Validity
+The when logic requires that a wire is provided a driver for all the possible
+cases of the conditional logic.  That is, if viewed as a traditional `if`
+statement, the value must be defined in all branches.  The user may provide a
+default driver for a value by wiring the default before entering a conditional
+context. Failure to define all possible cases will lead to an inferred latch
+error.
+
+#### State
+Stateful primitives (`Register` and `Memory`) provide convenience logic for
+conditional updates.  By default, these values preserve their state (`Register`
+input is the output, `Memory` write enable is inactive).  This is equivalent to
+explicitly wiring the relevant ports, which the user may do to make it
+explicit, or to override the default behavior.  
+
+For registers, if a user does a conditional wire to a register with an enable,
+the enable will be implicitly wired to True, unless the user explicitly wires
+it.  The user may override the implicit enable behavior either inside the
+context in which the input port is conditionally wired, or externally by, for
+example, providing an unconditional driver for the enable.
+
+**TODO** -- Add similar implicit enable logic for memories
+
+#### Introspection
+Currently calling introspection methods such as `trace` will return a reference
+to an output port of a magma primitive used to contain the when logic.
+
+**TODO** -- We should expose a public API for interacting with `when`
+trace/value/etc... (e.g. get a structure mapping conditions to drivers).
+
+### Frontend
+### IR
+### Backend
+
+## Code
 For various locations in the internal code, this document provides an overview of the
 relavant code.
 * `array.py/tuple.py`
