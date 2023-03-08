@@ -88,7 +88,52 @@ function provides a way to reset the when state, useful for tearing down tests
 that cause errors and leave the global context in a bad state.
 
 ### IR
+The core internal representation used by magma is the `WhenBuilder` primitive.
+Magma creates an instance of the builder for each `when` context, and uses the
+instance to track conditionally driven values, their condtional drivers, and
+their corresponding conditions.  When a context is created, a condition port is
+added to the instance.  When a new conditional wire is created, input and
+output ports are added to the builder to track the conditional driver and
+drivee.  The builder also tracks default drivers, which are the drivers of
+conditionally driven values that were wired before entering the context.
+Internally the builder maintains a map from values to their ports for lookup.
+
+#### Elaborated DerivedRefs
+If a user elaborates a conditionally driven value, the internal logic maintains
+consistency by reusing the children of the corresponding builder ports (rather
+than adding new ports for the children).  In order to do this, the internal logic
+must check if conditionally driven values are actually children of a previously
+conditionally driven value and reuse the parent port if necessary.
+
+#### Explicit Wiring of When Output
+In order to maintain consistency of having outputs map conditional information
+to a single value, if the user attempts to directly wire the output of a when
+builder instance (e.g. a driver retrieved using `.value` on a conditionally
+driven value), the conditional driver information is copied to a new outport
+port, rather than reusing the output driver.  This maintains an invariant that
+all outputs correspond to one conditional drivee, which is assumed in other
+parts of the internal code.
+
 ### Backend
+
+#### Finalization Pass
+First, the compiler must run all passes that may change the representation of a
+circuit.  This way, any changes to the circuit that might introduce changes to
+the when IR (e.g. adding new conditional drivers, creating new contexts) are
+finished before finalizing the when primitives.  Then, the when primitives are
+finalized, which we note is at a different stage than standard builders.
+Uniquification should be run **after** when primitives are finalized, so that
+the unique structures are fully realized in the representation. During
+finalization, latch inference is run and default drivers are added for state.
+
+#### MLIR Codegen
+The MLIR codegeneration process aims to capture the structure of the original
+`when` contexts in the generated `sv` code.  An `AlwaysComb` block is emitted
+to contain the `if` statements, and a nested `if`/`else` structure is emitted
+to reconstruct the `when` context chain.  For each branch, the backend emits a
+`BPAssign` representing the conditional wire.  For elaborated values that are
+assigned as single bulk target, the drivers are combined using a tree of create
+and concat operations (for slices).
 
 ## Code
 For various locations in the internal code, this document provides an overview of the
