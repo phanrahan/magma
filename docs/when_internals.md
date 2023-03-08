@@ -74,9 +74,19 @@ conditional wiring context.  Wiring statements within the block are conditioned
 on the argument passed to the `m.when` constructor.  The `m.elsewhen` and
 `m.otherwise` context managers provide the equivalent logic for the `elif` and
 `else` cases.
+
 #### Introspection
 The user may call `trace` on a conditionally driven value, which will return a
 reference to the output of a when primitive instance.
+
+#### Utilities
+Magma provides a few utility contexts for users wishing to interact with the
+magma when global state.  The `temp_when` context manager allows the user to
+temporarily change the current active when context.  The `no_when` context
+manager temporarily deactives the current whe context.  The `reset_context`
+function provides a way to reset the when state, useful for tearing down tests
+that cause errors and leave the global context in a bad state.
+
 ### IR
 ### Backend
 
