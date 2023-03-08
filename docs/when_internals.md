@@ -1,4 +1,6 @@
 # When Internals
+* [Architecture](#architecture)
+* [Code](#code)
 ## Architecture
 ### Overview
 The `when` syntax is designed to provide the ability to perform *conditional*
