@@ -54,6 +54,16 @@ to an output port of a magma primitive used to contain the when logic.
 **TODO** -- We should expose a public API for interacting with `when`
 trace/value/etc... (e.g. get a structure mapping conditions to drivers).
 
+#### Metaprogramming
+The use of context managers by the `when` syntax enables a form of
+metaprogramming that avoids direct syntax manipulation.  Instead, the user may
+use standard python code to create `when` contexts programmatically (for
+example, inside a loop).  However, with great power comes great responsibility,
+for this feature relies on the fact that the `when` context manager pattern is
+not checked as native Python syntax, which allows the user to potentially
+interleave arbitrary code in between cases of a when statement chain, an
+illegal pattern with native Python `if` statements.
+
 ### Frontend
 ### IR
 ### Backend
