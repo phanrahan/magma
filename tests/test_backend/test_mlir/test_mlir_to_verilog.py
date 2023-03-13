@@ -4,8 +4,9 @@ from typing import Optional
 
 import magma as m
 from magma.backend.mlir.mlir_to_verilog import (
-    mlir_to_verilog,
     circt_opt_binary_exists,
+    circt_opt_version,
+    mlir_to_verilog,
     MlirToVerilogError,
     MlirToVerilogOpts,
 )
@@ -171,3 +172,9 @@ def test_split_verilog():
     ostream.readline()  # skip header
     assert ostream.readline().rstrip() == "module M();"
     assert ostream.readline().rstrip() == "endmodule"
+
+
+def test_circt_opt_version():
+    _skip_if_circt_opt_binary_does_not_exist()
+    version = circt_opt_version()
+    int(version, 16)  # check that it is a hex string

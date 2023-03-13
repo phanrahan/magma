@@ -2,6 +2,7 @@ import dataclasses
 import io
 import os
 import pathlib
+import re
 import subprocess
 import sys
 from typing import List, Optional
@@ -16,8 +17,19 @@ config._register(circt_home=EnvConfig("CIRCT_HOME", None))
 
 _logger = root_logger().getChild("mlir_backend")
 
+_CIRCT_VERSION_RE_PATTERN = (
+    r"^CIRCT "
+    r"(?P<tag>.+)"  # usually circtorg-x.y.z but not relevant for us
+    r"(?P<commits>\d+)-"
+    r"g(?P<hash>[0-9A-Fa-f]+)"
+)
+
 
 class MlirToVerilogError(MlirCompilerError):
+    pass
+
+
+class BadCirctOptVersionStringError(MlirToVerilogError):
     pass
 
 
@@ -88,6 +100,23 @@ def _make_stream(filename, mode, default):
     if filename is None:
         return default, False
     return open(filename, mode), True
+
+
+def circt_opt_version() -> str:
+    circt_home = _circt_home()
+    circt_opt_binary = _circt_opt_binary(circt_home)
+    ostream = io.TextIOWrapper(io.BytesIO())
+    returncode = _run_subprocess(
+        [circt_opt_binary, "--version"],
+        stdin=io.BytesIO(),
+        stdout=ostream.buffer,
+    )
+    ostream.seek(0)
+    version = ostream.read()
+    match = re.search(_CIRCT_VERSION_RE_PATTERN, version, re.MULTILINE)
+    if match is None:
+        raise BadCirctOptVersionStringError(version)
+    return match["hash"]
 
 
 def circt_opt_binary_exists() -> bool:
