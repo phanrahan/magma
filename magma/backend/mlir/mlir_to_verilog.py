@@ -125,7 +125,7 @@ def circt_opt_version() -> str:
 
 
 def is_supported_circt_opt_version(version: str) -> bool:
-    return version == "579d21b50"
+    return version == "7abbc4313"
 
 
 def circt_opt_binary_exists() -> bool:
