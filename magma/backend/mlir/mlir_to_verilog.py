@@ -33,9 +33,14 @@ class BadCirctOptVersionStringError(MlirToVerilogError):
     pass
 
 
+class UnsupportedCirctOptVersionError(MlirToVerilogError):
+    pass
+
+
 @dataclasses.dataclass
 class MlirToVerilogOpts:
     split_verilog: bool = False
+    check_circt_opt_version: bool = True
 
 
 def _circt_home() -> Optional[pathlib.Path]:
@@ -119,6 +124,10 @@ def circt_opt_version() -> str:
     return match["hash"]
 
 
+def is_supported_circt_opt_version(version: str) -> bool:
+    return version == "579d21b50"
+
+
 def circt_opt_binary_exists() -> bool:
     circt_home = _circt_home()
     circt_opt_binary = _circt_opt_binary(circt_home)
@@ -143,6 +152,10 @@ def mlir_to_verilog(
         ostream: io.RawIOBase = sys.stdout,
         opts: MlirToVerilogOpts = MlirToVerilogOpts(),
 ):
+    if opts.check_circt_opt_version:
+        version = circt_opt_version()
+        if not is_supported_circt_opt_version(version):
+            raise UnsupportedCirctOptVersionError(version)
     circt_home = _circt_home()
     cmd = _circt_opt_cmd(circt_home, opts)
     _logger.debug(f"Running cmd: {' '.join(cmd)}")
