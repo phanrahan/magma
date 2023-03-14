@@ -387,6 +387,7 @@ class ModuleVisitor:
         if defn.coreir_name == "mem":
             sv.ReadInOutOp(operands=[read], results=[rdata])
         else:
+            assert defn.coreir_name == "sync_read_mem"
             read_temp = self._ctx.new_value(elt_type.T)
             sv.ReadInOutOp(operands=[read], results=[read_temp])
             read_reg = self._ctx.new_value(elt_type)
