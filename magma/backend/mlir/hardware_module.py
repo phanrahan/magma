@@ -888,12 +888,20 @@ class ModuleVisitor:
 
     def _get_multi_port_memory_operands(self, operands, start_idx, num_ports,
                                         num_operands_per_port):
-        operands = []
+        """Collect flat list of operands for read or write ports
+        start_idx: offset in `operands` list to start from
+        num_ports: number of ports to collect
+        num_operands_per_port: number of operands per port
+                               (e.g. 3 for waddr, wdata, wen)
+        """
+        port_operands = []
         curr_idx = start_idx
         for i in range(num_ports):
-            operands.append(operands[curr_idx:curr_idx + num_operands_per_port])
+            port_operands.append(
+                operands[curr_idx:curr_idx + num_operands_per_port]
+            )
             curr_idx += num_operands_per_port
-        return operands
+        return port_operands
 
     def visit_multi_port_memory(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -902,13 +910,15 @@ class ModuleVisitor:
         clk = module.operands[0]
         read_ports_out = module.results
 
+        read_port_len = 1 + defn.has_read_enable
         read_ports = self._get_multi_port_memory_operands(
-            module.operands, 1, defn.num_read_ports,
-            1 + defn.has_read_enable
+            module.operands, 1, defn.num_read_ports, read_port_len
         )
 
         write_ports = self._get_multi_port_memory_operands(
-            module.operands, 1 + len(read_ports), defn.num_write_ports,
+            module.operands,
+            1 + defn.num_read_ports * read_port_len,
+            defn.num_write_ports,
             3
         )
 
