@@ -329,7 +329,7 @@ class _ElseWhenBlock(_BlockBase):
         return None
 
     def _get_exit_block(self):
-        return self._parent._get_exit_block()
+        return self._parent._parent
 
 
 class _OtherwiseBlock(_BlockBase):
@@ -355,7 +355,7 @@ class _OtherwiseBlock(_BlockBase):
         return None
 
     def _get_exit_block(self):
-        return self._parent._get_exit_block()
+        return self._parent._parent
 
 
 _curr_block = None

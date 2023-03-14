@@ -1157,10 +1157,6 @@ class HardwareModule:
         return self._parent()
 
     @property
-    def opts(self) -> CompileToMlirOpts:
-        return self._opts
-
-    @property
     def hw_module(self) -> hw.ModuleOpBase:
         return self._hw_module
 
