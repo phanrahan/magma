@@ -938,7 +938,7 @@ class ModuleVisitor:
         return read_targets
 
     def _assign_multi_port_memory_targets(self, targets):
-        """Emite assigns for each target"""
+        """Emit assigns for each target"""
         for target, data, en in targets:
             with push_block(sv.IfOp(operands=[en]).then_block):
                 sv.PAssignOp(operands=[target, data])
