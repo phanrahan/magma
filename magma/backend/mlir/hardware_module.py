@@ -380,6 +380,10 @@ class ModuleVisitor:
         sv.ReadInOutOp(operands=[read_reg], results=[value])
         return read_reg, read_temp
 
+    def _emit_conditional_assign(self, target, value, en):
+        with push_block(sv.IfOp(operands=[en]).then_block):
+            sv.PAssignOp(operands=[target, value])
+
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -411,11 +415,9 @@ class ModuleVisitor:
 
         # Always logic.
         with push_block(always):
-            with push_block(sv.IfOp(operands=[wen]).then_block):
-                sv.PAssignOp(operands=[write, wdata])
+            self._emit_conditional_assign(write, wdata, wen)
             if defn.coreir_name == "sync_read_mem":
-                with push_block(sv.IfOp(operands=[ren]).then_block):
-                    sv.PAssignOp(operands=[read_reg, read_temp])
+                self._emit_conditional_assign(read_reg, read_temp, ren)
         return True
 
     @wrap_with_not_implemented_error
@@ -940,8 +942,7 @@ class ModuleVisitor:
     def _assign_multi_port_memory_targets(self, targets):
         """Emit assigns for each target"""
         for target, data, en in targets:
-            with push_block(sv.IfOp(operands=[en]).then_block):
-                sv.PAssignOp(operands=[target, data])
+            self._emit_conditional_assign(target, data, en)
 
     def visit_multi_port_memory(self, module: ModuleWrapper) -> bool:
         inst = module.module
