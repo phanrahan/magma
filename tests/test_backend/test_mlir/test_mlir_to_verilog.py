@@ -149,3 +149,25 @@ def test_disallow_expression_inlining_in_ports(disallow_expression_inlining_in_p
         assert line == ".I (~I),"
     else:
         assert line == ".I (_foo_I),"
+
+
+def test_split_verilog():
+    _skip_if_circt_opt_binary_does_not_exist()
+    ir = (
+        """
+        module attributes {{circt.loweringOptions = "locationInfoStyle=none"}} {{
+          hw.module @M() -> () attributes {{output_file = {output_file}}} {{}}
+        }}
+        """
+    )
+    output_file = "tests/test_backend/test_mlir/build/test_mlir_to_verilog_split_verilog.sv"
+    ir = ir.format(output_file=f"#hw.output_file<\"{output_file}\">")
+    _, ostream = _run_test(ir, split_verilog=True)
+    ostream.seek(0)
+    assert not ostream.readline()  # output expected to be empty
+
+    # Now read ostream from the expcted output file.
+    ostream = open(output_file)
+    ostream.readline()  # skip header
+    assert ostream.readline().rstrip() == "module M();"
+    assert ostream.readline().rstrip() == "endmodule"

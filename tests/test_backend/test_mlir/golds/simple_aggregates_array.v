@@ -4,7 +4,8 @@ module simple_aggregates_array(
   output [7:0][15:0] y,
   output [3:0][15:0] z);
 
-  assign y = {a[3'h0 +: 4], a[3'h4 +: 4]};
-  assign z = a[3'h0 +: 4];
+  wire [3:0][15:0] _GEN = a[3'h0 +: 4];
+  assign y = {_GEN, a[3'h4 +: 4]};
+  assign z = _GEN;
 endmodule
 
