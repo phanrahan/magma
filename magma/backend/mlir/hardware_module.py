@@ -904,6 +904,12 @@ class ModuleVisitor:
             curr_idx += num_operands_per_port
         return port_operands
 
+    def _assign_multi_port_memory_targets(self, targets):
+        """Emite assigns for each target"""
+        for target, data, en in targets:
+            with push_block(sv.IfOp(operands=[en]).then_block):
+                sv.PAssignOp(operands=[target, data])
+
     def visit_multi_port_memory(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -928,19 +934,18 @@ class ModuleVisitor:
         reg = self._ctx.new_value(reg_type)
         sv.RegOp(name=inst.name, results=[reg])
 
-        read_regs = []
+        read_targets = []
         for i, port in enumerate(read_ports):
             raddr = port[0]
             read = self._ctx.new_value(elt_type)
             sv.ArrayIndexInOutOp(operands=[reg, raddr], results=[read])
             if len(port) == 2:
-                ren = port[1]
                 read_reg = self._ctx.new_value(elt_type)
                 sv.RegOp(name=f"read_reg_{i}", results=[read_reg])
                 sv.ReadInOutOp(operands=[read_reg], results=[read_ports_out[i]])
                 read_temp = self._ctx.new_value(elt_type.T)
                 sv.ReadInOutOp(operands=[read], results=[read_temp])
-                read_regs.append((read_reg, read_temp, port[1]))
+                read_targets.append((read_reg, read_temp, port[1]))
             else:
                 sv.ReadInOutOp(operands=[read], results=[read_ports_out[i]])
 
@@ -949,18 +954,13 @@ class ModuleVisitor:
             waddr = port[0]
             write = self._ctx.new_value(elt_type)
             sv.ArrayIndexInOutOp(operands=[reg, waddr], results=[write])
-            write_targets.append(write)
+            write_targets.append((write, port[1], port[2]))
 
         always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
         with push_block(always):
-            for target, port in zip(write_targets, write_ports):
-                data, wen = port[1:3]
-                with push_block(sv.IfOp(operands=[wen]).then_block):
-                    sv.PAssignOp(operands=[target, data])
-            if len(read_regs):
-                for target, value, ren in read_regs:
-                    with push_block(sv.IfOp(operands=[ren]).then_block):
-                        sv.PAssignOp(operands=[target, value])
+            self._assign_multi_port_memory_targets(write_targets)
+            if len(read_targets):
+                self._assign_multi_port_memory_targets(read_targets)
         return True
 
     @wrap_with_not_implemented_error
