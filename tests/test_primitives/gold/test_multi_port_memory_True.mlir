@@ -3,12 +3,12 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %2 = sv.reg {name = "MultiPortMemory_inst0"} : !hw.inout<!hw.array<4xi5>>
         %3 = sv.array_index_inout %2[%raddr_0] : !hw.inout<!hw.array<4xi5>>, i2
         %4 = sv.array_index_inout %2[%raddr_1] : !hw.inout<!hw.array<4xi5>>, i2
-        %5 = sv.reg {name = "read_reg_0"} : !hw.inout<i5>
-        %0 = sv.read_inout %5 : !hw.inout<i5>
-        %6 = sv.read_inout %3 : !hw.inout<i5>
-        %7 = sv.reg {name = "read_reg_1"} : !hw.inout<i5>
-        %1 = sv.read_inout %7 : !hw.inout<i5>
-        %8 = sv.read_inout %4 : !hw.inout<i5>
+        %5 = sv.read_inout %3 : !hw.inout<i5>
+        %6 = sv.reg {name = "read_reg_0"} : !hw.inout<i5>
+        %0 = sv.read_inout %6 : !hw.inout<i5>
+        %7 = sv.read_inout %4 : !hw.inout<i5>
+        %8 = sv.reg {name = "read_reg_1"} : !hw.inout<i5>
+        %1 = sv.read_inout %8 : !hw.inout<i5>
         %9 = sv.array_index_inout %2[%waddr_0] : !hw.inout<!hw.array<4xi5>>, i2
         %10 = sv.array_index_inout %2[%waddr_1] : !hw.inout<!hw.array<4xi5>>, i2
         sv.alwaysff(posedge %clk) {
@@ -19,10 +19,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.passign %10, %wdata_1 : i5
             }
             sv.if %re_0 {
-                sv.passign %5, %6 : i5
+                sv.passign %6, %5 : i5
             }
             sv.if %re_1 {
-                sv.passign %7, %8 : i5
+                sv.passign %8, %7 : i5
             }
         }
         hw.output %0, %1 : i5, i5

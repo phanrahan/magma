@@ -369,6 +369,17 @@ class ModuleVisitor:
         sv.RegOp(name=name, results=[mem])
         return mem
 
+    def _make_mem_read(self, target, value, elt_type, has_enable, name):
+        if not has_enable:
+            sv.ReadInOutOp(operands=[target], results=[value])
+            return None, None
+        read_temp = self._ctx.new_value(elt_type.T)
+        sv.ReadInOutOp(operands=[target], results=[read_temp])
+        read_reg = self._ctx.new_value(elt_type)
+        sv.RegOp(name=name, results=[read_reg])
+        sv.ReadInOutOp(operands=[read_reg], results=[value])
+        return read_reg, read_temp
+
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -388,15 +399,10 @@ class ModuleVisitor:
         # Register read logic.
         read = self._ctx.new_value(elt_type)
         sv.ArrayIndexInOutOp(operands=[mem, raddr], results=[read])
-        if defn.coreir_name == "mem":
-            sv.ReadInOutOp(operands=[read], results=[rdata])
-        else:
-            assert defn.coreir_name == "sync_read_mem"
-            read_temp = self._ctx.new_value(elt_type.T)
-            sv.ReadInOutOp(operands=[read], results=[read_temp])
-            read_reg = self._ctx.new_value(elt_type)
-            sv.RegOp(name="read_reg", results=[read_reg])
-            sv.ReadInOutOp(operands=[read_reg], results=[rdata])
+        read_reg, read_temp = self._make_mem_read(
+            read, rdata, elt_type, defn.coreir_name == "sync_read_mem",
+            "read_reg"
+        )
 
         # Register write logic.
         write = self._ctx.new_value(elt_type)
@@ -923,15 +929,12 @@ class ModuleVisitor:
         """If ren, emit an intermediate register to hold read value"""
         read_targets = []
         for i, (target, port) in enumerate(zip(read_results, read_ports)):
-            if len(port) == 2:
-                read_reg = self._ctx.new_value(elt_type)
-                sv.RegOp(name=f"read_reg_{i}", results=[read_reg])
-                sv.ReadInOutOp(operands=[read_reg], results=[read_ports_out[i]])
-                read_temp = self._ctx.new_value(elt_type.T)
-                sv.ReadInOutOp(operands=[target], results=[read_temp])
+            read_reg, read_temp = self._make_mem_read(
+                target, read_ports_out[i], elt_type, len(port) == 2,
+                f"read_reg_{i}"
+            )
+            if read_temp is not None:
                 read_targets.append((read_reg, read_temp, port[1]))
-            else:
-                sv.ReadInOutOp(operands=[target], results=[read_ports_out[i]])
         return read_targets
 
     def _assign_multi_port_memory_targets(self, targets):
