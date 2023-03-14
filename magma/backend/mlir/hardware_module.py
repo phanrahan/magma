@@ -377,13 +377,13 @@ class ModuleVisitor:
         ren = module.operands[-1]
         rdata = module.results[0]
         elt_type = hw.InOutType(builtin.IntegerType(width))
-        reg_type = hw.InOutType(hw.ArrayType((depth,), elt_type.T))
-        reg = self._ctx.new_value(reg_type)
-        sv.RegOp(name=inst.name, results=[reg])
+        mem_type = hw.InOutType(hw.ArrayType((depth,), elt_type.T))
+        mem = self._ctx.new_value(mem_type)
+        sv.RegOp(name=inst.name, results=[mem])
 
         # Register read logic.
         read = self._ctx.new_value(elt_type)
-        sv.ArrayIndexInOutOp(operands=[reg, raddr], results=[read])
+        sv.ArrayIndexInOutOp(operands=[mem, raddr], results=[read])
         if defn.coreir_name == "mem":
             sv.ReadInOutOp(operands=[read], results=[rdata])
         else:
@@ -396,7 +396,7 @@ class ModuleVisitor:
 
         # Register write logic.
         write = self._ctx.new_value(elt_type)
-        sv.ArrayIndexInOutOp(operands=[reg, waddr], results=[write])
+        sv.ArrayIndexInOutOp(operands=[mem, waddr], results=[write])
         always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
 
         # Always logic.
