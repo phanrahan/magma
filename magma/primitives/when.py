@@ -154,7 +154,7 @@ class WhenBuilder(CircuitBuilder):
         we return the child of the existing value, rather than adding a new
         port, which allows us to maintain bulk assignments in the eventual
         generated if statement, rather that elaborating into per-child
-        assignments
+        assignments.
         """
         curr_root = None
         for ref in value.name.root_iter(
