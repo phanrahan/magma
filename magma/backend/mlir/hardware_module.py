@@ -886,6 +886,15 @@ class ModuleVisitor:
 
         return True
 
+    def _get_multi_port_memory_operands(self, operands, start_idx, num_ports,
+                                        num_operands_per_port):
+        operands = []
+        curr_idx = start_idx
+        for i in range(num_ports):
+            operands.append(operands[curr_idx:curr_idx + num_operands_per_port])
+            curr_idx += num_operands_per_port
+        return operands
+
     def visit_multi_port_memory(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -893,18 +902,15 @@ class ModuleVisitor:
         clk = module.operands[0]
         read_ports_out = module.results
 
-        read_ports = []
-        curr_idx = 1
-        for i in range(defn.num_read_ports):
-            n = 1 if not defn.has_read_enable else 2
-            read_ports.append(module.operands[curr_idx:curr_idx + n])
-            curr_idx += n
+        read_ports = self._get_multi_port_memory_operands(
+            module.operands, 1, defn.num_read_ports,
+            1 + defn.has_read_enable
+        )
 
-        write_ports = []
-        for i in range(defn.num_write_ports):
-            n = 3
-            write_ports.append(module.operands[curr_idx:curr_idx + n])
-            curr_idx += n
+        write_ports = self._get_multi_port_memory_operands(
+            module.operands, 1 + len(read_ports), defn.num_write_ports,
+            3
+        )
 
         elt_type = hw.InOutType(magma_type_to_mlir_type(defn.T))
         reg_type = hw.InOutType(hw.ArrayType((defn.height,), elt_type.T))
