@@ -32,7 +32,7 @@ from magma.backend.mlir.mlir import (
 )
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
-from magma.backend.mlir.when import WhenCompiler
+from magma.backend.mlir.when_utils import WhenCompiler
 from magma.backend.mlir.xmr_utils import get_xmr_paths
 from magma.bind2 import is_bound_instance
 from magma.bit import Bit
@@ -40,7 +40,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key
+from magma.common import filter_by_key, assert_false
 from magma.compile_guard import get_compile_guard_data
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
@@ -65,10 +65,6 @@ from magma.view import PortView
 
 
 MlirValueList = List[MlirValue]
-
-
-def _assert_false(*args, **kwargs):
-    assert False
 
 
 def _get_defn_or_decl_output_name(
@@ -278,16 +274,13 @@ class ModuleVisitor:
         self._visited = set()
 
     @property
-    def opts(self):
-        return self._ctx.opts
-
-    def new_value(self, T):
-        return self._ctx.new_value(T)
+    def ctx(self):
+        return self._ctx
 
     @functools.lru_cache()
     def make_constant(
             self, T: Kind, value: Optional[Any] = None) -> MlirValue:
-        result = self.new_value(T)
+        result = self.ctx.new_value(T)
         if isinstance(T, (DigitalMeta, BitsMeta)):
             value = value if value is not None else 0
             hw.ConstantOp(value=int(value), results=[result])
@@ -316,7 +309,7 @@ class ModuleVisitor:
             n = 1
 
         if isinstance(arr.type, builtin.IntegerType):
-            operand = self.new_value(builtin.IntegerType(n))
+            operand = self.ctx.new_value(builtin.IntegerType(n))
             comb.ExtractOp(operands=[arr], results=[operand], lo=start)
             return operand
 
@@ -324,11 +317,11 @@ class ModuleVisitor:
         start = self.make_constant(Bits[num_sel_bits], start)
 
         if isinstance(i, tuple):
-            operand = self.new_value(hw.ArrayType((n, ), arr.type.T))
+            operand = self.ctx.new_value(hw.ArrayType((n, ), arr.type.T))
             hw.ArraySliceOp(operands=[arr, start], results=[operand])
             return operand
 
-        operand = self.new_value(arr.type.T)
+        operand = self.ctx.new_value(arr.type.T)
         hw.ArrayGetOp(operands=[arr, start], results=[operand])
         return operand
 
@@ -363,7 +356,7 @@ class ModuleVisitor:
 
             # Add create for current elements
             elems_T = hw.ArrayType((len(elems),), T.T)
-            curr_result = self.new_value(elems_T)
+            curr_result = self.ctx.new_value(elems_T)
             hw.ArrayCreateOp(operands=elems, results=[curr_result])
             new_operands.append(curr_result)
 
@@ -383,14 +376,14 @@ class ModuleVisitor:
         rdata = module.results[0]
         elt_type = hw.InOutType(builtin.IntegerType(width))
         reg_type = hw.InOutType(hw.ArrayType((depth,), elt_type.T))
-        reg = self.new_value(reg_type)
+        reg = self.ctx.new_value(reg_type)
         sv.RegOp(name=inst.name, results=[reg])
         # Register read logic.
-        read = self.new_value(elt_type)
+        read = self.ctx.new_value(elt_type)
         sv.ArrayIndexInOutOp(operands=[reg, raddr], results=[read])
         sv.ReadInOutOp(operands=[read], results=[rdata])
         # Register write logic.
-        write = self.new_value(elt_type)
+        write = self.ctx.new_value(elt_type)
         sv.ArrayIndexInOutOp(operands=[reg, waddr], results=[write])
         always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
         with push_block(always):
@@ -415,7 +408,7 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert defn.coreir_name == "reg" or defn.coreir_name == "reg_arst"
-        reg = self.new_value(
+        reg = self.ctx.new_value(
             hw.InOutType(magma_type_to_mlir_type(type(defn.O))))
         sv.RegOp(name=inst.name, results=[reg])
         clock_edge = "posedge"
@@ -474,7 +467,7 @@ class ModuleVisitor:
         def _visit(value, counter):
             index = next(counter)
             mlir_type = hw.InOutType(module.operands[index].type)
-            wire = self.new_value(mlir_type)
+            wire = self.ctx.new_value(mlir_type)
             name = inst.name
             # TODO(rsetaluri): Making a selector and inspecting it in order to
             # find the name is a kind of hacky way to get the qualified name of
@@ -531,7 +524,7 @@ class ModuleVisitor:
             return True
         if defn.coreir_name == "undriven":
             mlir_type = hw.InOutType(module.results[0].type)
-            wire = self.new_value(mlir_type)
+            wire = self.ctx.new_value(mlir_type)
             sym = self._ctx.parent.get_or_make_mapped_symbol(
                 inst, name=f"{self._ctx.name}.{inst.name}", force=True)
             sv.WireOp(results=[wire], sym=sym)
@@ -564,8 +557,8 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert defn.coreir_name == "muxn"
-        data = self.new_value(defn.I.data)
-        sel = self.new_value(defn.I.sel)
+        data = self.ctx.new_value(defn.I.data)
+        sel = self.ctx.new_value(defn.I.sel)
         # NOTE(rsetaluri): This is a specialized code path for the case where
         # all tuples are flattened.
         if self._ctx.opts.flatten_all_tuples:
@@ -594,7 +587,7 @@ class ModuleVisitor:
         init = defn.coreir_configargs["init"]
         consts = [self.make_constant(Bit, b) for b in reversed(init)]
         mlir_type = hw.ArrayType((len(init),), builtin.IntegerType(1))
-        array = self.new_value(mlir_type)
+        array = self.ctx.new_value(mlir_type)
         hw.ArrayCreateOp(
             operands=consts,
             results=array)
@@ -631,7 +624,7 @@ class ModuleVisitor:
             assert index == 0
             other = self.make_constant(T)
             concat_type = hw.ArrayType((2,), operands[0].type.T)
-            concat = self.new_value(concat_type)
+            concat = self.ctx.new_value(concat_type)
             hw.ArrayConcatOp(
                 operands=[other, operands[0]],
                 results=[concat])
@@ -729,7 +722,7 @@ class ModuleVisitor:
         # unflattened tuples can be treated uniformly.
 
         def make_register(T, data, init, result):
-            reg = self.new_value(hw.InOutType(data.type))
+            reg = self.ctx.new_value(hw.InOutType(data.type))
             sv.RegOp(name=inst.name, results=[reg])
             always = sv.AlwaysFFOp(operands=always_operands, **attrs)
             const = self.make_constant(T, init)
@@ -804,7 +797,7 @@ class ModuleVisitor:
         assert len(paths) == len(module.results)
         base = defn.value.parent_view.path()
         for result, path in zip(module.results, paths):
-            in_out = self.new_value(hw.InOutType(result.type))
+            in_out = self.ctx.new_value(hw.InOutType(result.type))
             path = base + path
             sv.XMROp(is_rooted=False, path=path, results=[in_out])
             sv.ReadInOutOp(operands=[in_out], results=[result])
@@ -902,8 +895,10 @@ class ModuleVisitor:
                 return True
             return self.visit_array_slice(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
-            self.make_concat(list(reversed(module.operands)),
-                             module.results[0])
+            self.make_concat(
+                list(reversed(module.operands)),
+                module.results[0]
+            )
             return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):
             index = inst_wrapper.attrs["index"]

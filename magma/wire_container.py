@@ -301,7 +301,7 @@ class Wireable:
         same drivers)."""
         driving = o.driving()[0]
 
-        # copy default driver for self
+        # Copy default driver for self.
         root = driving._wired_when_contexts[0].root
         try:
             default = root.get_default_driver(driving)
@@ -310,7 +310,7 @@ class Wireable:
         else:
             root.add_default_driver(self, default)
 
-        # copy wires in each ctx
+        # Copy wires in each driving when context.
         for ctx in driving._wired_when_contexts:
             for wire in ctx.get_conditional_wires_for_drivee(driving):
                 ctx.add_conditional_wire(self, wire.driver)
