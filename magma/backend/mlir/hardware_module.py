@@ -32,7 +32,7 @@ from magma.backend.mlir.mlir import (
 )
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
-from magma.backend.mlir.when import WhenCompiler
+from magma.backend.mlir.when_utils import WhenCompiler
 from magma.backend.mlir.xmr_utils import get_xmr_paths
 from magma.bind2 import is_bound_instance
 from magma.bit import Bit
@@ -40,7 +40,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key
+from magma.common import filter_by_key, assert_false
 from magma.compile_guard import get_compile_guard_data
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
@@ -65,10 +65,6 @@ from magma.view import PortView
 
 
 MlirValueList = List[MlirValue]
-
-
-def _assert_false(*args, **kwargs):
-    assert False
 
 
 def _get_defn_or_decl_output_name(
