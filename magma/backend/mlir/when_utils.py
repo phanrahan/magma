@@ -9,7 +9,7 @@ from magma.backend.mlir.magma_common import (
 )
 from magma.backend.mlir.mlir import get_block_stack, MlirValue, push_block
 from magma.backend.mlir.sv import sv
-from magma.common import sort_by_value
+from magma.common import sort_by_value, assert_false
 from magma.primitives.when import iswhen
 from magma.ref import ArrayRef, TupleRef, DerivedRef
 from magma.value_utils import make_selector
@@ -20,8 +20,9 @@ class WhenCompiler:
         self._module_visitor = module_visitor
         self._module = module
         self._operands = self._module.operands
-        self._flatten_all_tuples = \
+        self._flatten_all_tuples = (
             self._module_visitor._ctx.opts.flatten_all_tuples
+        )
 
         # Track outer_block so array_ref/constants are placed outside the always
         # comb to reduce code repetition
@@ -88,7 +89,7 @@ class WhenCompiler:
     def _make_output_wires(self):
         """Create the mlir values corresponding to each output"""
         wires = [
-            self._module_visitor.new_value(hw.InOutType(result.type))
+            self._module_visitor.ctx.new_value(hw.InOutType(result.type))
             for result in self._module.results
         ]
 
@@ -212,7 +213,7 @@ class WhenCompiler:
             return value  # found whole value, no need to combine
         if all(x is None for x in value):
             return None  # found empty value, covered by previous slice
-        result = self._module_visitor.new_value(T)
+        result = self._module_visitor.ctx.new_value(T)
         if not isinstance(T, builtin.IntegerType):
             # recursive combine children
             assert len(T.dims) == 1, "Expected 1d array"
