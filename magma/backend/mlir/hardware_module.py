@@ -367,7 +367,7 @@ class ModuleVisitor:
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert defn.coreir_name in ["mem", "sync_read_mem"]
+        assert defn.coreir_name in {"mem", "sync_read_mem"}
         # TODO(rsetaluri): Add support for initialization.
         if defn.coreir_genargs["has_init"]:
             raise NotImplementedError("coreir.mem init not supported")
@@ -515,8 +515,8 @@ class ModuleVisitor:
     def visit_coreir_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert defn.coreir_lib in ["coreir", "corebit", "memory"]
-        if defn.coreir_name in ["mem", "sync_read_mem"]:
+        assert defn.coreir_lib in {"coreir", "corebit", "memory"}
+        if defn.coreir_name in {"mem", "sync_read_mem"}:
             return self.visit_coreir_mem(module)
         if defn.coreir_name == "not":
             return self.visit_coreir_not(module)
