@@ -904,6 +904,16 @@ class ModuleVisitor:
             curr_idx += num_operands_per_port
         return port_operands
 
+    def _make_multi_port_memory_index_ops(self, ports, elt_type, mem):
+        """For each port, emit an arrayindex op and return a list of results"""
+        results = []
+        for port in ports:
+            addr = port[0]
+            result = self._ctx.new_value(elt_type)
+            sv.ArrayIndexInOutOp(operands=[mem, addr], results=[result])
+            results.append(result)
+        return results
+
     def _assign_multi_port_memory_targets(self, targets):
         """Emite assigns for each target"""
         for target, data, en in targets:
@@ -930,31 +940,32 @@ class ModuleVisitor:
         )
 
         elt_type = hw.InOutType(magma_type_to_mlir_type(defn.T))
-        reg_type = hw.InOutType(hw.ArrayType((defn.height,), elt_type.T))
-        reg = self._ctx.new_value(reg_type)
-        sv.RegOp(name=inst.name, results=[reg])
+        mem_type = hw.InOutType(hw.ArrayType((defn.height,), elt_type.T))
+        mem = self._ctx.new_value(mem_type)
+        sv.RegOp(name=inst.name, results=[mem])
 
+        read_results = self._make_multi_port_memory_index_ops(
+            read_ports, elt_type, mem
+        )
         read_targets = []
-        for i, port in enumerate(read_ports):
-            raddr = port[0]
-            read = self._ctx.new_value(elt_type)
-            sv.ArrayIndexInOutOp(operands=[reg, raddr], results=[read])
+        for i, (target, port) in enumerate(zip(read_results, read_ports)):
             if len(port) == 2:
                 read_reg = self._ctx.new_value(elt_type)
                 sv.RegOp(name=f"read_reg_{i}", results=[read_reg])
                 sv.ReadInOutOp(operands=[read_reg], results=[read_ports_out[i]])
                 read_temp = self._ctx.new_value(elt_type.T)
-                sv.ReadInOutOp(operands=[read], results=[read_temp])
+                sv.ReadInOutOp(operands=[target], results=[read_temp])
                 read_targets.append((read_reg, read_temp, port[1]))
             else:
-                sv.ReadInOutOp(operands=[read], results=[read_ports_out[i]])
+                sv.ReadInOutOp(operands=[target], results=[read_ports_out[i]])
 
-        write_targets = []
-        for port in write_ports:
-            waddr = port[0]
-            write = self._ctx.new_value(elt_type)
-            sv.ArrayIndexInOutOp(operands=[reg, waddr], results=[write])
-            write_targets.append((write, port[1], port[2]))
+        write_results = self._make_multi_port_memory_index_ops(
+            write_ports, elt_type, mem
+        )
+        write_targets = (
+            (write_results[i], *write_ports[i][1:3])
+            for i in range(len(write_results))
+        )
 
         always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
         with push_block(always):
