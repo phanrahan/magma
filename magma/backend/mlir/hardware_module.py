@@ -411,9 +411,9 @@ class ModuleVisitor:
         # Register write logic.
         write = self._ctx.new_value(elt_type)
         sv.ArrayIndexInOutOp(operands=[mem, waddr], results=[write])
-        always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
 
         # Always logic.
+        always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
         with push_block(always):
             self._emit_conditional_assign(write, wdata, wen)
             if defn.coreir_name == "sync_read_mem":
