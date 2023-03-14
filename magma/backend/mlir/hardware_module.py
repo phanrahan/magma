@@ -363,6 +363,12 @@ class ModuleVisitor:
 
         hw.ArrayConcatOp(operands=new_operands, results=[result])
 
+    def _make_mem_reg(self, name, N, T):
+        mem_type = hw.InOutType(hw.ArrayType((N,), T))
+        mem = self._ctx.new_value(mem_type)
+        sv.RegOp(name=name, results=[mem])
+        return mem
+
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -377,9 +383,7 @@ class ModuleVisitor:
         ren = module.operands[-1]
         rdata = module.results[0]
         elt_type = hw.InOutType(builtin.IntegerType(width))
-        mem_type = hw.InOutType(hw.ArrayType((depth,), elt_type.T))
-        mem = self._ctx.new_value(mem_type)
-        sv.RegOp(name=inst.name, results=[mem])
+        mem = self._make_mem_reg(inst.name, depth, elt_type.T)
 
         # Register read logic.
         read = self._ctx.new_value(elt_type)
@@ -956,9 +960,7 @@ class ModuleVisitor:
         )
 
         elt_type = hw.InOutType(magma_type_to_mlir_type(defn.T))
-        mem_type = hw.InOutType(hw.ArrayType((defn.height,), elt_type.T))
-        mem = self._ctx.new_value(mem_type)
-        sv.RegOp(name=inst.name, results=[mem])
+        mem = self._make_mem_reg(inst.name, defn.height, elt_type.T)
 
         read_results = self._make_multi_port_memory_index_ops(
             read_ports, elt_type, mem
