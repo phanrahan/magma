@@ -886,8 +886,9 @@ class ModuleVisitor:
 
         return True
 
-    def _get_multi_port_memory_operands(self, operands, start_idx, num_ports,
-                                        num_operands_per_port):
+    def _collect_multi_port_memory_operands(
+        self, operands, start_idx, num_ports, num_operands_per_port
+    ):
         """Collect flat list of operands for read or write ports
         start_idx: offset in `operands` list to start from
         num_ports: number of ports to collect
@@ -911,11 +912,11 @@ class ModuleVisitor:
         read_ports_out = module.results
 
         read_port_len = 1 + defn.has_read_enable
-        read_ports = self._get_multi_port_memory_operands(
+        read_ports = self._collect_multi_port_memory_operands(
             module.operands, 1, defn.num_read_ports, read_port_len
         )
 
-        write_ports = self._get_multi_port_memory_operands(
+        write_ports = self._collect_multi_port_memory_operands(
             module.operands,
             1 + defn.num_read_ports * read_port_len,
             defn.num_write_ports,
