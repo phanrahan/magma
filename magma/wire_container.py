@@ -301,7 +301,7 @@ class Wireable:
         same drivers)."""
         driving = o.driving()[0]
 
-        # copy default driver for self
+        # Copy default driver for self.
         root = driving._wired_when_contexts[0].root
         try:
             default = root.get_default_driver(driving)
