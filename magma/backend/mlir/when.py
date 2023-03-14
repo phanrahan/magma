@@ -89,7 +89,7 @@ class WhenCompiler:
     def _make_output_wires(self):
         """Create the mlir values corresponding to each output"""
         wires = [
-            self._module_visitor.new_value(hw.InOutType(result.type))
+            self._module_visitor.ctx.new_value(hw.InOutType(result.type))
             for result in self._module.results
         ]
 
@@ -213,7 +213,7 @@ class WhenCompiler:
             return value  # found whole value, no need to combine
         if all(x is None for x in value):
             return None  # found empty value, covered by previous slice
-        result = self._module_visitor.new_value(T)
+        result = self._module_visitor.ctx.new_value(T)
         if not isinstance(T, builtin.IntegerType):
             # recursive combine children
             assert len(T.dims) == 1, "Expected 1d array"
