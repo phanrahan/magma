@@ -21,7 +21,7 @@ class WhenCompiler:
         self._module = module
         self._operands = self._module.operands
         self._flatten_all_tuples = \
-            self._module_visitor._ctx.opts.flatten_all_tuples
+            self._module_visitor.opts.flatten_all_tuples
 
         # Track outer_block so array_ref/constants are placed outside the always
         # comb to reduce code repetition
