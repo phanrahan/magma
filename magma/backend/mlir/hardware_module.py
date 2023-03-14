@@ -914,6 +914,22 @@ class ModuleVisitor:
             results.append(result)
         return results
 
+    def _make_multi_port_memory_read_ops(self, read_results, read_ports,
+                                         read_ports_out, elt_type):
+        """If ren, emit an intermediate register to hold read value"""
+        read_targets = []
+        for i, (target, port) in enumerate(zip(read_results, read_ports)):
+            if len(port) == 2:
+                read_reg = self._ctx.new_value(elt_type)
+                sv.RegOp(name=f"read_reg_{i}", results=[read_reg])
+                sv.ReadInOutOp(operands=[read_reg], results=[read_ports_out[i]])
+                read_temp = self._ctx.new_value(elt_type.T)
+                sv.ReadInOutOp(operands=[target], results=[read_temp])
+                read_targets.append((read_reg, read_temp, port[1]))
+            else:
+                sv.ReadInOutOp(operands=[target], results=[read_ports_out[i]])
+        return read_targets
+
     def _assign_multi_port_memory_targets(self, targets):
         """Emite assigns for each target"""
         for target, data, en in targets:
@@ -947,17 +963,9 @@ class ModuleVisitor:
         read_results = self._make_multi_port_memory_index_ops(
             read_ports, elt_type, mem
         )
-        read_targets = []
-        for i, (target, port) in enumerate(zip(read_results, read_ports)):
-            if len(port) == 2:
-                read_reg = self._ctx.new_value(elt_type)
-                sv.RegOp(name=f"read_reg_{i}", results=[read_reg])
-                sv.ReadInOutOp(operands=[read_reg], results=[read_ports_out[i]])
-                read_temp = self._ctx.new_value(elt_type.T)
-                sv.ReadInOutOp(operands=[target], results=[read_temp])
-                read_targets.append((read_reg, read_temp, port[1]))
-            else:
-                sv.ReadInOutOp(operands=[target], results=[read_ports_out[i]])
+        read_targets = self._make_multi_port_memory_read_ops(
+            read_results, read_ports, read_ports_out, elt_type
+        )
 
         write_results = self._make_multi_port_memory_index_ops(
             write_ports, elt_type, mem
