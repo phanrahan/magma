@@ -9,14 +9,10 @@ from magma.backend.mlir.magma_common import (
 )
 from magma.backend.mlir.mlir import get_block_stack, MlirValue, push_block
 from magma.backend.mlir.sv import sv
-from magma.common import sort_by_value
+from magma.common import sort_by_value, assert_false
 from magma.primitives.when import iswhen
 from magma.ref import ArrayRef, TupleRef
 from magma.value_utils import make_selector
-
-
-def _assert_false(*args, **kwargs):
-    assert False
 
 
 class WhenCompiler:

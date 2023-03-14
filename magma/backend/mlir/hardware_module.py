@@ -40,7 +40,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key
+from magma.common import filter_by_key, assert_false
 from magma.compile_guard import get_compile_guard_data
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
@@ -65,10 +65,6 @@ from magma.view import PortView
 
 
 MlirValueList = List[MlirValue]
-
-
-def _assert_false(*args, **kwargs):
-    assert False
 
 
 def _get_defn_or_decl_output_name(
