@@ -369,13 +369,13 @@ class ModuleVisitor:
         sv.RegOp(name=name, results=[mem])
         return mem
 
-    def _make_mem_read(self, target, value, elt_type, has_enable, name):
+    def _make_mem_read(self, target, value, has_enable, name):
         if not has_enable:
             sv.ReadInOutOp(operands=[target], results=[value])
             return None, None
-        read_temp = self._ctx.new_value(elt_type.T)
+        read_temp = self._ctx.new_value(target.type.T)
         sv.ReadInOutOp(operands=[target], results=[read_temp])
-        read_reg = self._ctx.new_value(elt_type)
+        read_reg = self._ctx.new_value(target.type)
         sv.RegOp(name=name, results=[read_reg])
         sv.ReadInOutOp(operands=[read_reg], results=[value])
         return read_reg, read_temp
@@ -383,6 +383,11 @@ class ModuleVisitor:
     def _emit_conditional_assign(self, target, value, en):
         with push_block(sv.IfOp(operands=[en]).then_block):
             sv.PAssignOp(operands=[target, value])
+
+    def _make_index_op(self, value, idx):
+        result = self._ctx.new_value(hw.InOutType(value.type.T.T))
+        sv.ArrayIndexInOutOp(operands=[value, idx], results=[result])
+        return result
 
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
@@ -397,20 +402,17 @@ class ModuleVisitor:
         raddr, waddr, wdata, clk, wen = module.operands[:5]
         ren = module.operands[-1]
         rdata = module.results[0]
-        elt_type = hw.InOutType(builtin.IntegerType(width))
-        mem = self._make_mem_reg(inst.name, depth, elt_type.T)
+        mem = self._make_mem_reg(inst.name, depth, builtin.IntegerType(width))
 
         # Register read logic.
-        read = self._ctx.new_value(elt_type)
-        sv.ArrayIndexInOutOp(operands=[mem, raddr], results=[read])
+        read = self._make_index_op(mem, raddr)
         read_reg, read_temp = self._make_mem_read(
-            read, rdata, elt_type, defn.coreir_name == "sync_read_mem",
+            read, rdata, defn.coreir_name == "sync_read_mem",
             "read_reg"
         )
 
         # Register write logic.
-        write = self._ctx.new_value(elt_type)
-        sv.ArrayIndexInOutOp(operands=[mem, waddr], results=[write])
+        write = self._make_index_op(mem, waddr)
 
         # Always logic.
         always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
@@ -916,23 +918,17 @@ class ModuleVisitor:
             curr_idx += num_operands_per_port
         return port_operands
 
-    def _make_multi_port_memory_index_ops(self, ports, elt_type, mem):
+    def _make_multi_port_memory_index_ops(self, ports, mem):
         """For each port, emit an arrayindex op and return a list of results"""
-        results = []
-        for port in ports:
-            addr = port[0]
-            result = self._ctx.new_value(elt_type)
-            sv.ArrayIndexInOutOp(operands=[mem, addr], results=[result])
-            results.append(result)
-        return results
+        return [self._make_index_op(mem, port[0]) for port in ports]
 
     def _make_multi_port_memory_read_ops(self, read_results, read_ports,
-                                         read_ports_out, elt_type):
+                                         read_ports_out):
         """If ren, emit an intermediate register to hold read value"""
         read_targets = []
         for i, (target, port) in enumerate(zip(read_results, read_ports)):
             read_reg, read_temp = self._make_mem_read(
-                target, read_ports_out[i], elt_type, len(port) == 2,
+                target, read_ports_out[i], len(port) == 2,
                 f"read_reg_{i}"
             )
             if read_temp is not None:
@@ -966,16 +962,12 @@ class ModuleVisitor:
         elt_type = hw.InOutType(magma_type_to_mlir_type(defn.T))
         mem = self._make_mem_reg(inst.name, defn.height, elt_type.T)
 
-        read_results = self._make_multi_port_memory_index_ops(
-            read_ports, elt_type, mem
-        )
-        read_targets = self._make_multi_port_memory_read_ops(
-            read_results, read_ports, read_ports_out, elt_type
-        )
+        read_results = self._make_multi_port_memory_index_ops(read_ports, mem)
+        read_targets = self._make_multi_port_memory_read_ops(read_results,
+                                                             read_ports,
+                                                             read_ports_out)
 
-        write_results = self._make_multi_port_memory_index_ops(
-            write_ports, elt_type, mem
-        )
+        write_results = self._make_multi_port_memory_index_ops(write_ports, mem)
         write_targets = (
             (write_results[i], *write_ports[i][1:3])
             for i in range(len(write_results))
