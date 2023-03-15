@@ -400,7 +400,6 @@ class ModuleVisitor:
         width = defn.coreir_genargs["width"]
         depth = defn.coreir_genargs["depth"]
         raddr, waddr, wdata, clk, wen = module.operands[:5]
-        ren = module.operands[-1]
         rdata = module.results[0]
         mem = self._make_mem_reg(inst.name, depth, builtin.IntegerType(width))
 
@@ -419,6 +418,7 @@ class ModuleVisitor:
         with push_block(always):
             self._emit_conditional_assign(write, wdata, wen)
             if defn.coreir_name == "sync_read_mem":
+                ren = module.operands[-1]
                 self._emit_conditional_assign(read_reg, read_temp, ren)
         return True
 
