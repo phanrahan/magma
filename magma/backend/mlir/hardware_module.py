@@ -369,14 +369,14 @@ class ModuleVisitor:
         sv.RegOp(name=name, results=[mem])
         return mem
 
-    def _make_mem_read(self, target, value, has_enable, name):
+    def _make_mem_read(self, target, value, has_enable, name_suffix=""):
         if not has_enable:
             sv.ReadInOutOp(operands=[target], results=[value])
             return None, None
         read_temp = self._ctx.new_value(target.type.T)
         sv.ReadInOutOp(operands=[target], results=[read_temp])
         read_reg = self._ctx.new_value(target.type)
-        sv.RegOp(name=name, results=[read_reg])
+        sv.RegOp(name=f"read_reg{name_suffix}", results=[read_reg])
         sv.ReadInOutOp(operands=[read_reg], results=[value])
         return read_reg, read_temp
 
@@ -399,16 +399,14 @@ class ModuleVisitor:
             raise NotImplementedError("coreir.mem init not supported")
         width = defn.coreir_genargs["width"]
         depth = defn.coreir_genargs["depth"]
+        is_sync_read_mem = defn.coreir_name == "sync_read_mem"
         raddr, waddr, wdata, clk, wen = module.operands[:5]
         rdata = module.results[0]
         mem = self._make_mem_reg(inst.name, depth, builtin.IntegerType(width))
 
         # Register read logic.
         read = self._make_index_op(mem, raddr)
-        read_reg, read_temp = self._make_mem_read(
-            read, rdata, defn.coreir_name == "sync_read_mem",
-            "read_reg"
-        )
+        read_reg, read_temp = self._make_mem_read(read, rdata, is_sync_read_mem)
 
         # Register write logic.
         write = self._make_index_op(mem, waddr)
@@ -417,7 +415,7 @@ class ModuleVisitor:
         always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
         with push_block(always):
             self._emit_conditional_assign(write, wdata, wen)
-            if defn.coreir_name == "sync_read_mem":
+            if is_sync_read_mem:
                 ren = module.operands[-1]
                 self._emit_conditional_assign(read_reg, read_temp, ren)
         return True
@@ -927,11 +925,11 @@ class ModuleVisitor:
         """If ren, emit an intermediate register to hold read value"""
         read_targets = []
         for i, (target, port) in enumerate(zip(read_results, read_ports)):
+            has_en = len(port) == 2
             read_reg, read_temp = self._make_mem_read(
-                target, read_ports_out[i], len(port) == 2,
-                f"read_reg_{i}"
+                target, read_ports_out[i], has_en, f"_{i}"
             )
-            if read_temp is not None:
+            if has_en:
                 read_targets.append((read_reg, read_temp, port[1]))
         return read_targets
 
@@ -985,7 +983,7 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert isprimitive(defn)
-        if defn.coreir_lib in ["coreir", "corebit", "memory"]:
+        if defn.coreir_lib in {"coreir", "corebit", "memory"}:
             return self.visit_coreir_primitive(module)
         if defn.coreir_lib == "commonlib":
             return self.visit_commonlib_primitive(module)
