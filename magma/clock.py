@@ -142,20 +142,6 @@ def get_reset_args(reset_type: Optional[AbstractReset]):
     return (has_async_reset, has_async_resetn, has_reset, has_resetn)
 
 
-def get_reset_args_dict(reset_type: Optional[AbstractReset]):
-    """
-    Use to pass kwargs to ClockIO
-    """
-    (has_async_reset, has_async_resetn, has_reset, has_resetn) = \
-        get_reset_args(reset_type)
-    return {
-        "has_async_reset": has_async_reset,
-        "has_async_resetn": has_async_resetn,
-        "has_reset": has_reset,
-        "has_resetn": has_resetn
-    }
-
-
 def is_clock_or_nested_clock(p, types=ClockTypes):
     if issubclass(p, types):
         return True
