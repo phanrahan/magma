@@ -285,3 +285,14 @@ def test_compile_to_mlir_split_verilog(ckt):
         with open(f"{basename}.v", "rb") as verilog_out:
             with open(f"{dirname}/golds/{gold_name}_real.v", "rb") as verilog_gold:
                 assert check_streams_equal(verilog_out, verilog_gold, "out", "gold")
+
+
+@pytest.mark.parametrize("ckt", (aggregate_mux_wrapper,))
+def test_compile_to_mlir_emit_muxes_as_if_then_else(ckt):
+    gold_name = f"{ckt.name}_emit_muxes_as_if_then_else"
+    kwargs = {
+        "extend_non_power_of_two_muxes": False,
+        "emit_muxes_as_if_then_else": True,
+        "gold_name": gold_name,
+    }
+    run_test_compile_to_mlir(ckt, **kwargs)

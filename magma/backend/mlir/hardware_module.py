@@ -169,16 +169,49 @@ def get_module_interface(
     return operands, results
 
 
+def make_if_then_else_mux(
+        ctx: 'HardwareModule',
+        data: List[MlirValue],
+        select: MlirValue,
+        result: MlirValue,
+):
+    wire = ctx.new_value(hw.InOutType(result.type))
+    sv.RegOp(results=[wire])
+    sv.ReadInOutOp(operands=[wire], results=[result])
+    counter = itertools.count()
+
+    def _process():
+        index = next(counter)
+        if index >= len(data):
+            return
+        cond = ctx.new_value(builtin.IntegerType(1))
+        const = ctx.new_value(select.type)
+        hw.ConstantOp(value=index, results=[const])
+        comb.ICmpOp(predicate="eq", operands=[select, const], results=[cond])
+        curr = sv.IfOp(operands=[cond])
+        with push_block(curr.then_block):
+            sv.BPAssignOp(operands=[wire, data[index]])
+        with push_block(curr.else_block):
+            _process()
+
+    with push_block(sv.AlwaysCombOp().body_block):
+        _process()
+
+
 def make_mux(
         ctx: 'HardwareModule',
         data: List[MlirValue],
         select: MlirValue,
-        result: MlirValue):
+        result: MlirValue,
+):
     if ctx.opts.extend_non_power_of_two_muxes:
         closest_power_of_two_size = 2 ** clog2(len(data))
         if closest_power_of_two_size != len(data):
             extension = [data[0]] * (closest_power_of_two_size - len(data))
             data = extension + data
+    if ctx.opts.emit_muxes_as_if_then_else:
+        make_if_then_else_mux(ctx, data, select, result)
+        return
     mlir_type = hw.ArrayType((len(data),), data[0].type)
     array = ctx.new_value(mlir_type)
     hw.ArrayCreateOp(
