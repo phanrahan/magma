@@ -15,12 +15,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.if %9 {
                 sv.bpassign %8, %6 : !hw.struct<x: i8, y: i1>
             } else {
-                %12 = hw.constant 1 : i1
-                %11 = comb.icmp eq %s, %12 : i1
-                sv.if %11 {
-                    sv.bpassign %8, %a : !hw.struct<x: i8, y: i1>
-                } else {
-                }
+                sv.bpassign %8, %a : !hw.struct<x: i8, y: i1>
             }
         }
         hw.output %7 : !hw.struct<x: i8, y: i1>

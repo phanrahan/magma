@@ -294,5 +294,6 @@ def test_compile_to_mlir_emit_muxes_as_if_then_else(ckt):
         "extend_non_power_of_two_muxes": False,
         "emit_muxes_as_if_then_else": True,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)

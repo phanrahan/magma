@@ -182,7 +182,8 @@ def make_if_then_else_mux(
 
     def _process():
         index = next(counter)
-        if index >= len(data):
+        if index == len(data) - 1:
+            sv.BPAssignOp(operands=[wire, data[index]])
             return
         cond = ctx.new_value(builtin.IntegerType(1))
         const = ctx.new_value(select.type)
