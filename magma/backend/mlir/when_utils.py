@@ -9,7 +9,7 @@ from magma.backend.mlir.magma_common import (
 )
 from magma.backend.mlir.mlir import get_block_stack, MlirValue, push_block
 from magma.backend.mlir.sv import sv
-from magma.common import sort_by_value, _assert_false
+from magma.common import sort_by_value, assert_false
 from magma.primitives.when import iswhen
 from magma.ref import ArrayRef, TupleRef
 from magma.value_utils import make_selector
@@ -53,7 +53,7 @@ class WhenCompiler:
         for value in sort_by_value(builder.input_to_index):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
-                _assert_false,
+                assert_false,
                 lambda v: _visit(v, counter, input_to_index),
                 flatten_all_tuples=flatten_all_tuples,
                 inout_visitor=lambda v: _visit(v, counter, input_to_index),
@@ -63,7 +63,7 @@ class WhenCompiler:
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 lambda v: _visit(v, counter, output_to_index),
-                _assert_false,
+                assert_false,
                 flatten_all_tuples=flatten_all_tuples,
                 inout_visitor=lambda v: _visit(v, counter, output_to_index),
             )

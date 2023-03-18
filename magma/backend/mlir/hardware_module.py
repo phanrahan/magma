@@ -40,7 +40,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key, _assert_false
+from magma.common import filter_by_key, assert_false
 from magma.compile_guard import get_compile_guard_data
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
@@ -485,7 +485,7 @@ class ModuleVisitor:
         visit_magma_value_or_value_wrapper_by_direction(
             inst.I,
             lambda v: _visit(v, counter),
-            _assert_false,
+            assert_false,
             flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
         )
         return True
