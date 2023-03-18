@@ -341,5 +341,5 @@ def epilogue(epilogue_fn):
     return decorator
 
 
-def _assert_false(*args, **kwargs):
+def assert_false(*args, **kwargs):
     assert False
