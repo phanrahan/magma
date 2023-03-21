@@ -7,7 +7,11 @@ from magma.backend.mlir.mlir import (
     begin_dialect, end_dialect,
     print_location,
 )
-from magma.backend.mlir.mlir_printer_utils import print_names, print_types
+from magma.backend.mlir.mlir_printer_utils import (
+    print_attr_dict,
+    print_names,
+    print_types,
+)
 from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
 
@@ -220,6 +224,9 @@ class BindOp(MlirOp):
 
     def print_op(self, printer: PrinterBase):
         printer.print(f"sv.bind {self.instance.emit()}")
+        if self.attr_dict:
+            printer.print(" ")
+            print_attr_dict(self.attr_dict, printer)
 
 
 @dataclasses.dataclass

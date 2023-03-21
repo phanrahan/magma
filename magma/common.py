@@ -343,3 +343,23 @@ def epilogue(epilogue_fn):
 
 def assert_false(*args, **kwargs):
     assert False
+
+
+def is_(x: Any, y: Any):
+    return x is y
+
+
+def find_by_value(
+        dct: Dict[Any, Any],
+        value: Any,
+        eq: Callable[[Any, Any], bool] = None,
+) -> Iterable[Any]:
+    """Performs a reverse lookup on @dct given @value, i.e. returns any key k
+    for which @eq(@dct[k], @value), where @eq is an optional equality
+    function. By default `is` is used.
+    """
+    if eq is None:
+        eq = is_
+    for k, v in dct.items():
+        if eq(v, value):
+            yield k
