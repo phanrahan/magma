@@ -9,8 +9,10 @@ from magma.backend.mlir.hardware_module import HardwareModule
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.mlir import MlirSymbol, push_block
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
+from magma.backend.mlir.sv import sv
 from magma.bind2 import is_bound_module
 from magma.circuit import CircuitKind, DefineCircuitKind
+from magma.common import find_by_value, only
 from magma.passes import dependencies
 from magma.t import Type
 
@@ -33,19 +35,31 @@ def _set_module_attrs(mlir_module: builtin.ModuleOp, opts: CompileToMlirOpts):
 
 def _prepare_for_split_verilog(
         hardware_modules: Iterable[HardwareModule],
+        bind_ops: Iterable[sv.BindOp],
+        symbol_map: Dict[Any, MlirSymbol],
         basename: str,
         suffix: str,
 ):
     filename = pathlib.Path(f"{basename}.{suffix}")
+    bound_module_to_filename = {}
     for hardware_module in hardware_modules:
         if hardware_module.hw_module is None:
             continue
-        if is_bound_module(hardware_module.magma_defn_or_decl):
-            name = hardware_module.magma_defn_or_decl.name
-            output_filename = filename.parent / f"{name}.{suffix}"
+        magma_defn_or_decl = hardware_module.magma_defn_or_decl
+        if is_bound_module(magma_defn_or_decl):
+            name = magma_defn_or_decl.name
+            bound_module_to_filename[magma_defn_or_decl] = output_filename = (
+                filename.parent / f"{name}.{suffix}"
+            )
         else:
             output_filename = filename
         hardware_module.hw_module.attr_dict["output_file"] = (
+            hw.OutputFileAttr(str(output_filename))
+        )
+    for bind_op in bind_ops:
+        magma_inst = only(find_by_value(symbol_map, bind_op.instance.name))
+        output_filename = bound_module_to_filename[type(magma_inst)]
+        bind_op.attr_dict["output_file"] = (
             hw.OutputFileAttr(str(output_filename))
         )
 
@@ -136,11 +150,15 @@ class TranslationUnit:
                 raise ValueError(
                     "Must specify basename if split_verilog is set"
                 )
-            suffix = "sv" if self._opts.sv else "v"
             _prepare_for_split_verilog(
                 self._hardware_modules.values(),
+                filter(
+                    lambda op: isinstance(op, sv.BindOp),
+                    self._mlir_module.block.operations
+                ),
+                self._symbol_map,
                 self._opts.basename,
-                suffix,
+                ("sv" if self._opts.sv else "v"),
             )
         self._process_bound_modules()
 
