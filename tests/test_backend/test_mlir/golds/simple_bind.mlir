@@ -12,7 +12,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %1, %2 : i1
         }
         %0 = sv.read_inout %1 : !hw.inout<i1>
-        hw.instance "simple_bind_asserts_inst" sym @simple_bind.simple_bind_asserts_inst @simple_bind_asserts(I: %I: i1, O: %0: i1, CLK: %CLK: i1) -> () {doNotPrint = 1}
+        hw.instance "simple_bind_asserts_inst" sym @simple_bind.simple_bind_asserts_inst @simple_bind_asserts(I: %I: i1, O: %0: i1, CLK: %CLK: i1) -> () {doNotPrint = true}
         hw.output %0 : i1
     }
     sv.bind #hw.innerNameRef<@simple_bind::@simple_bind.simple_bind_asserts_inst>

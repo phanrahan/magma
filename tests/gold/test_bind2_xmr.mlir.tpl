@@ -7,7 +7,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %1 = hw.struct_extract %I["x"] : !hw.struct<x: i1, y: i1>
         hw.output %0 : !hw.struct<x: i1, y: i1>
     }
-    hw.module @TopXMRAsserts_mlir(%I: !hw.struct<x: i1, y: i1>, %O: !hw.struct<x: i1, y: i1>, %a: !hw.struct<x: i1, y: i1>, %b: i1) -> () {
+    hw.module @TopXMRAsserts_mlir(%I: !hw.struct<x: i1, y: i1>, %O: !hw.struct<x: i1, y: i1>, %a: !hw.struct<x: i1, y: i1>, %b: i1) -> () attributes {output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_xmr_bind_files.list">} {
         %0 = hw.struct_extract %I["x"] : !hw.struct<x: i1, y: i1>
         %1 = hw.struct_extract %I["y"] : !hw.struct<x: i1, y: i1>
         %2 = hw.struct_extract %O["x"] : !hw.struct<x: i1, y: i1>
@@ -21,7 +21,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %1 = sv.read_inout %2 : !hw.inout<!hw.struct<x: i1, y: i1>>
         %4 = sv.xmr "middle", "bottom", "I.x" : !hw.inout<i1>
         %3 = sv.read_inout %4 : !hw.inout<i1>
-        hw.instance "TopXMRAsserts_mlir_inst0" sym @Top.TopXMRAsserts_mlir_inst0 @TopXMRAsserts_mlir(I: %I: !hw.struct<x: i1, y: i1>, O: %0: !hw.struct<x: i1, y: i1>, a: %1: !hw.struct<x: i1, y: i1>, b: %3: i1) -> () {doNotPrint = 1}
+        hw.instance "TopXMRAsserts_mlir_inst0" sym @Top.TopXMRAsserts_mlir_inst0 @TopXMRAsserts_mlir(I: %I: !hw.struct<x: i1, y: i1>, O: %0: !hw.struct<x: i1, y: i1>, a: %1: !hw.struct<x: i1, y: i1>, b: %3: i1) -> () {doNotPrint = true}
         hw.output %0 : !hw.struct<x: i1, y: i1>
     }
     sv.bind #hw.innerNameRef<@Top::@Top.TopXMRAsserts_mlir_inst0>
