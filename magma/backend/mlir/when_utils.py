@@ -11,7 +11,7 @@ from magma.backend.mlir.mlir import get_block_stack, MlirValue, push_block
 from magma.backend.mlir.sv import sv
 from magma.common import sort_by_value
 from magma.primitives.when import iswhen
-from magma.ref import ArrayRef, TupleRef
+from magma.ref import ArrayRef, TupleRef, DerivedRef
 from magma.value_utils import make_selector
 
 
@@ -62,7 +62,7 @@ class WhenCompiler:
                 # adding them twice which invalidates the count logic
                 return
             for ref in value.name.root_iter(
-                stop_if=lambda ref: not isinstance(ref, (ArrayRef, TupleRef))
+                stop_if=lambda ref: not isinstance(ref, DerivedRef)
             ):
                 if ref.parent_value in value_to_index:
                     # Don't add, only need its parent

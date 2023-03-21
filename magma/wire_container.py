@@ -300,6 +300,8 @@ class Wireable:
         for two different conditionally driven values, even if they have the
         same drivers)."""
         driving = o.driving()[0]
+
+        # Copy default driver for self.
         root = driving._wired_when_contexts[0].root
         try:
             default = root.get_default_driver(driving)
@@ -307,16 +309,24 @@ class Wireable:
             pass
         else:
             root.add_default_driver(self, default)
+
+        # Copy wires in each driving when context.
         for ctx in driving._wired_when_contexts:
             for wire in ctx.get_conditional_wires_for_drivee(driving):
                 ctx.add_conditional_wire(self, wire.driver)
             self._wired_when_contexts.append(ctx)
 
-    def _wire_impl(self, o, debug_info):
+    def _check_is_when_output(self, o, debug_info):
+        """Special handling if `o` is a reference to a when output"""
         for value in o.root_iter():
             if value.is_when_port and o.driving():
-                # Special handling if `o` is a reference to a when output
-                return self._when_output_wire(o, debug_info)
+                self._when_output_wire(o, debug_info)
+                return True
+        return False
+
+    def _wire_impl(self, o, debug_info):
+        if self._check_is_when_output(o, debug_info):
+            return
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info
