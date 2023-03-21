@@ -860,7 +860,7 @@ class ModuleVisitor:
             sym = self._ctx.parent.get_or_make_mapped_symbol(
                 inst, name=f"{inst.defn.name}.{inst.name}", force=True
             )
-            attrs["doNotPrint"] = 1
+            attrs["doNotPrint"] = builtin.BoolAttr(True)
         make_hw_instance_op(
             name=inst.name,
             module=module_type,
@@ -1013,8 +1013,7 @@ class NativeBindProcessor(BindProcessorInterface):
             hardware_module = self._ctx.parent.new_hardware_module(bind_module)
             hardware_module.compile()
             assert hardware_module.hw_module is not None
-            self._ctx.parent.set_hardware_module(
-                bind_module, hardware_module.hw_module)
+            self._ctx.parent.set_hardware_module(bind_module, hardware_module)
 
     @wrap_with_not_implemented_error
     def _resolve_arg(self, arg) -> MlirValue:
@@ -1044,11 +1043,11 @@ class NativeBindProcessor(BindProcessorInterface):
             module = self._ctx.parent.get_hardware_module(bind_module)
             inst = hw.InstanceOp(
                 name=inst_name,
-                module=module,
+                module=module.hw_module,
                 operands=operands,
                 results=[],
                 sym=sym)
-            inst.attr_dict["doNotPrint"] = 1
+            inst.attr_dict["doNotPrint"] = builtin.BoolAttr(True)
             self._syms.append(sym)
 
     def postprocess(self):
@@ -1061,9 +1060,6 @@ class NativeBindProcessor(BindProcessorInterface):
             inst_sym = self._ctx.parent.get_mapped_symbol(bound_instance)
             ref = hw.InnerRefAttr(defn_sym, inst_sym)
             sv.BindOp(instance=ref)
-        if self._syms or bound_instances:
-            bind_filename = f"{self._ctx.opts.basename}.sv"
-            self._ctx.parent.add_bind_file(bind_filename)
 
 
 class CoreIRBindProcessor(BindProcessorInterface):
@@ -1076,7 +1072,7 @@ class CoreIRBindProcessor(BindProcessorInterface):
             filename = path / f"{name}.sv"
             with open(filename, "w") as f:
                 f.write(content)
-            self._ctx.parent.add_bind_file(filename.name)
+            self._ctx.parent.add_external_bind_file(filename.name)
 
     def postprocess(self):
         return

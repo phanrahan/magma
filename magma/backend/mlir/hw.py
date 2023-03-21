@@ -63,6 +63,29 @@ class ParamDeclAttr(MlirAttribute):
         return f"{s} = {self.value.emit()}"
 
 
+@dataclasses.dataclass(frozen=True)
+class OutputFileAttr(MlirAttribute):
+    filename: str
+    exclude_from_file_list: bool = False
+    include_replicated_ops: bool = False
+
+    def emit(self) -> str:
+        s = f"#hw.output_file<\"{self.filename}\""
+        if self.exclude_from_file_list:
+            s += f", excludeFromFileList"
+        if self.include_replicated_ops:
+            s += f", includeReplicatedOps"
+        return f"{s}>"
+
+
+@dataclasses.dataclass(frozen=True)
+class FileListAttr(MlirAttribute):
+    filename: str
+
+    def emit(self) -> str:
+        return f"#hw.output_filelist<\"{self.filename}\">"
+
+
 @dataclasses.dataclass
 class ModuleOpBase(MlirOp):
     operands: List[MlirValue]
@@ -81,6 +104,9 @@ class ModuleOpBase(MlirOp):
         printer.print(") -> (")
         print_signature(self.results, printer, raw_names=True)
         printer.print(")")
+        if self.attr_dict:
+            printer.print(" attributes ")
+            print_attr_dict(self.attr_dict, printer)
 
 
 @dataclasses.dataclass

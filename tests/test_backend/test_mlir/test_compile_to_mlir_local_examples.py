@@ -1,8 +1,11 @@
 import contextlib
 import itertools
+import pathlib
 import pytest
 
 import magma as m
+from magma.common import only
+from magma.config import config
 from magma.debug import debug_info
 from magma.passes.finalize_whens import finalize_whens
 from magma.primitives.mux import CoreIRCommonLibMuxN
@@ -15,9 +18,14 @@ from examples import (
     complex_register_wrapper,
     complex_bind,
     simple_comb,
+    simple_hierarchy,
     simple_register_wrapper,
 )
-from test_utils import get_local_examples, run_test_compile_to_mlir
+from test_utils import (
+    get_local_examples,
+    run_test_compile_to_mlir,
+    check_streams_equal,
+)
 
 
 class _simple_coreir_common_lib_mux_n_wrapper(m.Circuit):
@@ -123,6 +131,7 @@ def test_compile_to_mlir_extend_non_power_of_two_muxes(
         "extend_non_power_of_two_muxes": True,
         "flatten_all_tuples": flatten_all_tuples,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)
 
@@ -148,6 +157,7 @@ def test_compile_to_mlir_disallow_duplicate_symbols(
     kwargs = {
         "disallow_duplicate_symbols": disallow_duplicate_symbols,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     if disallow_duplicate_symbols:
         ctx_mgr = pytest.raises(RuntimeError)
@@ -179,6 +189,7 @@ def test_compile_to_mlir_location_info_style(location_info_style: str):
     kwargs = {
         "location_info_style": location_info_style,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     kwargs.update({"check_verilog": False})
     # Attach dummy debug info to ckt.
@@ -201,6 +212,7 @@ def test_compile_to_mlir_explicit_bitcast(ckt, explicit_bitcast: bool):
     kwargs = {
         "explicit_bitcast": explicit_bitcast,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     kwargs.update({"check_verilog": False})
     run_test_compile_to_mlir(ckt, **kwargs)
@@ -220,6 +232,7 @@ def test_compile_to_mlir_disallow_expression_inlining_in_ports(
     kwargs = {
         "disallow_expression_inlining_in_ports": disallow_expression_inlining_in_ports,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     kwargs.update({"check_verilog": False})
     run_test_compile_to_mlir(ckt, **kwargs)
@@ -251,5 +264,24 @@ def test_compile_to_mlir_disallow_local_variables(disallow_local_variables: bool
     kwargs = {
         "disallow_local_variables": disallow_local_variables,
         "gold_name": gold_name,
+        "basename": ckt.name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize("ckt", (simple_hierarchy,))
+def test_compile_to_mlir_split_verilog(ckt):
+    dirname = pathlib.Path("tests/test_backend/test_mlir/")
+    basename = dirname / "build" / ckt.name
+    gold_name = ckt.name + "_split_verilog"
+    kwargs = {
+        "split_verilog": True,
+        "gold_name": gold_name,
+        "basename": str(basename),
+        "sv": False,
+    }
+    run_test_compile_to_mlir(ckt, **kwargs)
+    if config.test_mlir_check_verilog:
+        with open(f"{basename}.v", "rb") as verilog_out:
+            with open(f"{dirname}/golds/{gold_name}_real.v", "rb") as verilog_gold:
+                assert check_streams_equal(verilog_out, verilog_gold, "out", "gold")
