@@ -339,3 +339,7 @@ def epilogue(epilogue_fn):
         return wrapped
 
     return decorator
+
+
+def assert_false(*args, **kwargs):
+    assert False
