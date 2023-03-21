@@ -10,6 +10,7 @@ from magma.t import Type, In
 
 _BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
 _BOUND_GENERATOR_INFO_KEY = "_bound_generator_info_"
+_IS_BOUND_MODULE_KEY = "_is_bound_module_"
 
 DutType = Union[DefineCircuitKind, Generator2Kind]
 BindModuleType = Union[CircuitKind, Generator2Kind]
@@ -26,6 +27,14 @@ def get_bound_instance_info(inst: CircuitType) -> Dict:
 
 def is_bound_instance(inst: CircuitType) -> bool:
     return get_bound_instance_info(inst) is not None
+
+
+def set_is_bound_module(defn: CircuitKind, value: bool = True):
+    setattr(defn, _IS_BOUND_MODULE_KEY, value)
+
+
+def is_bound_module(defn: CircuitKind) -> bool:
+    return getattr(defn, _IS_BOUND_MODULE_KEY, False)
 
 
 def get_bound_generator_info(inst: CircuitType) -> List[Generator2Kind]:
@@ -76,6 +85,7 @@ def _bind_impl(
             wire_value_or_port_view(param, arg)
         info = {"args": args, "compile_guard": compile_guard}
         set_bound_instance_info(inst, info)
+        set_is_bound_module(bind_module, True)
 
 
 def bind2(

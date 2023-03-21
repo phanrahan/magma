@@ -23,7 +23,7 @@ class MlirToVerilogError(MlirCompilerError):
 
 @dataclasses.dataclass
 class MlirToVerilogOpts:
-    pass
+    split_verilog: bool = False
 
 
 def _circt_home() -> Optional[pathlib.Path]:
@@ -49,12 +49,15 @@ def _circt_opt_cmd(
         opts: MlirToVerilogOpts,
 ) -> List[str]:
     bin_ = f"{_circt_opt_binary(circt_home)}"
+    export_verilog_pass = (
+        "--export-split-verilog" if opts.split_verilog else "--export-verilog"
+    )
     passes = [
         "--lower-seq-to-sv",
         "--canonicalize",
         "--hw-cleanup",
         "--prettify-verilog",
-        "--export-verilog",
+        export_verilog_pass,
     ]
     extra_opts = [
         "-o=/dev/null",

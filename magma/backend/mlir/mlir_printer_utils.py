@@ -1,6 +1,6 @@
-from typing import Callable, List, Mapping, Union
+from typing import Any, Callable, List, Mapping, Union
 
-from magma.backend.mlir.mlir import MlirValue
+from magma.backend.mlir.mlir import MlirAttribute, MlirValue
 from magma.backend.mlir.printer_base import PrinterBase
 
 
@@ -46,6 +46,14 @@ def print_signature(
     printer.print(", ".join(signatures))
 
 
+def _attr_to_string(value: Any) -> str:
+    if isinstance(value, MlirAttribute):
+        return value.emit()
+    return str(value)
+
+
 def print_attr_dict(attr_dict: Mapping, printer: PrinterBase):
-    attr_dict_to_string = ", ".join(f"{k} = {v}" for k, v in attr_dict.items())
+    attr_dict_to_string = ", ".join(
+        f"{k} = {v.emit()}" for k, v in attr_dict.items()
+    )
     printer.print(f"{{{attr_dict_to_string}}}")

@@ -1,10 +1,21 @@
+import itertools
+import pathlib
 import pytest
+import string
 
 import magma as m
+from magma.bind2 import is_bound_module
+from magma.passes.passes import CircuitPass
 import magma.testing
 
 
 def _assert_compilation(ckt, basename, suffix, opts):
+    # Specialize gold file for cwd.
+    cwd = pathlib.Path(__file__).parent
+    with open(f"{cwd}/gold/{basename}.{suffix}.tpl", "r") as f_tpl:
+        with open(f"{cwd}/gold/{basename}.{suffix}", "w") as f_out:
+            tpl = string.Template(f_tpl.read())
+            f_out.write(tpl.substitute(cwd=cwd))
     m.compile(f"build/{basename}", ckt, **opts)
     assert m.testing.check_files_equal(
         __file__,
@@ -12,8 +23,11 @@ def _assert_compilation(ckt, basename, suffix, opts):
         f"gold/{basename}.{suffix}")
 
 
-@pytest.mark.parametrize("backend", ("mlir",))
-def test_basic(backend):
+@pytest.mark.parametrize(
+    "backend,split_verilog",
+    itertools.product(("mlir",), (False, True))
+)
+def test_basic(backend, split_verilog):
 
     class Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
@@ -28,12 +42,18 @@ def test_basic(backend):
 
     m.bind2(Top, TopBasicAsserts, Top.I)
 
+    assert not is_bound_module(Top)
+    assert is_bound_module(TopBasicAsserts)
+
     basename = f"test_bind2_basic"
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,
         "use_native_bind_processor": True,
     }
+    if split_verilog:
+        opts.update({"split_verilog": True})
+        basename = basename + "_split_verilog"
     _assert_compilation(Top, basename, suffix, opts)
 
 
@@ -114,3 +134,12 @@ def test_generator():
         "use_native_bind_processor": True,
     }
     _assert_compilation(Top, "test_bind2_generator", "mlir", opts)
+
+    class _CheckLogicAssertsAreBoundModulesPass(CircuitPass):
+        def __call__(self, defn):
+            if not isinstance(defn, LogicAsserts):
+                return
+            assert is_bound_module(defn)
+
+    assert not is_bound_module(Top)
+    _CheckLogicAssertsAreBoundModulesPass(Top).run()

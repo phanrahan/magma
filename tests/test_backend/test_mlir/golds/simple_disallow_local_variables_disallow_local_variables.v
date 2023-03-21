@@ -4,29 +4,23 @@ module simple_disallow_local_variables(
   input        s,
   output [1:0] O);
 
-  reg        _GEN;
-  reg        _GEN_0;
-  reg        _GEN_1;
-  reg        _GEN_2;
-  wire [1:0] _GEN_3 = ~x;
+  reg [1:0] _GEN;
+  reg       _GEN_0;
+  reg       _GEN_1;
   always_comb begin
-    if (s) begin
-      _GEN = _GEN_3[0];
-      _GEN_0 = _GEN_3[1];
-    end
-    else begin
-      _GEN = x[0];
-      _GEN_0 = x[1];
-    end
+    if (s)
+      _GEN = ~x;
+    else
+      _GEN = x;
     if (~s) begin
-      _GEN_1 = _GEN_0;
-      _GEN_2 = _GEN;
+      _GEN_0 = _GEN[1];
+      _GEN_1 = _GEN[0];
     end
     else begin
-      _GEN_1 = _GEN;
-      _GEN_2 = _GEN_0;
+      _GEN_0 = _GEN[0];
+      _GEN_1 = _GEN[1];
     end
   end // always_comb
-  assign O = {_GEN_2, _GEN_1};
+  assign O = {_GEN_1, _GEN_0};
 endmodule
 
