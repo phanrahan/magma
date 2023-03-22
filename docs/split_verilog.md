@@ -110,6 +110,10 @@ module BarMonitor(
   assert I;
 endmodule
 
+bind Bar BarMonitor BarMonitor_inst0 (
+  .I (I),
+  .O (I)
+);
 ```
 ---
 `output/FooMonitor.sv`:
@@ -121,14 +125,6 @@ module FooMonitor(
   assert I;
 endmodule
 
-```
----
-`bindfile` (note that this is ouput in the CWD, and not in `output/` -- this is undesired):
-```Verilog
-bind Bar BarMonitor BarMonitor_inst0 (
-  .I (I),
-  .O (I)
-);
 bind Foo FooMonitor FooMonitor_inst0 (
   .I (I),
   .O (I)
