@@ -67,7 +67,7 @@ hw.module @Cell(%neighbors: i8, %running: i1, %write_enable: i1, %write_value: i
     %66 = comb.xor %4, %running : i1
     %68 = hw.array_create %62, %64 : i1
     %67 = hw.array_get %68[%66] : !hw.array<2xi1>
-    %69 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
+    %69 = sv.reg name "Register_inst0" : !hw.inout<i1>
     sv.alwaysff(posedge %CLK) {
         sv.passign %69, %67 : i1
     }

@@ -8,7 +8,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %2 = hw.constant -1 : i1
         %1 = comb.xor %2, %0 : i1
         %3 = comb.xor %2, %1 : i1
-        %5 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
+        %5 = sv.reg name "Register_inst0" : !hw.inout<i1>
         sv.alwaysff(posedge %CLK) {
             sv.passign %5, %3 : i1
         }

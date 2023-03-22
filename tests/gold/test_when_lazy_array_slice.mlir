@@ -32,7 +32,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %18 = comb.concat %11, %10, %9, %8 : i1, i1, i1, i1
-        %20 = sv.wire sym @test_when_lazy_array_slice.x {name="x"} : !hw.inout<i4>
+        %20 = sv.wire sym @test_when_lazy_array_slice.x name "x" : !hw.inout<i4>
         sv.assign %20, %18 : i4
         %19 = sv.read_inout %20 : !hw.inout<i4>
         hw.output %19 : i4

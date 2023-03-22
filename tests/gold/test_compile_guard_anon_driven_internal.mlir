@@ -2,10 +2,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @COND_compile_guard(%port_0: i1) -> () {
         %1 = sv.wire sym @COND_compile_guard.corebit_undriven_inst0 : !hw.inout<i1>
         %0 = sv.read_inout %1 : !hw.inout<i1>
-        %3 = sv.wire sym @COND_compile_guard.x {name="x"} : !hw.inout<i1>
+        %3 = sv.wire sym @COND_compile_guard.x name "x" : !hw.inout<i1>
         sv.assign %3, %0 : i1
         %2 = sv.read_inout %3 : !hw.inout<i1>
-        %5 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
+        %5 = sv.reg name "Register_inst0" : !hw.inout<i1>
         sv.alwaysff(posedge %port_0) {
             sv.passign %5, %2 : i1
         }

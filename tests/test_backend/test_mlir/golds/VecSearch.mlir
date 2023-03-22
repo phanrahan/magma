@@ -8,7 +8,7 @@ hw.module @VecSearch(%CLK: i1) -> (out: i4) {
     %6 = hw.constant 13 : i4
     %7 = hw.constant 1 : i3
     %9 = comb.add %8, %7 : i3
-    %10 = sv.reg {name = "Register_inst0"} : !hw.inout<i3>
+    %10 = sv.reg name "Register_inst0" : !hw.inout<i3>
     sv.alwaysff(posedge %CLK) {
         sv.passign %10, %9 : i3
     }

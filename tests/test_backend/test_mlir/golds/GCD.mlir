@@ -11,7 +11,7 @@ hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (O0: i16, O1: i1) {
     %10 = hw.array_get %11[%8] : !hw.array<2xi16>
     %13 = hw.array_create %10, %b : i16
     %12 = hw.array_get %13[%load] : !hw.array<2xi16>
-    %14 = sv.reg {name = "Register_inst1"} : !hw.inout<i16>
+    %14 = sv.reg name "Register_inst1" : !hw.inout<i16>
     sv.alwaysff(posedge %CLK) {
         sv.passign %14, %12 : i16
     }
@@ -27,7 +27,7 @@ hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (O0: i16, O1: i1) {
     %19 = hw.array_get %20[%8] : !hw.array<2xi16>
     %22 = hw.array_create %19, %a : i16
     %21 = hw.array_get %22[%load] : !hw.array<2xi16>
-    %23 = sv.reg {name = "Register_inst0"} : !hw.inout<i16>
+    %23 = sv.reg name "Register_inst0" : !hw.inout<i16>
     sv.alwaysff(posedge %CLK) {
         sv.passign %23, %21 : i16
     }

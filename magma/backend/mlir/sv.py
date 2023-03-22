@@ -29,7 +29,7 @@ class RegOp(MlirOp):
         print_names(self.results, printer)
         printer.print(f" = sv.reg ")
         if self.name is not None:
-            printer.print(f"{{name = \"{self.name}\"}} ")
+            printer.print(f"name \"{self.name}\" ")
         printer.print(": ")
         print_types(self.results, printer)
 
@@ -169,7 +169,7 @@ class WireOp(MlirOp):
         if self.sym is not None:
             printer.print(f"sym {self.sym.name} ")
         if self.name is not None:
-            printer.print(f"{{name=\"{self.name}\"}} ")
+            printer.print(f"name \"{self.name}\" ")
         printer.print(": ")
         print_types(self.results, printer)
 
