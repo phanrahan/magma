@@ -5,8 +5,12 @@ import functools
 import itertools
 from typing import Any, Iterable, Optional, Set, Tuple, Union
 
+from magma.config import config, RuntimeConfig
 from magma.debug import get_debug_info, debug_info as DebugInfo
 from magma.ref import get_ref_inst
+
+
+config.register(emit_when_asserts=RuntimeConfig(False))
 
 
 @functools.lru_cache(None)
@@ -524,6 +528,23 @@ def find_inferred_latches(block: _BlockBase) -> Set:
     ops = tuple(block.default_drivers()) + (block,)
     _, latches = _get_assignees_and_latches(ops)
     return latches
+
+
+def emit_when_asserts(block: _BlockBase) -> Set:
+    if not config.emit_when_asserts:
+        return
+    print(block)
+    print(block.condition)
+    print(list(block.conditional_wires()))
+    print(list(block.children()))
+    from magma.inline_verilog import inline_verilog
+    for wire in block.conditional_wires():
+        inline_verilog(
+            "assert property {cond} |-> {drivee} == {driver}",
+            cond=block.condition,
+            drivee=wire.drivee.name,
+            driver=wire.driver
+        )
 
 
 def when(cond):

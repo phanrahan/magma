@@ -5,6 +5,7 @@ import pytest
 import fault as f
 
 import magma as m
+from magma.config import config
 from magma.primitives.when import InferredLatchError
 from magma.testing.utils import check_gold, update_gold, SimpleMagmaProtocol
 from magma.type_utils import type_to_sanitized_string
@@ -1479,6 +1480,23 @@ def test_when_alwcomb_order():
             test_when_alwcomb_order,
             output="mlir"
         )
+
+
+def test_when_emit_asserts_basic():
+    config.emit_when_asserts = True
+
+    class test_when_emit_asserts_basic(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        io.O @= io.I[1]
+        with m.when(io.S):
+            io.O @= io.I[0]
+
+    m.compile("build/test_when_emit_asserts_basic",
+              test_when_emit_asserts_basic,
+              output="mlir")
+    config.emit_when_asserts = False
+    assert check_gold(__file__, "test_when_emit_asserts_basic.mlir")
 
 
 # TODO: In this case, we'll generate elaborated assignments, but it should

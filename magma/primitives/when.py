@@ -14,6 +14,7 @@ from magma.when import (
     BlockBase as WhenBlock,
     no_when,
     find_inferred_latches,
+    emit_when_asserts
 )
 from magma.value_utils import make_selector
 from magma.wire import wire
@@ -253,6 +254,7 @@ class WhenBuilder(CircuitBuilder):
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)
+        emit_when_asserts(self.block)
         # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
         # builder's finalization, although it is a bit "hacky". Ideally, this
