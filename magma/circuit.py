@@ -27,6 +27,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
+from magma.common import only, IterableException
 from magma.config import get_debug_mode, set_debug_mode, config, RuntimeConfig
 from magma.definition_context import (
     DefinitionContext,
@@ -40,7 +41,6 @@ from magma.logging import root_logger, capture_logs
 from magma.protocol_type import MagmaProtocol
 from magma.ref import TempNamedRef, AnonRef
 from magma.t import In, Type
-from magma.view import PortView
 from magma.wire_container import WiringLog, AggregateWireable
 
 
@@ -734,6 +734,21 @@ class DefineCircuitKind(CircuitKind):
                 find_and_log_unconnected_ports(self)
 
         return self
+
+    def __getattr__(self, attr):
+        error = None
+        try:
+            return object.__getattribute__(self, attr)
+        except AttributeError as e:
+            # NOTE(rsetaluri): The scope of `e` is only within this `except`
+            # block. Therefore we have to stash it in a local variable to be
+            # able to raise it later.
+            error = e
+        try:
+            return only(filter(lambda i: i.name == attr, self.instances))
+        except IterableException:
+            pass
+        raise error from None
 
     @property
     def is_definition(self):
