@@ -900,7 +900,22 @@ class ModuleVisitor:
             for k, v in replacements:
                 k = "{" + k + "}"
                 string = string.replace(k, v)
-            sv.VerbatimOp(operands=module.operands, string=string)
+
+            # Convert instance operands/results to verbatim operands
+            operands = []
+            input_counter = itertools.count()
+            output_counter = itertools.count()
+            for value in references.values():
+                if value.is_input():
+                    operand = module.operands[next(input_counter)]
+                else:
+                    operand = module.results[next(output_counter)]
+                    # Emit register to hold operand
+                    reg = self.ctx.new_value(hw.InOutType(operand.type))
+                    sv.RegOp(results=[reg])
+                    sv.ReadInOutOp(operands=[reg], results=[operand])
+                operands.append(operand)
+            sv.VerbatimOp(operands=list(reversed(operands)), string=string)
         return True
 
     @wrap_with_not_implemented_error
