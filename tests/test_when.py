@@ -8,6 +8,7 @@ import magma as m
 from magma.primitives.when import InferredLatchError
 from magma.testing.utils import check_gold, update_gold, SimpleMagmaProtocol
 from magma.type_utils import type_to_sanitized_string
+from magma.backend.mlir.errors import MlirWhenCycleError
 
 
 @functools.lru_cache(maxsize=None)
@@ -465,8 +466,9 @@ def test_recursive_non_port():
         io.O0 @= x
 
     basename = "test_when_recursive_non_port"
-    # TODO(leonardt): Remove this when proper analysis is added
-    with pytest.raises(NotImplementedError):
+    # TODO(leonardt): Remove this when proper analysis for when cycles is
+    # added.
+    with pytest.raises(MlirWhenCycleError):
         m.compile(f"build/{basename}", _Test, output="mlir")
         assert check_gold(__file__, f"{basename}.mlir")
 
@@ -1459,6 +1461,7 @@ def test_when_tuple_as_bits_resolve():
 
 
 def test_when_alwcomb_order():
+
     class test_when_alwcomb_order(m.Circuit):
         io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[1]), O=m.Out(m.Bits[8]))
         x = m.Bits[8]()
@@ -1470,9 +1473,12 @@ def test_when_alwcomb_order():
             x @= ~io.I
             io.O @= ~x
 
-    with pytest.raises(NotImplementedError):
-        m.compile("build/test_when_alwcomb_order", test_when_alwcomb_order,
-                  output="mlir")
+    with pytest.raises(MlirWhenCycleError):
+        m.compile(
+            "build/test_when_alwcomb_order",
+            test_when_alwcomb_order,
+            output="mlir"
+        )
 
 
 # TODO: In this case, we'll generate elaborated assignments, but it should
