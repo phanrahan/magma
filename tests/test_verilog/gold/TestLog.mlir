@@ -12,7 +12,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         }
         %0 = sv.read_inout %1 : !hw.inout<i1>
         %3 = hw.constant 0 : i1
-        sv.verbatim "\n`ifndef MAGMA_LOG_LEVEL\n    `define MAGMA_LOG_LEVEL 1\n`endif" (%3) : i1
+        sv.verbatim "\n`ifndef MAGMA_LOG_LEVEL\n    `define MAGMA_LOG_LEVEL 1\n`endif"
         sv.verbatim "always @(posedge {{2}}) begin\n    if ((`MAGMA_LOG_LEVEL <= 0) && ({{3}})) $display(\"[DEBUG] ff.O=%d, ff.I=%d\", {{0}}, {{1}});\nend\n" (%0, %I, %CLK, %CE) : i1, i1, i1, i1
         sv.verbatim "always @(posedge {{2}}) begin\n    if ((`MAGMA_LOG_LEVEL <= 1) && ({{3}})) $display(\"[INFO] ff.O=%d, ff.I=%d\", {{0}}, {{1}});\nend\n" (%0, %I, %CLK, %CE) : i1, i1, i1, i1
         sv.verbatim "always @(posedge {{2}}) begin\n    if ((`MAGMA_LOG_LEVEL <= 2) && ({{3}})) $display(\"[WARNING] ff.O=%d, ff.I=%d\", {{0}}, {{1}});\nend\n" (%0, %I, %CLK, %CE) : i1, i1, i1, i1
