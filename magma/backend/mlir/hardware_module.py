@@ -906,7 +906,9 @@ class ModuleVisitor:
             input_counter = itertools.count()
             output_counter = itertools.count()
             for value in references.values():
-                if value.is_input():
+                if isinstance(value, PortView):
+                    value = value.port
+                if value.is_output():
                     operand = module.operands[next(input_counter)]
                 else:
                     operand = module.results[next(output_counter)]
@@ -915,7 +917,7 @@ class ModuleVisitor:
                     sv.RegOp(results=[reg])
                     sv.ReadInOutOp(operands=[reg], results=[operand])
                 operands.append(operand)
-            sv.VerbatimOp(operands=list(reversed(operands)), string=string)
+            sv.VerbatimOp(operands=operands, string=string)
         return True
 
     @wrap_with_not_implemented_error

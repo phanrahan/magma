@@ -55,9 +55,11 @@ def _build_io(inline_value_map: Mapping[str, ValueLike]) -> IO:
     for key, value in inline_value_map.items():
         if isinstance(value, PortView):
             T = value.T
+            undriven = not value.port.driven()
         else:
             T = type(value)
-        if T.is_input():
+            undriven = not value.driven()
+        if T.is_input() and undriven:
             T = Out(T)
         else:
             # value is output or temporary
@@ -116,7 +118,7 @@ def _inline_verilog(
         inst.I @= 0
 
     for key, value in inline_value_map.items():
-        if value.is_input():
+        if value.is_input() and not value.driven():
             wire_value_or_port_view(value, getattr(inst, key))
         else:
             wire_value_or_port_view(getattr(inst, key), value)
