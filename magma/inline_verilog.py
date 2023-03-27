@@ -1,24 +1,19 @@
-import contextlib
-import hashlib
 import string
-from typing import Mapping, Optional, Union
+from typing import Mapping, Union
 
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
 
 from magma.array import Array
 from magma.bit import Bit
 from magma.circuit import Circuit
-from magma.clock import ClockTypes
 from magma.definition_context import DefinitionContext, get_definition_context
 from magma.digital import Digital
 from magma.interface import IO
 from magma.passes.passes import CircuitPass
-from magma.primitives.wire import Wire
-from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
-from magma.t import Type, Direction, In
+from magma.t import Type, In, Out
 from magma.tuple import Tuple
 from magma.view import PortView, InstView
-from magma.wire_utils import wire_value_or_port_view, WiringError
+from magma.wire_utils import wire_value_or_port_view
 
 
 ValueLike = Union[Type, PortView]
@@ -62,7 +57,12 @@ def _build_io(inline_value_map: Mapping[str, ValueLike]) -> IO:
             T = value.T
         else:
             T = type(value)
-        io += IO(**{key: In(T)})
+        if T.is_input():
+            T = Out(T)
+        else:
+            # value is output or temporary
+            T = In(T)
+        io += IO(**{key: T})
     return io
 
 
@@ -99,7 +99,11 @@ def _inline_verilog(
         connect_references = {}
         for key in inline_value_map:
             port = getattr(io, key)
-            port.unused()  # these are needed so CoreIR knows it's a definition
+            # Needed so CoreIR knows it's a definition.
+            if port.is_output():
+                port.unused()
+            else:
+                port.undriven()
             connect_references[key] = port
         inline_verilog_strs = [(inline_str, connect_references)]
 
@@ -112,12 +116,10 @@ def _inline_verilog(
         inst.I @= 0
 
     for key, value in inline_value_map.items():
-        try:
+        if value.is_input():
+            wire_value_or_port_view(value, getattr(inst, key))
+        else:
             wire_value_or_port_view(getattr(inst, key), value)
-        except WiringError:
-            raise InlineVerilogError(
-                f"Found reference to undriven input port: {repr(value)}"
-            ) from None
 
 
 def _process_fstring_syntax(
