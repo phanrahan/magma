@@ -533,14 +533,10 @@ def find_inferred_latches(block: _BlockBase) -> Set:
 def emit_when_asserts(block: _BlockBase) -> Set:
     if not config.emit_when_asserts:
         return
-    print(block)
-    print(block.condition)
-    print(list(block.conditional_wires()))
-    print(list(block.children()))
     from magma.inline_verilog import inline_verilog
     for wire in block.conditional_wires():
         inline_verilog(
-            "assert property {cond} |-> {drivee} == {driver}",
+            "always @(*) assert (~{cond} | ({drivee} == {driver}));",
             cond=block.condition,
             drivee=wire.drivee.name,
             driver=wire.driver
