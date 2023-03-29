@@ -530,17 +530,26 @@ def find_inferred_latches(block: _BlockBase) -> Set:
     return latches
 
 
+def emit_when_assert(cond, drivee, driver):
+    from magma.inline_verilog import inline_verilog
+    from magma.tuple import Tuple as m_Tuple
+    if isinstance(drivee, m_Tuple):
+        for x, y in zip(drivee, driver):
+            emit_when_assert(cond, x, y)
+        return
+    inline_verilog(
+        "always @(*) assert (~{cond} | ({drivee} == {driver}));",
+        cond=cond,
+        drivee=drivee,
+        driver=driver
+    )
+
+
 def emit_when_asserts(block: _BlockBase) -> Set:
     if not config.emit_when_asserts:
         return
-    from magma.inline_verilog import inline_verilog
     for wire in block.conditional_wires():
-        inline_verilog(
-            "always @(*) assert (~{cond} | ({drivee} == {driver}));",
-            cond=block.condition,
-            drivee=wire.drivee.name,
-            driver=wire.driver
-        )
+        emit_when_assert(block.condition, wire.drivee, wire.driver)
 
 
 def when(cond):
