@@ -8,3 +8,7 @@ class MlirCompilerInternalError(MlirCompilerErrorBase):
 
 class MlirCompilerError(MlirCompilerErrorBase):
     pass
+
+
+class MlirWhenCycleError(MlirCompilerError):
+    pass
