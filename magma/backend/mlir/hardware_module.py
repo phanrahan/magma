@@ -26,6 +26,12 @@ from magma.backend.mlir.magma_common import (
     visit_value_or_value_wrapper_by_direction as
     visit_magma_value_or_value_wrapper_by_direction,
 )
+from magma.backend.mlir.mem_utils import (
+    make_mem_reg,
+    make_mem_read,
+    emit_conditional_assign,
+    make_index_op,
+)
 from magma.backend.mlir.mlir import (
     MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block,
     push_location
@@ -366,29 +372,35 @@ class ModuleVisitor:
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert defn.coreir_name == "mem"
+        assert (
+            defn.coreir_name == "mem"
+            or defn.coreir_name == "sync_read_mem"
+        )
         # TODO(rsetaluri): Add support for initialization.
         if defn.coreir_genargs["has_init"]:
             raise NotImplementedError("coreir.mem init not supported")
         width = defn.coreir_genargs["width"]
         depth = defn.coreir_genargs["depth"]
-        raddr, waddr, wdata, clk, wen = module.operands
+        is_sync_read_mem = (defn.coreir_name == "sync_read_mem")
+        raddr, waddr, wdata, clk, wen = module.operands[:5]
         rdata = module.results[0]
-        elt_type = hw.InOutType(builtin.IntegerType(width))
-        reg_type = hw.InOutType(hw.ArrayType((depth,), elt_type.T))
-        reg = self.ctx.new_value(reg_type)
-        sv.RegOp(name=inst.name, results=[reg])
+        mem = make_mem_reg(
+            self._ctx, inst.name, depth, builtin.IntegerType(width)
+        )
         # Register read logic.
-        read = self.ctx.new_value(elt_type)
-        sv.ArrayIndexInOutOp(operands=[reg, raddr], results=[read])
-        sv.ReadInOutOp(operands=[read], results=[rdata])
+        read = make_index_op(self._ctx, mem, raddr)
+        read_reg, read_temp = make_mem_read(
+            self._ctx, read, rdata, is_sync_read_mem
+        )
         # Register write logic.
-        write = self.ctx.new_value(elt_type)
-        sv.ArrayIndexInOutOp(operands=[reg, waddr], results=[write])
+        write = make_index_op(self._ctx, mem, waddr)
+        # Always logic.
         always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
         with push_block(always):
-            with push_block(sv.IfOp(operands=[wen]).then_block):
-                sv.PAssignOp(operands=[write, wdata])
+            emit_conditional_assign(write, wdata, wen)
+            if is_sync_read_mem:
+                ren = module.operands[-1]
+                emit_conditional_assign(read_reg, read_temp, ren)
         return True
 
     @wrap_with_not_implemented_error
@@ -498,8 +510,15 @@ class ModuleVisitor:
     def visit_coreir_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert (defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit")
-        if defn.coreir_name == "mem":
+        assert (
+            defn.coreir_lib == "coreir"
+            or defn.coreir_lib == "corebit"
+            or defn.coreir_lib == "memory"
+        )
+        if (
+            defn.coreir_name == "mem"
+            or defn.coreir_name == "sync_read_mem"
+        ):
             return self.visit_coreir_mem(module)
         if defn.coreir_name == "not":
             return self.visit_coreir_not(module)
@@ -660,7 +679,11 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert isprimitive(defn)
-        if defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit":
+        if (
+            defn.coreir_lib == "coreir"
+            or defn.coreir_lib == "corebit"
+            or defn.coreir_lib == "memory"
+        ):
             return self.visit_coreir_primitive(module)
         if defn.coreir_lib == "commonlib":
             return self.visit_commonlib_primitive(module)

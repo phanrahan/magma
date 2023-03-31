@@ -511,6 +511,28 @@ class simple_memory_wrapper(m.Circuit):
     )
 
 
+class sync_memory_wrapper(m.Circuit):
+    T = m.Bits[12]
+    height = 128
+    addr_type = m.Bits[m.bitutils.clog2(height)]
+    io = m.IO(
+        RADDR=m.In(addr_type),
+        RDATA=m.Out(T),
+        CLK=m.In(m.Clock),
+        WADDR=m.In(addr_type),
+        WDATA=m.In(T),
+        WE=m.In(m.Enable),
+    )
+    mem = m.Memory(height=height, T=T, read_latency=1)()
+    io.RDATA @= mem(
+        RADDR=io.RADDR,
+        RDATA=io.RDATA,
+        WADDR=io.WADDR,
+        WDATA=io.WDATA,
+        WE=io.WE,
+    )
+
+
 m.passes.clock.WireClockPass(simple_memory_wrapper).run()
 
 
