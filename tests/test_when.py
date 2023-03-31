@@ -1519,6 +1519,24 @@ def test_when_emit_asserts_tuple():
     assert check_gold(__file__, "test_when_emit_asserts_tuple.mlir")
 
 
+def test_when_emit_asserts_otherwise():
+    config.emit_when_asserts = True
+
+    class test_when_emit_asserts_otherwise(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        with m.when(io.S):
+            io.O @= io.I[0]
+        with m.otherwise():
+            io.O @= io.I[1]
+
+    m.compile("build/test_when_emit_asserts_otherwise",
+              test_when_emit_asserts_otherwise,
+              output="mlir")
+    config.emit_when_asserts = False
+    assert check_gold(__file__, "test_when_emit_asserts_otherwise.mlir")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():

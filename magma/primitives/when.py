@@ -5,24 +5,19 @@ from typing import Dict, Optional, Union, Set
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.clock import Enable
-from magma.config import config, RuntimeConfig
 from magma.conversions import from_bits
 from magma.digital import Digital
-from magma.inline_verilog import inline_verilog
 from magma.primitives.register import AbstractRegister
 from magma.ref import DerivedRef
 from magma.t import Type, In, Out
-from magma.tuple import Tuple
 from magma.when import (
     BlockBase as WhenBlock,
     no_when,
     find_inferred_latches,
+    emit_when_asserts
 )
 from magma.value_utils import make_selector
 from magma.wire import wire
-
-
-config.register(emit_when_asserts=RuntimeConfig(False))
 
 
 _ISWHEN_KEY = "_iswhen_"
@@ -125,36 +120,6 @@ def _add_default_drivers_to_register_inputs(
             continue
         builder.block.add_default_driver(drivee, O)
         latches.remove(drivee)
-
-
-def _emit_when_assert(cond, drivee, driver):
-    if isinstance(drivee, Tuple):
-        for x, y in zip(drivee, driver):
-            _emit_when_assert(cond, x, y)
-        return
-
-    # Add a temporary so that the inline verilog refers to the the shared
-    # value rather than having separate, copied drivers.
-    temp = type(drivee).undirected_t()
-    temp @= drivee.value()
-    drivee.rewire(temp)
-
-    inline_verilog(
-        "always @(*) assert (~{cond} | ({drivee} == {driver}));",
-        cond=cond,
-        drivee=temp,
-        driver=driver
-    )
-
-
-def _emit_when_asserts(block):
-    if not config.emit_when_asserts:
-        return
-    # Copy block conditional_wires because we wire the when primitive outputs
-    # for the inline verilog inputs, which will modify the list but those new
-    # outputs don't need an assert since they are copies of these ones.
-    for _wire in list(block.conditional_wires()):
-        _emit_when_assert(block.condition, _wire.drivee, _wire.driver)
 
 
 class WhenBuilder(CircuitBuilder):
@@ -289,7 +254,7 @@ class WhenBuilder(CircuitBuilder):
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)
-        _emit_when_asserts(self.block)
+        emit_when_asserts(self.block)
         # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
         # builder's finalization, although it is a bit "hacky". Ideally, this

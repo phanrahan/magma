@@ -5,8 +5,12 @@ import functools
 import itertools
 from typing import Any, Iterable, Optional, Set, Tuple, Union
 
+from magma.config import config, RuntimeConfig
 from magma.debug import get_debug_info, debug_info as DebugInfo
 from magma.ref import get_ref_inst
+
+
+config.register(emit_when_asserts=RuntimeConfig(False))
 
 
 @functools.lru_cache(None)
@@ -524,6 +528,56 @@ def find_inferred_latches(block: _BlockBase) -> Set:
     ops = tuple(block.default_drivers()) + (block,)
     _, latches = _get_assignees_and_latches(ops)
     return latches
+
+
+def _emit_when_assert(cond, drivee, driver):
+    from magma.tuple import Tuple
+    if isinstance(drivee, Tuple):
+        for x, y in zip(drivee, driver):
+            _emit_when_assert(cond, x, y)
+        return
+
+    # Add a temporary so that the inline verilog refers to the the shared
+    # value rather than having separate, copied drivers.
+    temp = type(drivee).undirected_t()
+    temp @= drivee.value()
+    drivee.rewire(temp)
+
+    from magma.inline_verilog import inline_verilog
+    inline_verilog(
+        "always @(*) assert (~{cond} | ({drivee} == {driver}));",
+        cond=cond,
+        drivee=temp,
+        driver=driver
+    )
+
+
+def emit_when_asserts(block, precond=None):
+    # TODO: Default driver logic
+    # TODO: Block children
+    # TODO: Block elsewhen
+    if not config.emit_when_asserts:
+        return
+    # Copy block conditional_wires because we wire the when primitive outputs
+    # for the inline verilog inputs, which will modify the list but those new
+    # outputs don't need an assert since they are copies of these ones.
+    for _wire in list(block.conditional_wires()):
+        if precond is not None:
+            cond = precond
+            if block.condition is not None:
+                cond &= block.condition
+        else:
+            assert block.condition is not None
+            cond = block.condition
+        _emit_when_assert(cond, _wire.drivee, _wire.driver)
+
+    else_block = _get_else_block(block)
+    if else_block:
+        new_precond = ~block.condition
+        if precond is not None:
+            new_precond = precond & new_precond
+
+        emit_when_asserts(else_block, new_precond)
 
 
 def when(cond):
