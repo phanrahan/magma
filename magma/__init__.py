@@ -102,10 +102,28 @@ from magma.conversions import (
     as_bits, from_bits
 )
 from magma.primitives import (
-    LUT, Mux, mux, dict_lookup, list_lookup,
-    Register, get_slice, set_slice, slice,
-    Memory, set_index, register, Wire,
+    # LUT primitives.
+    LUT,
+    # Mux primitives.
+    Mux,
+    mux,
+    # Lookup primitives.
+    dict_lookup,
+    list_lookup,
+    # Slice getter/setter primitives.
+    slice,
+    get_slice,
+    set_slice,
+    set_index,
+    # Memory primitives.
+    Memory,
+    MultiportMemory,
+    # Register primitives.
     AbstractRegister,
+    Register,
+    register,
+    # Wire primitives.
+    Wire,
 )
 
 from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
