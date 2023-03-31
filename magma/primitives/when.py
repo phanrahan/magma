@@ -129,10 +129,16 @@ def _add_default_drivers_to_register_inputs(
 def _emit_when_asserts(block):
     if not config.emit_when_asserts:
         return
+    # Copy block conditional_wires because we wire the when primitive outputs
+    # for the inline verilog inputs, which will modify the list but those new
+    # outputs don't need an assert since they are copies of these ones.
     for _wire in list(block.conditional_wires()):
+        # Add a temporary so that the inline verilog refers to the the shared
+        # value rather than having separate, copied drivers.
         temp = type(_wire.drivee).undirected_t()
         temp @= _wire.drivee.value()
         _wire.drivee.rewire(temp)
+
         inline_verilog(
             "always @(*) assert (~{cond} | ({drivee} == {driver}));",
             cond=block.condition,
