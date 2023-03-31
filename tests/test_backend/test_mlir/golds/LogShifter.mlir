@@ -8,7 +8,7 @@ hw.module @LogShifter(%I: i16, %shift_amount: i4, %CLK: i1) -> (O: i16) {
     %5 = comb.xor %6, %4 : i1
     %8 = hw.array_create %I, %1 : i16
     %7 = hw.array_get %8[%5] : !hw.array<2xi16>
-    %10 = sv.reg {name = "Register_inst0"} : !hw.inout<i16>
+    %10 = sv.reg name "Register_inst0" : !hw.inout<i16>
     sv.alwaysff(posedge %CLK) {
         sv.passign %10, %7 : i16
     }
@@ -25,7 +25,7 @@ hw.module @LogShifter(%I: i16, %shift_amount: i4, %CLK: i1) -> (O: i16) {
     %17 = comb.xor %6, %16 : i1
     %19 = hw.array_create %9, %13 : i16
     %18 = hw.array_get %19[%17] : !hw.array<2xi16>
-    %21 = sv.reg {name = "Register_inst1"} : !hw.inout<i16>
+    %21 = sv.reg name "Register_inst1" : !hw.inout<i16>
     sv.alwaysff(posedge %CLK) {
         sv.passign %21, %18 : i16
     }
@@ -41,7 +41,7 @@ hw.module @LogShifter(%I: i16, %shift_amount: i4, %CLK: i1) -> (O: i16) {
     %27 = comb.xor %6, %26 : i1
     %29 = hw.array_create %20, %23 : i16
     %28 = hw.array_get %29[%27] : !hw.array<2xi16>
-    %31 = sv.reg {name = "Register_inst2"} : !hw.inout<i16>
+    %31 = sv.reg name "Register_inst2" : !hw.inout<i16>
     sv.alwaysff(posedge %CLK) {
         sv.passign %31, %28 : i16
     }

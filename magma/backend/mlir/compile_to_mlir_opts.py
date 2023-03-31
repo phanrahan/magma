@@ -19,3 +19,4 @@ class CompileToMlirOpts:
     disallow_expression_inlining_in_ports: bool = False
     disallow_local_variables: bool = False
     split_verilog: bool = False
+    omit_version_comment: bool = False

@@ -9,7 +9,7 @@ hw.module @Parity(%I: i1, %CLK: i1) -> (O: i1) {
     %7 = hw.array_get %8[%5] : !hw.array<2xi1>
     %10 = hw.array_create %3, %7 : i1
     %9 = hw.array_get %10[%I] : !hw.array<2xi1>
-    %11 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
+    %11 = sv.reg name "Register_inst0" : !hw.inout<i1>
     sv.alwaysff(posedge %CLK) {
         sv.passign %11, %9 : i1
     }

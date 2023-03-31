@@ -7,7 +7,7 @@ hw.module @test_internal_instantiation_complex(%I: i2, %S: i2) -> (O: i1) {
     %5 = comb.extract %I from 1 : (i2) -> i1
     %6 = hw.constant 1 : i1
     %7 = comb.xor %5, %6 : i1
-    %10 = sv.wire sym @test_internal_instantiation_complex.x {name="x"} : !hw.inout<i1>
+    %10 = sv.wire sym @test_internal_instantiation_complex.x name "x" : !hw.inout<i1>
     sv.assign %10, %8 : i1
     %9 = sv.read_inout %10 : !hw.inout<i1>
     %11 = hw.constant 1 : i1

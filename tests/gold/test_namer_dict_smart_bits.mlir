@@ -21,7 +21,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %18 = hw.constant 0 : i1
         %19 = comb.concat %18, %17, %16, %15, %14, %13, %12, %11, %10 : i1, i1, i1, i1, i1, i1, i1, i1, i1
         %20 = comb.add %9, %19 : i9
-        %22 = sv.wire sym @test_namer_dict_smart_bits.x {name="x"} : !hw.inout<i9>
+        %22 = sv.wire sym @test_namer_dict_smart_bits.x name "x" : !hw.inout<i9>
         sv.assign %22, %20 : i9
         %21 = sv.read_inout %22 : !hw.inout<i9>
         hw.output %21 : i9

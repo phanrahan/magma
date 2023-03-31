@@ -1,7 +1,7 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @test_when_tuple_bulk_resolve(%I_x: i8, %I_y_x_x: i8, %I_y_x_y: i8, %I_y_y_x: i8, %I_y_y_y: i8, %S: i2, %CLK: i1) -> (O_x: i8, O_y_x_x: i8, O_y_x_y: i8, O_y_y_x: i8, O_y_y_y: i8) {
         %0 = comb.extract %S from 0 : (i2) -> i1
-        %11 = sv.reg {name = "y"} : !hw.inout<i8>
+        %11 = sv.reg name "y" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %11, %1 : i8
         }
@@ -10,7 +10,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %11, %12 : i8
         }
         %6 = sv.read_inout %11 : !hw.inout<i8>
-        %13 = sv.reg {name = "y"} : !hw.inout<i8>
+        %13 = sv.reg name "y" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %13, %2 : i8
         }
@@ -19,7 +19,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %13, %14 : i8
         }
         %7 = sv.read_inout %13 : !hw.inout<i8>
-        %15 = sv.reg {name = "y"} : !hw.inout<i8>
+        %15 = sv.reg name "y" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %15, %3 : i8
         }
@@ -28,7 +28,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %15, %16 : i8
         }
         %8 = sv.read_inout %15 : !hw.inout<i8>
-        %17 = sv.reg {name = "y"} : !hw.inout<i8>
+        %17 = sv.reg name "y" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %17, %4 : i8
         }
@@ -37,7 +37,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %17, %18 : i8
         }
         %9 = sv.read_inout %17 : !hw.inout<i8>
-        %19 = sv.reg {name = "y"} : !hw.inout<i8>
+        %19 = sv.reg name "y" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %19, %5 : i8
         }
@@ -100,7 +100,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
-        %42 = sv.reg {name = "x"} : !hw.inout<i8>
+        %42 = sv.reg name "x" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %42, %27 : i8
         }
@@ -108,7 +108,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %42, %12 : i8
         }
         %22 = sv.read_inout %42 : !hw.inout<i8>
-        %43 = sv.reg {name = "x"} : !hw.inout<i8>
+        %43 = sv.reg name "x" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %43, %28 : i8
         }
@@ -116,7 +116,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %43, %14 : i8
         }
         %23 = sv.read_inout %43 : !hw.inout<i8>
-        %44 = sv.reg {name = "x"} : !hw.inout<i8>
+        %44 = sv.reg name "x" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %44, %29 : i8
         }
@@ -124,7 +124,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %44, %16 : i8
         }
         %24 = sv.read_inout %44 : !hw.inout<i8>
-        %45 = sv.reg {name = "x"} : !hw.inout<i8>
+        %45 = sv.reg name "x" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %45, %30 : i8
         }
@@ -132,7 +132,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %45, %18 : i8
         }
         %25 = sv.read_inout %45 : !hw.inout<i8>
-        %46 = sv.reg {name = "x"} : !hw.inout<i8>
+        %46 = sv.reg name "x" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %46, %31 : i8
         }

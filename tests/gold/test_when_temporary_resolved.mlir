@@ -1,7 +1,7 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables"} {
     hw.module @test_when_temporary_resolved(%I: i8, %S: i2, %CLK: i1) -> (O: i8) {
         %0 = comb.extract %S from 0 : (i2) -> i1
-        %3 = sv.reg {name = "Register_inst0"} : !hw.inout<i8>
+        %3 = sv.reg name "Register_inst0" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %3, %1 : i8
         }

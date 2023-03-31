@@ -9,7 +9,7 @@ hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA: !hw.struct<_0: i1, _
     %7 = comb.extract %1 from 5 : (i7) -> i1
     %8 = comb.extract %1 from 6 : (i7) -> i1
     %9 = comb.concat %8, %7, %6, %5, %4, %3, %2, %0 : i1, i1, i1, i1, i1, i1, i1, i1
-    %11 = sv.reg {name = "coreir_mem32x8_inst0"} : !hw.inout<!hw.array<32xi8>>
+    %11 = sv.reg name "coreir_mem32x8_inst0" : !hw.inout<!hw.array<32xi8>>
     %12 = sv.array_index_inout %11[%RADDR] : !hw.inout<!hw.array<32xi8>>, i5
     %10 = sv.read_inout %12 : !hw.inout<i8>
     %13 = sv.array_index_inout %11[%WADDR] : !hw.inout<!hw.array<32xi8>>, i5
@@ -42,13 +42,13 @@ hw.module @test_when_memory(%data0: !hw.struct<_0: i1, _1: i7>, %addr0: i5, %en0
     %13 = hw.struct_extract %data1["_1"] : !hw.struct<_0: i1, _1: i7>
     %14 = hw.constant 1 : i1
     %15 = hw.constant 127 : i7
-    %18 = sv.reg {name = "WADDR_reg"} : !hw.inout<i5>
-    %19 = sv.reg {name = "Memory_inst0.WDATA[0]_reg"} : !hw.inout<i1>
-    %20 = sv.reg {name = "Memory_inst0.WDATA[1]_reg"} : !hw.inout<i7>
-    %21 = sv.reg {name = "WE_reg"} : !hw.inout<i1>
-    %22 = sv.reg {name = "RADDR_reg"} : !hw.inout<i5>
-    %23 = sv.reg {name = "test_when_memory.out[0]_reg"} : !hw.inout<i1>
-    %24 = sv.reg {name = "test_when_memory.out[1]_reg"} : !hw.inout<i7>
+    %18 = sv.reg name "WADDR_reg" : !hw.inout<i5>
+    %19 = sv.reg name "Memory_inst0.WDATA[0]_reg" : !hw.inout<i1>
+    %20 = sv.reg name "Memory_inst0.WDATA[1]_reg" : !hw.inout<i7>
+    %21 = sv.reg name "WE_reg" : !hw.inout<i1>
+    %22 = sv.reg name "RADDR_reg" : !hw.inout<i5>
+    %23 = sv.reg name "test_when_memory.out[0]_reg" : !hw.inout<i1>
+    %24 = sv.reg name "test_when_memory.out[1]_reg" : !hw.inout<i7>
     sv.alwayscomb {
         %25 = hw.constant 0 : i5
         sv.bpassign %18, %25 : i5

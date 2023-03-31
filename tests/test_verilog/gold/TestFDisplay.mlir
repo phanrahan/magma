@@ -1,6 +1,6 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @TestFDisplay(%I: i1, %CLK: i1, %CE: i1) -> (O: i1) {
-        %1 = sv.reg {name = "ff"} : !hw.inout<i1>
+        %1 = sv.reg name "ff" : !hw.inout<i1>
         sv.alwaysff(posedge %CLK) {
             sv.if %CE {
                 sv.passign %1, %I : i1
