@@ -30,7 +30,11 @@ from magma.backend.mlir.mem_utils import (
     make_mem_reg,
     make_mem_read,
     emit_conditional_assign,
+    emit_conditional_assigns,
     make_index_op,
+    collect_multiport_memory_operands,
+    make_multiport_memory_index_ops,
+    make_multiport_memory_read_ops,
 )
 from magma.backend.mlir.mlir import (
     MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block,
@@ -58,6 +62,7 @@ from magma.linking import (
     has_default_linked_module,
     get_default_linked_module,
 )
+from magma.primitives.multiport_memory import MultiportMemory
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.primitives.when import iswhen
@@ -675,6 +680,44 @@ class ModuleVisitor:
         return WhenCompiler(self, module).compile()
 
     @wrap_with_not_implemented_error
+    def visit_multiport_memory(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        clk = module.operands[0]
+        read_ports_out = module.results
+        read_port_len = 1 + defn.has_read_enable
+        read_ports = collect_multiport_memory_operands(
+            module.operands, 1, defn.num_read_ports, read_port_len
+        )
+        write_ports = collect_multiport_memory_operands(
+            module.operands,
+            1 + defn.num_read_ports * read_port_len,
+            defn.num_write_ports,
+            3
+        )
+        elt_type = hw.InOutType(magma_type_to_mlir_type(defn.T))
+        mem = make_mem_reg(self._ctx, inst.name, defn.height, elt_type.T)
+        read_results = make_multiport_memory_index_ops(
+            self._ctx, read_ports, mem
+        )
+        read_targets = make_multiport_memory_read_ops(
+            self._ctx, read_results, read_ports, read_ports_out
+        )
+        write_results = make_multiport_memory_index_ops(
+            self._ctx, write_ports, mem
+        )
+        write_targets = (
+            (write_results[i], *write_ports[i][1:3])
+            for i in range(len(write_results))
+        )
+        always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
+        with push_block(always):
+            emit_conditional_assigns(write_targets)
+            if len(read_targets):
+                emit_conditional_assigns(read_targets)
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -687,6 +730,8 @@ class ModuleVisitor:
             return self.visit_coreir_primitive(module)
         if defn.coreir_lib == "commonlib":
             return self.visit_commonlib_primitive(module)
+        if isinstance(defn, MultiportMemory):
+            return self.visit_multiport_memory(module)
         if isinstance(defn, InlineVerilogExpression):
             assert len(module.operands) == 0
             assert len(module.results) > 0

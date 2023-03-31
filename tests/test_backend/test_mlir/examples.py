@@ -511,6 +511,9 @@ class simple_memory_wrapper(m.Circuit):
     )
 
 
+m.passes.clock.WireClockPass(simple_memory_wrapper).run()
+
+
 class sync_memory_wrapper(m.Circuit):
     T = m.Bits[12]
     height = 128
@@ -533,7 +536,43 @@ class sync_memory_wrapper(m.Circuit):
     )
 
 
-m.passes.clock.WireClockPass(simple_memory_wrapper).run()
+def _make_multiport_memory(has_re: bool):
+
+    class _test_multiport_memory(m.Circuit):
+        name = "multiport_memory" + ("_re" if has_re else "")
+        io = m.IO(
+            raddr_0=m.In(m.Bits[2]),
+            rdata_0=m.Out(m.UInt[5]),
+            raddr_1=m.In(m.Bits[2]),
+            rdata_1=m.Out(m.UInt[5]),
+            waddr_0=m.In(m.Bits[2]),
+            wdata_0=m.In(m.UInt[5]),
+            we_0=m.In(m.Enable),
+            waddr_1=m.In(m.Bits[2]),
+            wdata_1=m.In(m.UInt[5]),
+            we_1=m.In(m.Enable),
+            clk=m.In(m.Clock)
+        )
+        if has_re:
+            for i in range(2):
+                io += m.IO(**{f"re_{i}": m.In(m.Enable)})
+
+        mem = m.MultiportMemory(4, m.UInt[5], 2, 2, has_re)()
+
+        for i in range(2):
+            m.wire(getattr(mem, f"RADDR_{i}"), getattr(io, f"raddr_{i}"))
+            m.wire(getattr(mem, f"RDATA_{i}"), getattr(io, f"rdata_{i}"))
+            if has_re:
+                m.wire(getattr(mem, f"RE_{i}"), getattr(io, f"re_{i}"))
+            m.wire(getattr(mem, f"WADDR_{i}"), getattr(io, f"waddr_{i}"))
+            m.wire(getattr(mem, f"WDATA_{i}"), getattr(io, f"wdata_{i}"))
+            m.wire(getattr(mem, f"WE_{i}"), getattr(io, f"we_{i}"))
+
+    return _test_multiport_memory
+
+
+multiport_memory = _make_multiport_memory(has_re=False)
+multiport_memory_re = _make_multiport_memory(has_re=True)
 
 
 class simple_undriven_instances(m.Circuit):
