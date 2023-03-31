@@ -12,6 +12,7 @@ from magma.inline_verilog import inline_verilog
 from magma.primitives.register import AbstractRegister
 from magma.ref import DerivedRef
 from magma.t import Type, In, Out
+from magma.tuple import Tuple
 from magma.when import (
     BlockBase as WhenBlock,
     no_when,
@@ -126,6 +127,26 @@ def _add_default_drivers_to_register_inputs(
         latches.remove(drivee)
 
 
+def _emit_when_assert(cond, drivee, driver):
+    if isinstance(drivee, Tuple):
+        for x, y in zip(drivee, driver):
+            _emit_when_assert(cond, x, y)
+        return
+
+    # Add a temporary so that the inline verilog refers to the the shared
+    # value rather than having separate, copied drivers.
+    temp = type(drivee).undirected_t()
+    temp @= drivee.value()
+    drivee.rewire(temp)
+
+    inline_verilog(
+        "always @(*) assert (~{cond} | ({drivee} == {driver}));",
+        cond=cond,
+        drivee=temp,
+        driver=driver
+    )
+
+
 def _emit_when_asserts(block):
     if not config.emit_when_asserts:
         return
@@ -133,18 +154,7 @@ def _emit_when_asserts(block):
     # for the inline verilog inputs, which will modify the list but those new
     # outputs don't need an assert since they are copies of these ones.
     for _wire in list(block.conditional_wires()):
-        # Add a temporary so that the inline verilog refers to the the shared
-        # value rather than having separate, copied drivers.
-        temp = type(_wire.drivee).undirected_t()
-        temp @= _wire.drivee.value()
-        _wire.drivee.rewire(temp)
-
-        inline_verilog(
-            "always @(*) assert (~{cond} | ({drivee} == {driver}));",
-            cond=block.condition,
-            drivee=temp,
-            driver=_wire.driver
-        )
+        _emit_when_assert(block.condition, _wire.drivee, _wire.driver)
 
 
 class WhenBuilder(CircuitBuilder):
