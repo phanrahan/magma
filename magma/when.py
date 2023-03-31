@@ -545,7 +545,7 @@ def _emit_when_assert(cond, drivee, driver):
 
     from magma.inline_verilog import inline_verilog
     inline_verilog(
-        "always @(*) assert (~{cond} | ({drivee} == {driver}));",
+        "always @(*) assert (~({cond}) | ({drivee} == {driver}));",
         cond=cond,
         drivee=temp,
         driver=driver

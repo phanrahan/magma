@@ -16,8 +16,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %7, %I_0_1 : i1
             }
         }
-        sv.verbatim "always @(*) assert (~{{0}} | ({{1}} == {{2}}));" (%S, %2, %I_0_0) : i1, i8, i8
-        sv.verbatim "always @(*) assert (~{{0}} | ({{1}} == {{2}}));" (%S, %3, %I_0_1) : i1, i1, i1
+        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %2, %I_0_0) : i1, i8, i8
+        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %3, %I_0_1) : i1, i1, i1
         hw.output %2, %3 : i8, i1
     }
 }

@@ -12,7 +12,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %5, %1 : i1
             }
         }
-        sv.verbatim "always @(*) assert (~{{0}} | ({{1}} == {{2}}));" (%S, %3, %1) : i1, i1, i1
+        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %3, %1) : i1, i1, i1
         hw.output %3 : i1
     }
 }
