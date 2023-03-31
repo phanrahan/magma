@@ -5,8 +5,10 @@ from typing import Dict, Optional, Union, Set
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.clock import Enable
+from magma.config import config, RuntimeConfig
 from magma.conversions import from_bits
 from magma.digital import Digital
+from magma.inline_verilog import inline_verilog
 from magma.primitives.register import AbstractRegister
 from magma.ref import DerivedRef
 from magma.t import Type, In, Out
@@ -14,10 +16,12 @@ from magma.when import (
     BlockBase as WhenBlock,
     no_when,
     find_inferred_latches,
-    emit_when_asserts
 )
 from magma.value_utils import make_selector
 from magma.wire import wire
+
+
+config.register(emit_when_asserts=RuntimeConfig(False))
 
 
 _ISWHEN_KEY = "_iswhen_"
@@ -120,6 +124,21 @@ def _add_default_drivers_to_register_inputs(
             continue
         builder.block.add_default_driver(drivee, O)
         latches.remove(drivee)
+
+
+def _emit_when_asserts(block):
+    if not config.emit_when_asserts:
+        return
+    for _wire in list(block.conditional_wires()):
+        temp = type(_wire.drivee).undirected_t()
+        temp @= _wire.drivee.value()
+        _wire.drivee.rewire(temp)
+        inline_verilog(
+            "always @(*) assert (~{cond} | ({drivee} == {driver}));",
+            cond=block.condition,
+            drivee=temp,
+            driver=_wire.driver
+        )
 
 
 class WhenBuilder(CircuitBuilder):
@@ -254,7 +273,7 @@ class WhenBuilder(CircuitBuilder):
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)
-        emit_when_asserts(self.block)
+        _emit_when_asserts(self.block)
         # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
         # builder's finalization, although it is a bit "hacky". Ideally, this

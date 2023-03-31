@@ -1494,7 +1494,7 @@ def test_when_emit_asserts_basic():
 
     m.compile("build/test_when_emit_asserts_basic",
               test_when_emit_asserts_basic,
-              output="mlir-verilog")
+              output="mlir")
     config.emit_when_asserts = False
     assert check_gold(__file__, "test_when_emit_asserts_basic.mlir")
 
