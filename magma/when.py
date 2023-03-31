@@ -555,7 +555,6 @@ def _emit_when_assert(cond, drivee, driver):
 def emit_when_asserts(block, precond=None):
     # TODO: Default driver logic
     # TODO: Block children
-    # TODO: Block elsewhen
     if not config.emit_when_asserts:
         return
     # Copy block conditional_wires because we wire the when primitive outputs
