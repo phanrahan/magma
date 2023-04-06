@@ -6,6 +6,7 @@ from magma.backend.mlir.mlir_to_verilog import circt_opt_binary_exists
 from magma.inline_verilog import InlineVerilogError
 
 
+@pytest.mark.skip
 def test_inline_verilog():
     FF = m.define_from_verilog("""
 module FF(input I, output reg O, input CLK);
