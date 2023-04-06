@@ -70,7 +70,7 @@ from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
 from magma.t import Kind, Type
-from magma.tuple import TupleMeta, Tuple as m_Tuple
+from magma.tuple import TupleMeta, Tuple as m_Tuple, Product
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
 from magma.view import PortView
 
@@ -138,9 +138,21 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
         if issubclass(type.T, Bit):
             return magma_type_to_mlir_type(Bits[type.N])
         return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
+    # NOTE(rsetaluri): If the type is Tuple (i.e. has integer keys), then the
+    # struct type we emit should prefix the field key with an underscore
+    # (e.g. "_0") to make it a valid keyword. Note that this *must* be in sync
+    # with the translation of magma_tuple_get_op's which does the same.
+    if issubclass(type, Product):
+        fields = {
+            str(k): magma_type_to_mlir_type(t)
+            for k, t in type.field_dict.items()
+        }
+        return hw.StructType(tuple(fields.items()))
     if issubclass(type, m_Tuple):
-        fields = {str(k): magma_type_to_mlir_type(t)
-                  for k, t in type.field_dict.items()}
+        fields = {
+            f"_{i}": magma_type_to_mlir_type(t)
+            for i, t in enumerate(type.field_dict.values())
+        }
         return hw.StructType(tuple(fields.items()))
 
 
@@ -970,6 +982,14 @@ class ModuleVisitor:
             return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):
             index = inst_wrapper.attrs["index"]
+            # NOTE(rsetaluri): If the underlying type is *not* a Product (i.e. a
+            # Tuple with integer keys), then the StructExtractOp we emit should
+            # prefix the field key with an underscore (e.g. "_0") to make it a
+            # valid keyword. Note that this *must* be in sync with the
+            # translation function magma_type_to_mlir_type() which does the
+            # same.
+            if not issubclass(inst_wrapper.attrs["T"], Product):
+                index = f"_{index}"
             hw.StructExtractOp(
                 field=index,
                 operands=module.operands,
