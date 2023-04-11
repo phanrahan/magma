@@ -554,21 +554,25 @@ def _emit_when_assert(cond, drivee, driver):
 
 def emit_when_asserts(block, precond=None):
     # TODO: Default driver logic
-    # TODO: Block children
     if not config.emit_when_asserts:
         return
+
+    if precond is not None:
+        cond = precond
+        if block.condition is not None:
+            cond &= block.condition
+    else:
+        assert block.condition is not None
+        cond = block.condition
+
     # Copy block conditional_wires because we wire the when primitive outputs
     # for the inline verilog inputs, which will modify the list but those new
     # outputs don't need an assert since they are copies of these ones.
     for _wire in list(block.conditional_wires()):
-        if precond is not None:
-            cond = precond
-            if block.condition is not None:
-                cond &= block.condition
-        else:
-            assert block.condition is not None
-            cond = block.condition
         _emit_when_assert(cond, _wire.drivee, _wire.driver)
+
+    for child in block.children():
+        emit_when_asserts(child, cond)
 
     else_block = _get_else_block(block)
     if else_block:

@@ -1578,6 +1578,25 @@ def test_when_emit_asserts_elsewhen_otherwise():
     )
 
 
+def test_when_emit_asserts_nesting():
+    config.emit_when_asserts = True
+
+    class test_when_emit_asserts_nesting(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        io.O @= io.I[1]
+        with m.when(io.S[0]):
+            with m.when(io.S[1]):
+                io.O @= io.I[0]
+            with m.elsewhen(io.S.reduce_and()):
+                io.O @= ~io.I[0]
+
+    m.compile("build/test_when_emit_asserts_nesting",
+              test_when_emit_asserts_nesting,
+              output="mlir-verilog")
+    config.emit_when_asserts = False
+    assert check_gold(__file__, "test_when_emit_asserts_nesting.mlir")
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():
