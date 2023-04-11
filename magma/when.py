@@ -562,7 +562,6 @@ def _make_else_cond(block, precond):
 
 
 def emit_when_asserts(block, precond=None):
-    # TODO: Default driver logic
     if not config.emit_when_asserts:
         return
 
