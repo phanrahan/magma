@@ -1537,7 +1537,7 @@ def test_when_emit_asserts_otherwise():
     assert check_gold(__file__, "test_when_emit_asserts_otherwise.mlir")
 
 
-def test_when_emit_asserts_elsehwen():
+def test_when_emit_asserts_elsewhen():
     config.emit_when_asserts = True
 
     class test_when_emit_asserts_elsewhen(m.Circuit):
@@ -1556,7 +1556,7 @@ def test_when_emit_asserts_elsehwen():
     assert check_gold(__file__, "test_when_emit_asserts_elsewhen.mlir")
 
 
-def test_when_emit_asserts_elsehwen_otherwise():
+def test_when_emit_asserts_elsewhen_otherwise():
     config.emit_when_asserts = True
 
     class test_when_emit_asserts_elsewhen_otherwise(m.Circuit):
