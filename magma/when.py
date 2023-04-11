@@ -552,6 +552,15 @@ def _emit_when_assert(cond, drivee, driver):
     )
 
 
+def _make_else_cond(block, precond):
+    if block.condition is None:
+        return precond
+    else_cond = ~block.condition
+    if precond is not None:
+        else_cond = precond & else_cond
+    return else_cond
+
+
 def emit_when_asserts(block, precond=None):
     # TODO: Default driver logic
     if not config.emit_when_asserts:
@@ -576,11 +585,20 @@ def emit_when_asserts(block, precond=None):
 
     else_block = _get_else_block(block)
     if else_block:
-        new_precond = ~block.condition
-        if precond is not None:
-            new_precond = precond & new_precond
-
-        emit_when_asserts(else_block, new_precond)
+        else_cond = _make_else_cond(block, precond)
+        emit_when_asserts(else_block, else_cond)
+    elif (
+        block is block.root or
+        block is block.root.otherwise_block or
+        block in block.root.elsewhen_blocks()
+    ):
+        # For last block of root chain, emit default driver assertion
+        else_cond = None
+        for wire in list(block.root.default_drivers()):
+            if else_cond is None:
+                # Avoid emitting extra expressions
+                else_cond = _make_else_cond(block, precond)
+            _emit_when_assert(else_cond, wire.drivee, wire.driver)
 
 
 def when(cond):

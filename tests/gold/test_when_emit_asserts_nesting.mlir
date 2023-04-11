@@ -8,30 +8,34 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %4 = comb.icmp eq %S, %5 : i2
         %7 = hw.constant -1 : i1
         %6 = comb.xor %7, %3 : i1
-        %11 = sv.reg : !hw.inout<i1>
-        %8 = sv.read_inout %11 : !hw.inout<i1>
         %12 = sv.reg : !hw.inout<i1>
-        %9 = sv.read_inout %12 : !hw.inout<i1>
+        %8 = sv.read_inout %12 : !hw.inout<i1>
         %13 = sv.reg : !hw.inout<i1>
-        %10 = sv.read_inout %13 : !hw.inout<i1>
+        %9 = sv.read_inout %13 : !hw.inout<i1>
+        %14 = sv.reg : !hw.inout<i1>
+        %10 = sv.read_inout %14 : !hw.inout<i1>
+        %15 = sv.reg : !hw.inout<i1>
+        %11 = sv.read_inout %15 : !hw.inout<i1>
         sv.alwayscomb {
-            sv.bpassign %13, %2 : i1
+            sv.bpassign %15, %2 : i1
             sv.if %0 {
                 sv.if %1 {
-                    sv.bpassign %13, %3 : i1
+                    sv.bpassign %15, %3 : i1
                 } else {
                     sv.if %4 {
-                        sv.bpassign %13, %6 : i1
+                        sv.bpassign %15, %6 : i1
                     }
                 }
             }
         }
-        %14 = comb.and %0, %1 : i1
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%14, %10, %3) : i1, i1, i1
-        %15 = comb.xor %7, %1 : i1
-        %16 = comb.and %0, %15 : i1
-        %17 = comb.and %16, %4 : i1
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%17, %10, %6) : i1, i1, i1
-        hw.output %10 : i1
+        %16 = comb.and %0, %1 : i1
+        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%16, %11, %3) : i1, i1, i1
+        %17 = comb.xor %7, %1 : i1
+        %18 = comb.and %0, %17 : i1
+        %19 = comb.and %18, %4 : i1
+        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%19, %11, %6) : i1, i1, i1
+        %20 = comb.xor %7, %0 : i1
+        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%20, %11, %2) : i1, i1, i1
+        hw.output %11 : i1
     }
 }

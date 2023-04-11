@@ -1593,7 +1593,7 @@ def test_when_emit_asserts_nesting():
 
     m.compile("build/test_when_emit_asserts_nesting",
               test_when_emit_asserts_nesting,
-              output="mlir-verilog")
+              output="mlir")
     config.emit_when_asserts = False
     assert check_gold(__file__, "test_when_emit_asserts_nesting.mlir")
 
