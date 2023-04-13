@@ -43,11 +43,6 @@ def test_compile_to_mlir(ckt):
         "use_native_bind_processor": True,
         "basename": ckt.name,
     }
-    # NOTE(rsetaluri): This is a hack to skip the Tuple[] to verilog test since
-    # MLIR does not allow leading integers in names (e.g. `!hw.struct<0:
-    # ...>`). We should ultimately fix this by changing the IR code generation.
-    if ckt.name == "simple_aggregates_tuple":
-        kwargs["check_verilog"] = False
     run_test_compile_to_mlir(ckt, **kwargs)
 
 

@@ -25,6 +25,7 @@ from magma.backend.mlir.magma_common import (
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_or_value_wrapper_by_direction as
     visit_magma_value_or_value_wrapper_by_direction,
+    tuple_key_to_str as magma_tuple_key_to_str,
 )
 from magma.backend.mlir.mem_utils import (
     make_mem_reg,
@@ -139,9 +140,11 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
             return magma_type_to_mlir_type(Bits[type.N])
         return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
     if issubclass(type, m_Tuple):
-        fields = {str(k): magma_type_to_mlir_type(t)
-                  for k, t in type.field_dict.items()}
-        return hw.StructType(tuple(fields.items()))
+        fields = (
+            (magma_tuple_key_to_str(k, type), magma_type_to_mlir_type(t))
+            for k, t in type.field_dict.items()
+        )
+        return hw.StructType(tuple(fields))
 
 
 @wrap_with_not_implemented_error
@@ -969,7 +972,10 @@ class ModuleVisitor:
             )
             return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):
-            index = inst_wrapper.attrs["index"]
+            index = magma_tuple_key_to_str(
+                inst_wrapper.attrs["index"],
+                inst_wrapper.attrs["T"]
+            )
             hw.StructExtractOp(
                 field=index,
                 operands=module.operands,

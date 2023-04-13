@@ -8,7 +8,7 @@ from magma.circuit import Circuit, DefineCircuitKind
 from magma.common import replace_all, Stack, SimpleCounter
 from magma.ref import Ref, ArrayRef, TupleRef
 from magma.t import Kind, Type
-from magma.tuple import TupleMeta, Tuple as m_Tuple
+from magma.tuple import TupleMeta, Tuple as m_Tuple, Product
 
 
 ModuleLike = Union[DefineCircuitKind, Circuit]
@@ -40,6 +40,15 @@ def value_or_type_to_string(value_or_type: Union[Type, Kind]):
     else:
         s = str(value_or_type)
     return replace_all(s, _VALUE_OR_TYPE_TO_STRING_REPLACEMENTS)
+
+
+def tuple_key_to_str(key: Union[str, int], T: TupleMeta) -> str:
+    # NOTE(rsetaluri): If the type is Tuple (i.e. has integer keys), then the
+    # struct type we emit should prefix the field key with an underscore
+    # (e.g. "_0") to make it a valid keyword.
+    if issubclass(T, Product):
+        return str(key)
+    return f"_{key}"
 
 
 @dataclasses.dataclass(frozen=True)
