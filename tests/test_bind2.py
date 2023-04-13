@@ -58,13 +58,14 @@ def test_basic(backend, split_verilog):
 
 
 @pytest.mark.parametrize(
-    "backend,flatten_all_tuples",
+    "backend,flatten_all_tuples,inst_attr",
     (
-        ("mlir", True),
-        ("mlir", False),
+        ("mlir", False, False),
+        ("mlir", True, False),
+        ("mlir", True, True),
     )
 )
-def test_xmr(backend, flatten_all_tuples):
+def test_xmr(backend, flatten_all_tuples, inst_attr):
 
     class T(m.Product):
         x = m.Bit
@@ -80,8 +81,12 @@ def test_xmr(backend, flatten_all_tuples):
 
     class Top(m.Circuit):
         io = m.IO(I=m.In(T), O=m.Out(T))
-        middle = Middle(name="middle")
-        io.O @= middle(io.I)
+        if inst_attr:
+            middle = Middle(name="middle")
+            O = middle(io.I)
+        else:
+            O = Middle(name="middle")(io.I)
+        io.O @= O
 
     class TopXMRAsserts(m.Circuit):
         name = f"TopXMRAsserts_{backend}"

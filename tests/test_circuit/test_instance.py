@@ -1,6 +1,7 @@
 import pytest
 
 import magma as m
+from magma.common import only
 
 
 def test_callback_basic():
@@ -36,3 +37,34 @@ def test_callback_registered():
     m.register_instance_callback(_Test.reg, lambda _, __: None)
     with pytest.raises(AttributeError):
         m.register_instance_callback(_Test.reg, lambda _, __: None)
+
+
+def test_getattr_instance_name():
+    Bar = m.Register(m.Bit)  # just any module
+
+    class Foo(m.Circuit):
+        my_placeholder_var = Bar(name="my_instance_name")
+
+    assert Foo.my_placeholder_var is Foo.my_instance_name
+
+
+def test_getattr_instance_name_overwritten():
+    Bar = m.Register(m.Bit)  # just any module
+
+    class Foo(m.Circuit):
+        my_placeholder_var = Bar(name="my_instance_name")
+        my_instance_name = None
+
+    assert Foo.my_instance_name is None
+    assert Foo.my_placeholder_var is only(Foo.instances)
+
+
+def test_getattr_attribute_error():
+
+    class Foo(m.Circuit):
+        pass
+
+    with pytest.raises(AttributeError) as e:
+        Foo.bar
+
+    assert "has no attribute 'bar'" in str(e)
