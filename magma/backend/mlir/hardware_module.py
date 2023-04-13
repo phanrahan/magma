@@ -746,7 +746,7 @@ class ModuleVisitor:
             )
             return True
         if isinstance(defn, InlineVerilog2):
-            sv.VerbatimOp(string=defn.expr, operands=())
+            sv.VerbatimOp(string=defn.expr, operands=module.operands)
             return True
         if iswhen(defn):
             return self.visit_when(module)
