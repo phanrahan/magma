@@ -29,13 +29,13 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %16 = comb.and %0, %1 : i1
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%16, %11, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_14: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%16, %11, %3) : i1, i1, i1
         %17 = comb.xor %7, %1 : i1
         %18 = comb.and %0, %17 : i1
         %19 = comb.and %18, %4 : i1
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%19, %11, %6) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_15: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%19, %11, %6) : i1, i1, i1
         %20 = comb.xor %7, %0 : i1
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%20, %11, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_16: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%20, %11, %2) : i1, i1, i1
         hw.output %11 : i1
     }
 }

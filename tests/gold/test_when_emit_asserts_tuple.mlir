@@ -20,12 +20,12 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %11, %I_0_1 : i1
             }
         }
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %4, %I_0_0) : i1, i8, i8
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %5, %I_0_1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_2: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %4, %I_0_0) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_3: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %5, %I_0_1) : i1, i1, i1
         %13 = hw.constant -1 : i1
         %12 = comb.xor %13, %S : i1
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%12, %4, %I_1_0) : i1, i8, i8
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%12, %5, %I_1_1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_4: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%12, %4, %I_1_0) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_5: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%12, %5, %I_1_1) : i1, i1, i1
         hw.output %4, %5 : i8, i1
     }
 }

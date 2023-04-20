@@ -1461,27 +1461,6 @@ def test_when_tuple_as_bits_resolve():
     assert check_gold(__file__, "test_when_tuple_as_bits_resolve.mlir")
 
 
-def test_when_alwcomb_order():
-
-    class test_when_alwcomb_order(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[1]), O=m.Out(m.Bits[8]))
-        x = m.Bits[8]()
-
-        io.O @= x
-        with m.when(io.S[0]):
-            x @= io.I
-        with m.otherwise():
-            x @= ~io.I
-            io.O @= ~x
-
-    with pytest.raises(MlirWhenCycleError):
-        m.compile(
-            "build/test_when_alwcomb_order",
-            test_when_alwcomb_order,
-            output="mlir"
-        )
-
-
 def test_when_emit_asserts_basic():
     config.emit_when_asserts = True
 
@@ -1619,6 +1598,59 @@ def test_when_emit_asserts_chained():
               output="mlir")
     config.emit_when_asserts = False
     assert check_gold(__file__, "test_when_emit_asserts_chained.mlir")
+
+
+def test_when_emit_asserts_value():
+    config.emit_when_asserts = True
+
+    class T(m.Product):
+        x = m.Bit
+        y = m.Bits[8]
+
+    class test_when_emit_asserts_value(m.Circuit):
+        io = m.IO(S=m.In(m.Bits[3]), O=m.Producer(m.ReadyValid[T]))
+
+        reg = m.Register(T)()
+        io.O.valid @= 0
+        with m.when(io.S[0]):
+            io.O.data @= reg.O
+        with m.otherwise():
+            io.O.data.x @= m.mux([False, True], io.S[1])
+            io.O.data.y @= m.mux([m.Bits[8](0), m.Bits[8](1)], io.S[2])
+
+        with m.when(io.S[0]):
+            with m.when(io.S[1]):
+                reg.I @= io.O.data.value()
+            with m.elsewhen(io.S[2]):
+                reg.I @= io.O.data.value()
+
+    m.compile("build/test_when_emit_asserts_value",
+              test_when_emit_asserts_value,
+              flatten_all_tuples=True,
+              output="mlir-verilog")
+    config.emit_when_asserts = False
+    assert check_gold(__file__, "test_when_emit_asserts_value.mlir")
+
+
+def test_when_alwcomb_order():
+
+    class test_when_alwcomb_order(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[1]), O=m.Out(m.Bits[8]))
+        x = m.Bits[8]()
+
+        io.O @= x
+        with m.when(io.S[0]):
+            x @= io.I
+        with m.otherwise():
+            x @= ~io.I
+            io.O @= ~x
+
+    with pytest.raises(MlirWhenCycleError):
+        m.compile(
+            "build/test_when_alwcomb_order",
+            test_when_alwcomb_order,
+            output="mlir"
+        )
 
 
 # TODO: In this case, we'll generate elaborated assignments, but it should

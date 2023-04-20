@@ -14,10 +14,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %7, %1 : i1
             }
         }
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %4, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_0: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %4, %1) : i1, i1, i1
         %9 = hw.constant -1 : i1
         %8 = comb.xor %9, %S : i1
-        sv.verbatim "always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%8, %4, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_1: always @(*) assert (~({{0}}) | ({{1}} == {{2}}));" (%8, %4, %0) : i1, i1, i1
         hw.output %4 : i1
     }
 }

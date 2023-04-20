@@ -530,6 +530,11 @@ def find_inferred_latches(block: _BlockBase) -> Set:
     return latches
 
 
+_WHEN_ASSERT_COUNTER = itertools.count()
+_ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: always @(*) assert (~({cond}) |"
+                    " ({drivee} == {driver}));")
+
+
 def _emit_when_assert(cond, drivee, driver):
     from magma.tuple import Tuple
     if isinstance(drivee, Tuple):
@@ -544,12 +549,8 @@ def _emit_when_assert(cond, drivee, driver):
     drivee.rewire(temp)
 
     from magma.inline_verilog import inline_verilog
-    inline_verilog(
-        "always @(*) assert (~({cond}) | ({drivee} == {driver}));",
-        cond=cond,
-        drivee=temp,
-        driver=driver
-    )
+    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=temp,
+                   driver=driver, id=next(_WHEN_ASSERT_COUNTER))
 
 
 def _make_else_cond(block, precond):
