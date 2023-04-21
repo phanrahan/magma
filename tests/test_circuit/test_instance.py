@@ -68,3 +68,20 @@ def test_getattr_attribute_error():
         Foo.bar
 
     assert "has no attribute 'bar'" in str(e)
+
+
+def test_get_instance_method():
+
+    Bar = m.Register(m.Bit)  # just any module
+
+    class Foo(m.Circuit):
+        my_placeholder_var = Bar(name="my_instance_name")
+        Bar(name="duplicated")
+        Bar(name="duplicated")
+        my_instance_name = None
+
+    assert Foo.get_instance("my_instance_name") is Foo.my_placeholder_var
+    with pytest.raises(KeyError):
+        Foo.get_instance("blahblah")
+    with pytest.raises(KeyError):
+        Foo.get_instance("duplicated")

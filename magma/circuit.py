@@ -27,7 +27,12 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
-from magma.common import only, IterableException
+from magma.common import (
+    only,
+    IterableException,
+    EmptyIterableException,
+    NonSingletonIterableException,
+)
 from magma.config import get_debug_mode, set_debug_mode, config, RuntimeConfig
 from magma.definition_context import (
     DefinitionContext,
@@ -757,6 +762,15 @@ class DefineCircuitKind(CircuitKind):
     @property
     def instances(self):
         return self._context_.placer.instances()
+
+    def get_instance(self, name: str) -> 'AnonymousCircuitType':
+        instances = self.instances
+        try:
+            return only(filter(lambda i: i.name == name, instances))
+        except EmptyIterableException:
+            raise KeyError(name) from None
+        except NonSingletonIterableException:
+            raise KeyError(f"Found multiple instances with name '{name}'")
 
     @property
     def logs(self):
