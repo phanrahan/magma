@@ -72,6 +72,14 @@ class simple_aggregates_product(m.Circuit):
     io.y.y @= ~io.a.y
 
 
+class simple_aggregates_anon_product(m.Circuit):
+    S = m.Bits[8]
+    T = m.AnonProduct[{"x": S, "y": S}]
+    io = m.IO(a=m.In(T), y=m.Out(T))
+    io.y.x @= ~io.a.x
+    io.y.y @= ~io.a.y
+
+
 class simple_aggregates_tuple(m.Circuit):
     S = m.Bits[8]
     T = m.Tuple[S, S]

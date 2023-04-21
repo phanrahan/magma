@@ -13,6 +13,7 @@ from magma.uniquification import uniquification_pass, reset_names
 
 from examples import (
     simple_aggregates_product,
+    simple_aggregates_anon_product,
     aggregate_mux_wrapper,
     non_power_of_two_mux_wrapper,
     complex_register_wrapper,
@@ -50,6 +51,7 @@ def test_compile_to_mlir(ckt):
     "ckt",
     [
         simple_aggregates_product,
+        simple_aggregates_anon_product,
         aggregate_mux_wrapper,
         _simple_coreir_common_lib_mux_n_wrapper,
         complex_register_wrapper,
