@@ -20,20 +20,28 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %8 = comb.extract %I_y_1 from 6 : (i8) -> i1
         %9 = comb.extract %I_y_1 from 7 : (i8) -> i1
         %12 = comb.extract %I_y_1 from 0 : (i8) -> i1
+        %13 = comb.extract %0 from 0 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_260: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %13, %12) : i1, i1, i1
         %14 = comb.extract %I_y_1 from 1 : (i8) -> i1
+        %15 = comb.extract %0 from 1 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_261: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %15, %14) : i1, i1, i1
         %16 = comb.extract %I_y_1 from 2 : (i8) -> i1
+        %17 = comb.extract %0 from 2 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_262: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %17, %16) : i1, i1, i1
         %18 = comb.extract %I_y_1 from 3 : (i8) -> i1
+        %19 = comb.extract %0 from 3 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_263: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %19, %18) : i1, i1, i1
         %20 = comb.extract %I_y_1 from 4 : (i8) -> i1
+        %21 = comb.extract %0 from 4 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_264: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %21, %20) : i1, i1, i1
         %22 = comb.extract %I_y_1 from 5 : (i8) -> i1
+        %23 = comb.extract %0 from 5 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_265: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %23, %22) : i1, i1, i1
         %24 = comb.extract %I_y_1 from 6 : (i8) -> i1
+        %25 = comb.extract %0 from 6 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_266: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %25, %24) : i1, i1, i1
         %26 = comb.extract %I_y_1 from 7 : (i8) -> i1
+        %27 = comb.extract %0 from 7 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_267: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %27, %26) : i1, i1, i1
         %29 = hw.constant -1 : i1
         %28 = comb.xor %29, %S : i1

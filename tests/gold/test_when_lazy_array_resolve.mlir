@@ -18,8 +18,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %6 = comb.extract %I from 0 : (i2) -> i1
         %7 = comb.extract %I from 1 : (i2) -> i1
         %10 = comb.extract %I from 0 : (i2) -> i1
+        %11 = comb.extract %4 from 0 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_92: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %11, %10) : i1, i1, i1
         %12 = comb.extract %I from 1 : (i2) -> i1
+        %13 = comb.extract %4 from 1 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_93: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %13, %12) : i1, i1, i1
         %15 = hw.constant -1 : i1
         %14 = comb.xor %15, %S : i1

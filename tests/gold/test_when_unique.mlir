@@ -47,19 +47,27 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %25 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : i1, i1, i1, i1, i1, i1, i1, i1
+        %26 = comb.extract %25 from 0 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_351: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %26, %0) : i1, i1, i1
+        %27 = comb.extract %25 from 1 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_352: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %27, %1) : i1, i1, i1
         %28 = hw.constant 0 : i1
+        %29 = comb.extract %25 from 2 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_353: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %29, %28) : i1, i1, i1
         %30 = hw.constant 0 : i1
+        %31 = comb.extract %25 from 3 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_354: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %31, %30) : i1, i1, i1
         %32 = hw.constant 0 : i1
+        %33 = comb.extract %25 from 4 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_355: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %33, %32) : i1, i1, i1
         %34 = hw.constant 0 : i1
+        %35 = comb.extract %25 from 5 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_356: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %35, %34) : i1, i1, i1
         %36 = hw.constant 0 : i1
+        %37 = comb.extract %25 from 6 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_357: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %37, %36) : i1, i1, i1
         %38 = hw.constant 0 : i1
+        %39 = comb.extract %25 from 7 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_358: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %39, %38) : i1, i1, i1
         %41 = hw.constant -1 : i1
         %40 = comb.xor %41, %0 : i1
@@ -121,17 +129,25 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %25 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : i1, i1, i1, i1, i1, i1, i1, i1
+        %26 = comb.extract %25 from 0 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_367: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %26, %0) : i1, i1, i1
+        %27 = comb.extract %25 from 1 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_368: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %27, %1) : i1, i1, i1
+        %28 = comb.extract %25 from 2 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_369: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %28, %2) : i1, i1, i1
+        %29 = comb.extract %25 from 3 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_370: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %29, %3) : i1, i1, i1
         %30 = hw.constant 0 : i1
+        %31 = comb.extract %25 from 4 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_371: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %31, %30) : i1, i1, i1
         %32 = hw.constant 0 : i1
+        %33 = comb.extract %25 from 5 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_372: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %33, %32) : i1, i1, i1
         %34 = hw.constant 0 : i1
+        %35 = comb.extract %25 from 6 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_373: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %35, %34) : i1, i1, i1
         %36 = hw.constant 0 : i1
+        %37 = comb.extract %25 from 7 : (i8) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_374: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %37, %36) : i1, i1, i1
         %39 = hw.constant -1 : i1
         %38 = comb.xor %39, %0 : i1

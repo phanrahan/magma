@@ -71,6 +71,7 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
+from magma.ref import ArrayRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
@@ -910,7 +911,18 @@ class ModuleVisitor:
                 if value.is_output():
                     operand = module.operands[next(input_counter)]
                 else:
-                    operand = self._ctx.get_or_make_mapped_value(value)
+                    curr = value
+                    idxs = []
+                    while True:
+                        try:
+                            operand = self._ctx.get_mapped_value(curr)
+                            break
+                        except KeyError:
+                            assert isinstance(curr.name, ArrayRef)
+                            idxs.append(curr.name._index)
+                            curr = curr.name.parent_value
+                    for i in idxs:
+                        operand = self.make_array_ref(operand, i)
                 operands.append(operand)
             sv.VerbatimOp(operands=operands, string=string)
         return True

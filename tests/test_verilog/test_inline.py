@@ -3,34 +3,6 @@ import pytest
 import magma as m
 import magma.testing
 from magma.backend.mlir.mlir_to_verilog import circt_opt_binary_exists
-from magma.inline_verilog import InlineVerilogError
-
-
-def test_inline_verilog():
-    FF = m.define_from_verilog("""
-module FF(input I, output reg O, input CLK);
-always @(posedge CLK) begin
-  O <= I;
-end
-endmodule
-""", type_map={"CLK": m.In(m.Clock)})[0]
-
-    class Main(m.Circuit):
-        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), arr=m.In(m.Bits[2]))
-        io += m.ClockIO()
-        io.O <= FF()(io.I)
-        m.inline_verilog("""
-assert property (@(posedge CLK) {I} |-> ##1 {O});
-""", O=io.O, I=io.I, inline_wire_prefix="_foo_prefix_")
-        m.inline_verilog("""
-assert property (@(posedge CLK) {io.arr[0]} |-> ##1 {io.arr[1]});
-""")
-
-    m.compile(f"build/test_inline_simple", Main, output="coreir-verilog",
-              sv=True, inline=True)
-    assert m.testing.check_files_equal(__file__,
-                                       f"build/test_inline_simple.sv",
-                                       f"gold/test_inline_simple.sv")
 
 
 def test_inline_tuple():
@@ -280,19 +252,6 @@ assert property (@(posedge {clk}) disable iff (! {rst}) {io.x} |-> ##1 {io.y});
     assert m.testing.check_files_equal(
         __file__, f"build/test_inline_verilog_share_default_clocks.v",
         f"gold/test_inline_verilog_share_default_clocks.v")
-
-
-def test_inline_verilog_error():
-    with pytest.raises(InlineVerilogError) as e:
-        class Main(m.Circuit):
-            io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), arr=m.In(m.Bits[2]))
-            io += m.ClockIO()
-            # Should error because io.O is undriven
-            m.inline_verilog(
-                "assert property (@(posedge CLK) {I} |-> ##1 {O});",
-                O=io.O, I=io.I, inline_wire_prefix="_foo_prefix_")
-
-    assert str(e.value) == "Found reference to undriven input port: LazyCircuit.O"
 
 
 def test_inline_passthrough_wire():

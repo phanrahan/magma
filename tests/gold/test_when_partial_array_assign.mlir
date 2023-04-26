@@ -12,6 +12,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %4 = comb.concat %2, %0 : i1, i1
+        %5 = comb.extract %4 from 1 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_254: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %5, %1) : i1, i1, i1
         %7 = hw.constant -1 : i1
         %6 = comb.xor %7, %S : i1

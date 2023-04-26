@@ -50,11 +50,15 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %23 = comb.extract %I from 1 : (i2) -> i1
         %27 = comb.concat %16, %15 : i1, i1
         %28 = comb.concat %13, %12 : i1, i1
+        %29 = comb.extract %28 from 0 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_276: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %29, %3) : i1, i1, i1
+        %30 = comb.extract %28 from 1 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_277: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %30, %4) : i1, i1, i1
         %31 = comb.extract %I from 0 : (i2) -> i1
+        %32 = comb.extract %14 from 0 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_278: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %32, %31) : i1, i1, i1
         %33 = comb.extract %I from 1 : (i2) -> i1
+        %34 = comb.extract %14 from 1 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_279: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %34, %33) : i1, i1, i1
         %36 = hw.constant -1 : i1
         %35 = comb.xor %36, %0 : i1
@@ -67,7 +71,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %39 = comb.and %35, %38 : i1
         sv.verbatim "always @(*) WHEN_ASSERT_284: assert (~({{0}}) | ({{1}} == {{2}}));" (%39, %29, %7) : i1, i1, i1
         sv.verbatim "always @(*) WHEN_ASSERT_285: assert (~({{0}}) | ({{1}} == {{2}}));" (%39, %30, %8) : i1, i1, i1
+        %40 = comb.extract %27 from 0 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_286: assert (~({{0}}) | ({{1}} == {{2}}));" (%39, %40, %33) : i1, i1, i1
+        %41 = comb.extract %27 from 1 : (i2) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_287: assert (~({{0}}) | ({{1}} == {{2}}));" (%39, %41, %31) : i1, i1, i1
         sv.verbatim "always @(*) WHEN_ASSERT_288: assert (~({{0}}) | ({{1}} == {{2}}));" (%39, %32, %10) : i1, i1, i1
         sv.verbatim "always @(*) WHEN_ASSERT_289: assert (~({{0}}) | ({{1}} == {{2}}));" (%39, %34, %11) : i1, i1, i1

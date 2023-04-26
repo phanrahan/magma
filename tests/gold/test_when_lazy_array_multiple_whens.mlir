@@ -46,9 +46,13 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %26 = comb.concat %21, %20, %19, %18 : i1, i1, i1, i1
+        %27 = comb.extract %26 from 0 : (i4) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_142: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %27, %11) : i1, i1, i1
+        %28 = comb.extract %26 from 1 : (i4) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_143: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %28, %13) : i1, i1, i1
+        %29 = comb.extract %26 from 2 : (i4) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_144: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %29, %15) : i1, i1, i1
+        %30 = comb.extract %26 from 3 : (i4) -> i1
         sv.verbatim "always @(*) WHEN_ASSERT_145: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %30, %17) : i1, i1, i1
         %31 = comb.xor %1, %0 : i1
         sv.verbatim "always @(*) WHEN_ASSERT_146: assert (~({{0}}) | ({{1}} == {{2}}));" (%31, %27, %10) : i1, i1, i1
