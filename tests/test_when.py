@@ -1634,7 +1634,7 @@ def test_when_emit_asserts_value():
     m.compile("build/test_when_emit_asserts_value",
               test_when_emit_asserts_value,
               flatten_all_tuples=True,
-              output="mlir-verilog")
+              output="mlir")
     config.emit_when_asserts = False
     assert check_gold(__file__, "test_when_emit_asserts_value.mlir")
 
