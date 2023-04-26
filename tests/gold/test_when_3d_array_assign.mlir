@@ -23,6 +23,22 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %7 = hw.array_get %I[%4] : !hw.array<2x!hw.array<2xi2>>, i1
         %8 = hw.array_get %7[%4] : !hw.array<2xi2>, i1
         %9 = hw.array_get %7[%2] : !hw.array<2xi2>, i1
+        %16 = hw.array_get %I[%2] : !hw.array<2x!hw.array<2xi2>>, i1
+        %17 = hw.array_get %16[%4] : !hw.array<2xi2>, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_292: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %18, %17) : i1, i2, i2
+        %19 = hw.array_get %16[%2] : !hw.array<2xi2>, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_293: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %20, %19) : i1, i2, i2
+        %21 = hw.array_get %I[%4] : !hw.array<2x!hw.array<2xi2>>, i1
+        %22 = hw.array_get %21[%4] : !hw.array<2xi2>, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_294: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %23, %22) : i1, i2, i2
+        %24 = hw.array_get %21[%2] : !hw.array<2xi2>, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_295: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %25, %24) : i1, i2, i2
+        %27 = hw.constant -1 : i1
+        %26 = comb.xor %27, %S : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_296: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %18, %24) : i1, i2, i2
+        sv.verbatim "always @(*) WHEN_ASSERT_297: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %20, %22) : i1, i2, i2
+        sv.verbatim "always @(*) WHEN_ASSERT_298: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %23, %19) : i1, i2, i2
+        sv.verbatim "always @(*) WHEN_ASSERT_299: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %25, %17) : i1, i2, i2
         hw.output %0 : !hw.array<2x!hw.array<2xi2>>
     }
 }

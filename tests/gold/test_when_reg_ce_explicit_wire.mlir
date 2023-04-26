@@ -24,6 +24,13 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %6, %7 : i8
         }
         %1 = sv.read_inout %6 : !hw.inout<i8>
+        sv.verbatim "always @(*) WHEN_ASSERT_170: assert (~({{0}}) | ({{1}} == {{2}}));" (%y, %2, %I) : i1, i8, i8
+        sv.verbatim "always @(*) WHEN_ASSERT_171: assert (~({{0}}) | ({{1}} == {{2}}));" (%y, %3, %x) : i1, i1, i1
+        %9 = hw.constant -1 : i1
+        %8 = comb.xor %9, %y : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_172: assert (~({{0}}) | ({{1}} == {{2}}));" (%8, %2, %1) : i1, i8, i8
+        %10 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_173: assert (~({{0}}) | ({{1}} == {{2}}));" (%8, %3, %10) : i1, i1, i1
         hw.output %1 : i8
     }
 }

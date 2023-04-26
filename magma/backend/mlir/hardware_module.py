@@ -904,18 +904,13 @@ class ModuleVisitor:
             # Convert instance operands/results to verbatim operands
             operands = []
             input_counter = itertools.count()
-            output_counter = itertools.count()
             for value in references.values():
                 if isinstance(value, PortView):
                     value = value.port
                 if value.is_output():
                     operand = module.operands[next(input_counter)]
                 else:
-                    operand = module.results[next(output_counter)]
-                    # Emit register to hold operand
-                    reg = self.ctx.new_value(hw.InOutType(operand.type))
-                    sv.RegOp(results=[reg])
-                    sv.ReadInOutOp(operands=[reg], results=[operand])
+                    operand = self._ctx.get_or_make_mapped_value(value)
                 operands.append(operand)
             sv.VerbatimOp(operands=operands, string=string)
         return True

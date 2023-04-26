@@ -19,6 +19,20 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %8 = sv.wire sym @test_when_lazy_array_protocol.x name "x" : !hw.inout<!hw.array<2xi1>>
         sv.assign %8, %6 : !hw.array<2xi1>
         %7 = sv.read_inout %8 : !hw.inout<!hw.array<2xi1>>
+        %10 = hw.constant 0 : i1
+        %9 = hw.array_get %7[%10] : !hw.array<2xi1>, i1
+        %11 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_116: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %9, %11) : i1, i1, i1
+        %13 = hw.constant 1 : i1
+        %12 = hw.array_get %7[%13] : !hw.array<2xi1>, i1
+        %14 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_117: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %12, %14) : i1, i1, i1
+        %16 = hw.constant -1 : i1
+        %15 = comb.xor %16, %S : i1
+        %17 = hw.constant 1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_118: assert (~({{0}}) | ({{1}} == {{2}}));" (%15, %9, %17) : i1, i1, i1
+        %18 = hw.constant 1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_119: assert (~({{0}}) | ({{1}} == {{2}}));" (%15, %12, %18) : i1, i1, i1
         hw.output %7 : !hw.array<2xi1>
     }
 }

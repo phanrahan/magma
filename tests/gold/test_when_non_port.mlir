@@ -11,6 +11,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %3, %1 : i1
             }
         }
+        sv.verbatim "always @(*) WHEN_ASSERT_63: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %2, %0) : i1, i1, i1
+        %5 = hw.constant -1 : i1
+        %4 = comb.xor %5, %S : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_64: assert (~({{0}}) | ({{1}} == {{2}}));" (%4, %2, %1) : i1, i1, i1
         hw.output %2 : i1
     }
 }

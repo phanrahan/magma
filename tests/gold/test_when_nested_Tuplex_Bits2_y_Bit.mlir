@@ -12,6 +12,12 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %3, %I_0_y : i1
             }
         }
+        sv.verbatim "always @(*) WHEN_ASSERT_59: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %0, %I_0_x) : i1, i2, i2
+        sv.verbatim "always @(*) WHEN_ASSERT_60: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %1, %I_0_y) : i1, i1, i1
+        %5 = hw.constant -1 : i1
+        %4 = comb.xor %5, %S : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_61: assert (~({{0}}) | ({{1}} == {{2}}));" (%4, %0, %I_1_x) : i1, i2, i2
+        sv.verbatim "always @(*) WHEN_ASSERT_62: assert (~({{0}}) | ({{1}} == {{2}}));" (%4, %1, %I_1_y) : i1, i1, i1
         hw.output %0, %1 : i2, i1
     }
 }

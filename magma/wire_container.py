@@ -291,6 +291,44 @@ class Wireable:
         if not keep_wired_when_contexts:
             self._remove_from_wired_when_contexts()
 
+<<<<<<< HEAD
+=======
+    def _when_output_wire(self, o, debug_info):
+        """In order to maintain consistency, we add a new set of conditional
+        wires corresponding to the drivers of `o` (when output) to `self`.  This
+        way, there is always a consistent set of conditional wires for every
+        value driven by a when (rather than simply sharing the same when output
+        for two different conditionally driven values, even if they have the
+        same drivers)."""
+        driving = o.driving()[0]
+
+        # Copy default driver for self.
+        root = driving._wired_when_contexts[0].root
+        try:
+            default = root.get_default_driver(driving)
+        except KeyError:
+            pass
+        else:
+            root.add_default_driver(self, default)
+
+        # Copy wires in each driving when context.
+        for ctx in driving._wired_when_contexts:
+            for wire in ctx.get_conditional_wires_for_drivee(driving):
+                ctx.add_conditional_wire(self, wire.driver)
+            self._wired_when_contexts.append(ctx)
+
+    def _check_is_when_output(self, o, debug_info):
+        """Special handling if `o` is a reference to a when output"""
+        for value in o.root_iter():
+            if (
+                value.is_when_port and len(o.driving()) == 1 and
+                o.driving()[0]._wired_when_contexts
+            ):
+                self._when_output_wire(o, debug_info)
+                return True
+        return False
+
+>>>>>>> bb106711 (Remove temp driver logic, add output ref logic)
     def _wire_impl(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info

@@ -15,6 +15,18 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %3 = hw.array_get %I[%2] : !hw.array<2x!hw.array<2xi2>>, i1
         %4 = hw.constant 1 : i1
         %5 = hw.array_get %I[%4] : !hw.array<2x!hw.array<2xi2>>, i1
+        %8 = hw.array_get %I[%2] : !hw.array<2x!hw.array<2xi2>>, i1
+        %9 = hw.array_get %8[%4] : !hw.array<2xi2>, i1
+        %10 = hw.array_get %8[%2] : !hw.array<2xi2>, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_316: assert (~({{0}}) | ('{{{1}}, {{2}}} == '{{{3}}, {{4}}}));" (%S, %11, %12, %9, %10) : i1, i2, i2, i2, i2
+        %13 = hw.array_get %I[%4] : !hw.array<2x!hw.array<2xi2>>, i1
+        %14 = hw.array_get %13[%4] : !hw.array<2xi2>, i1
+        %15 = hw.array_get %13[%2] : !hw.array<2xi2>, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_317: assert (~({{0}}) | ('{{{1}}, {{2}}} == '{{{3}}, {{4}}}));" (%S, %16, %17, %14, %15) : i1, i2, i2, i2, i2
+        %19 = hw.constant -1 : i1
+        %18 = comb.xor %19, %S : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_318: assert (~({{0}}) | ('{{{1}}, {{2}}} == '{{{3}}, {{4}}}));" (%18, %16, %17, %9, %10) : i1, i2, i2, i2, i2
+        sv.verbatim "always @(*) WHEN_ASSERT_319: assert (~({{0}}) | ('{{{1}}, {{2}}} == '{{{3}}, {{4}}}));" (%18, %11, %12, %14, %15) : i1, i2, i2, i2, i2
         hw.output %0 : !hw.array<2x!hw.array<2xi2>>
     }
 }

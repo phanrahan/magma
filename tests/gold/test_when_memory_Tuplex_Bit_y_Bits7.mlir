@@ -80,6 +80,41 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
+        sv.verbatim "always @(*) WHEN_ASSERT_30: assert (~({{0}}) | ({{1}} == {{2}}));" (%en0, %2, %addr0) : i1, i5, i5
+        sv.verbatim "always @(*) WHEN_ASSERT_31: assert (~({{0}}) | ({{1}} == {{2}}));" (%en0, %3, %data0_x) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_32: assert (~({{0}}) | ({{1}} == {{2}}));" (%en0, %4, %data0_y) : i1, i7, i7
+        %23 = hw.constant 1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_33: assert (~({{0}}) | ({{1}} == {{2}}));" (%en0, %5, %23) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_34: assert (~({{0}}) | ({{1}} == {{2}}));" (%en0, %1, %addr1) : i1, i5, i5
+        sv.verbatim "always @(*) WHEN_ASSERT_35: assert (~({{0}}) | ({{1}} == {{2}}));" (%en0, %14, %6) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_36: assert (~({{0}}) | ({{1}} == {{2}}));" (%en0, %15, %7) : i1, i7, i7
+        %25 = hw.constant -1 : i1
+        %24 = comb.xor %25, %en0 : i1
+        %26 = comb.and %24, %en1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_37: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %2, %addr1) : i1, i5, i5
+        sv.verbatim "always @(*) WHEN_ASSERT_38: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %3, %data1_x) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_39: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %4, %data1_y) : i1, i7, i7
+        %27 = hw.constant 1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_40: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %5, %27) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_41: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %1, %addr0) : i1, i5, i5
+        sv.verbatim "always @(*) WHEN_ASSERT_42: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %14, %6) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_43: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %15, %7) : i1, i7, i7
+        %28 = comb.xor %25, %en1 : i1
+        %29 = comb.and %24, %28 : i1
+        %30 = hw.constant 1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_44: assert (~({{0}}) | ({{1}} == {{2}}));" (%29, %14, %30) : i1, i1, i1
+        %31 = hw.constant 127 : i7
+        sv.verbatim "always @(*) WHEN_ASSERT_45: assert (~({{0}}) | ({{1}} == {{2}}));" (%29, %15, %31) : i1, i7, i7
+        %32 = hw.constant 0 : i5
+        sv.verbatim "always @(*) WHEN_ASSERT_46: assert (~({{0}}) | ({{1}} == {{2}}));" (%29, %2, %32) : i1, i5, i5
+        %33 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_47: assert (~({{0}}) | ({{1}} == {{2}}));" (%29, %3, %33) : i1, i1, i1
+        %34 = hw.constant 0 : i7
+        sv.verbatim "always @(*) WHEN_ASSERT_48: assert (~({{0}}) | ({{1}} == {{2}}));" (%29, %4, %34) : i1, i7, i7
+        %35 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_49: assert (~({{0}}) | ({{1}} == {{2}}));" (%29, %5, %35) : i1, i1, i1
+        %36 = hw.constant 0 : i5
+        sv.verbatim "always @(*) WHEN_ASSERT_50: assert (~({{0}}) | ({{1}} == {{2}}));" (%29, %1, %36) : i1, i5, i5
         hw.output %14, %15 : i1, i7
     }
 }

@@ -20,6 +20,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %5, %6 : i1
         }
         %4 = sv.read_inout %5 : !hw.inout<i1>
+        sv.verbatim "always @(*) WHEN_ASSERT_73: assert (~({{0}}) | ({{1}} == {{2}}));" (%E, %2, %I) : i1, i1, i1
+        %7 = comb.xor %1, %E : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_74: assert (~({{0}}) | ({{1}} == {{2}}));" (%7, %2, %0) : i1, i1, i1
         hw.output %4 : i1
     }
 }

@@ -254,7 +254,6 @@ class WhenBuilder(CircuitBuilder):
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)
-        emit_when_asserts(self.block)
         # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
         # builder's finalization, although it is a bit "hacky". Ideally, this
@@ -266,6 +265,7 @@ class WhenBuilder(CircuitBuilder):
         # the default value).
         _add_default_drivers_to_memory_ports(self, latches)
         _add_default_drivers_to_register_inputs(self, latches)
+        emit_when_asserts(self.block)
 
         if latches:
             raise InferredLatchError(latches)

@@ -68,6 +68,17 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %24, %25 : i1
         }
         %19 = sv.read_inout %24 : !hw.inout<i1>
+        sv.verbatim "always @(*) WHEN_ASSERT_222: assert (~({{0}}) | ({{1}} == {{2}}));" (%1, %13, %y) : i1, i1, i1
+        %26 = comb.xor %12, %1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_223: assert (~({{0}}) | ({{1}} == {{2}}));" (%26, %13, %11) : i1, i1, i1
+        %27 = comb.and %0, %1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_224: assert (~({{0}}) | ({{1}} == {{2}}));" (%27, %6, %x) : i1, i8, i8
+        %28 = comb.xor %12, %1 : i1
+        %29 = comb.and %0, %28 : i1
+        %30 = hw.constant 1 : i8
+        sv.verbatim "always @(*) WHEN_ASSERT_225: assert (~({{0}}) | ({{1}} == {{2}}));" (%29, %6, %30) : i1, i8, i8
+        %31 = comb.xor %12, %0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_226: assert (~({{0}}) | ({{1}} == {{2}}));" (%31, %6, %4) : i1, i8, i8
         hw.output %17, %18, %19 : i8, i8, i1
     }
 }

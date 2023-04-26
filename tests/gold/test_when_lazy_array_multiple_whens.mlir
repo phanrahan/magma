@@ -46,6 +46,24 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %26 = comb.concat %21, %20, %19, %18 : i1, i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_142: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %27, %11) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_143: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %28, %13) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_144: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %29, %15) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_145: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %30, %17) : i1, i1, i1
+        %31 = comb.xor %1, %0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_146: assert (~({{0}}) | ({{1}} == {{2}}));" (%31, %27, %10) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_147: assert (~({{0}}) | ({{1}} == {{2}}));" (%31, %28, %12) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_148: assert (~({{0}}) | ({{1}} == {{2}}));" (%31, %29, %14) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_149: assert (~({{0}}) | ({{1}} == {{2}}));" (%31, %30, %16) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_150: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %29, %15) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_151: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %30, %17) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_152: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %27, %11) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_153: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %28, %13) : i1, i1, i1
+        %32 = comb.xor %1, %S : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_154: assert (~({{0}}) | ({{1}} == {{2}}));" (%32, %29, %11) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_155: assert (~({{0}}) | ({{1}} == {{2}}));" (%32, %30, %13) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_156: assert (~({{0}}) | ({{1}} == {{2}}));" (%32, %27, %15) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_157: assert (~({{0}}) | ({{1}} == {{2}}));" (%32, %28, %17) : i1, i1, i1
         hw.output %26 : i4
     }
 }

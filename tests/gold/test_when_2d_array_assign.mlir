@@ -15,6 +15,14 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %3 = hw.array_get %I[%2] : !hw.array<2xi2>, i1
         %4 = hw.constant 1 : i1
         %5 = hw.array_get %I[%4] : !hw.array<2xi2>, i1
+        %8 = hw.array_get %I[%2] : !hw.array<2xi2>, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_256: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %9, %8) : i1, i2, i2
+        %10 = hw.array_get %I[%4] : !hw.array<2xi2>, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_257: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %11, %10) : i1, i2, i2
+        %13 = hw.constant -1 : i1
+        %12 = comb.xor %13, %S : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_258: assert (~({{0}}) | ({{1}} == {{2}}));" (%12, %9, %10) : i1, i2, i2
+        sv.verbatim "always @(*) WHEN_ASSERT_259: assert (~({{0}}) | ({{1}} == {{2}}));" (%12, %11, %8) : i1, i2, i2
         hw.output %0 : !hw.array<2xi2>
     }
 }

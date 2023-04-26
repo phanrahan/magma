@@ -12,6 +12,13 @@ from magma.type_utils import type_to_sanitized_string
 from magma.backend.mlir.errors import MlirWhenCycleError
 
 
+@pytest.fixture(autouse=True)
+def emit_when_asserts():
+    config.emit_when_asserts = True
+    yield
+    config.emit_when_asserts = False
+
+
 @functools.lru_cache(maxsize=None)
 def _expects_error(error_type, process_error=None):
 

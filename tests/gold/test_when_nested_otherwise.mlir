@@ -18,6 +18,14 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
+        sv.verbatim "always @(*) WHEN_ASSERT_89: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %5, %I) : i1, i2, i2
+        %8 = hw.constant -1 : i1
+        %7 = comb.xor %8, %0 : i1
+        %9 = comb.and %7, %2 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_90: assert (~({{0}}) | ({{1}} == {{2}}));" (%9, %5, %3) : i1, i2, i2
+        %10 = comb.xor %8, %2 : i1
+        %11 = comb.and %7, %10 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_91: assert (~({{0}}) | ({{1}} == {{2}}));" (%11, %5, %I) : i1, i2, i2
         hw.output %5 : i2
     }
 }

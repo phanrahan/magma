@@ -23,6 +23,28 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %14 = sv.wire sym @test_when_lazy_array_slice_driving_resolve.x name "x" : !hw.inout<i4>
         sv.assign %14, %12 : i4
         %13 = sv.read_inout %14 : !hw.inout<i4>
+        %15 = comb.extract %13 from 0 : (i4) -> i1
+        %16 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_120: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %15, %16) : i1, i1, i1
+        %17 = comb.extract %13 from 1 : (i4) -> i1
+        %18 = hw.constant 1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_121: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %17, %18) : i1, i1, i1
+        %19 = comb.extract %13 from 2 : (i4) -> i1
+        %20 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_122: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %19, %20) : i1, i1, i1
+        %21 = comb.extract %13 from 3 : (i4) -> i1
+        %22 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_123: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %21, %22) : i1, i1, i1
+        %24 = hw.constant -1 : i1
+        %23 = comb.xor %24, %S : i1
+        %25 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_124: assert (~({{0}}) | ({{1}} == {{2}}));" (%23, %15, %25) : i1, i1, i1
+        %26 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_125: assert (~({{0}}) | ({{1}} == {{2}}));" (%23, %17, %26) : i1, i1, i1
+        %27 = hw.constant 1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_126: assert (~({{0}}) | ({{1}} == {{2}}));" (%23, %19, %27) : i1, i1, i1
+        %28 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_127: assert (~({{0}}) | ({{1}} == {{2}}));" (%23, %21, %28) : i1, i1, i1
         hw.output %13 : i4
     }
 }

@@ -58,6 +58,8 @@ def _build_io(inline_value_map: Mapping[str, ValueLike]) -> IO:
         return io
     io = IO()
     for key, value in inline_value_map.items():
+        if value.is_input():
+            continue
         if isinstance(value, PortView):
             T = value.T
         else:
@@ -97,10 +99,13 @@ def _inline_verilog(
         # Since each inline value (key) maps to a port, we populate the
         # connect_references dictionary with a map from key to port.
         connect_references = {}
-        for key in inline_value_map:
-            port = getattr(io, key)
-            port.unused()  # these are needed so CoreIR knows it's a definition
-            connect_references[key] = port
+        for key, value in inline_value_map.items():
+            if value.is_input():
+                connect_references[key] = value
+            else:
+                port = getattr(io, key)
+                port.unused()  # needed so CoreIR knows it's a definition
+                connect_references[key] = port
         inline_verilog_strs = [(inline_str, connect_references)]
 
     inline_verilog_modules.append(_InlineVerilog)
@@ -113,7 +118,8 @@ def _inline_verilog(
 
     for key, value in inline_value_map.items():
         try:
-            wire_value_or_port_view(getattr(inst, key), value)
+            if not value.is_input():
+                wire_value_or_port_view(getattr(inst, key), value)
         except WiringError:
             raise InlineVerilogError(
                 f"Found reference to undriven input port: {repr(value)}"

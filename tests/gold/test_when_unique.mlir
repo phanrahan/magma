@@ -47,6 +47,30 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %25 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : i1, i1, i1, i1, i1, i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_351: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %26, %0) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_352: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %27, %1) : i1, i1, i1
+        %28 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_353: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %29, %28) : i1, i1, i1
+        %30 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_354: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %31, %30) : i1, i1, i1
+        %32 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_355: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %33, %32) : i1, i1, i1
+        %34 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_356: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %35, %34) : i1, i1, i1
+        %36 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_357: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %37, %36) : i1, i1, i1
+        %38 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_358: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %39, %38) : i1, i1, i1
+        %41 = hw.constant -1 : i1
+        %40 = comb.xor %41, %0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_359: assert (~({{0}}) | ({{1}} == {{2}}));" (%40, %26, %0) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_360: assert (~({{0}}) | ({{1}} == {{2}}));" (%40, %27, %1) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_361: assert (~({{0}}) | ({{1}} == {{2}}));" (%40, %29, %3) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_362: assert (~({{0}}) | ({{1}} == {{2}}));" (%40, %31, %4) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_363: assert (~({{0}}) | ({{1}} == {{2}}));" (%40, %33, %5) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_364: assert (~({{0}}) | ({{1}} == {{2}}));" (%40, %35, %6) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_365: assert (~({{0}}) | ({{1}} == {{2}}));" (%40, %37, %7) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_366: assert (~({{0}}) | ({{1}} == {{2}}));" (%40, %39, %8) : i1, i1, i1
         hw.output %25 : i8
     }
     hw.module @Gen_unq1(%a: i8) -> (y: i8) {
@@ -97,6 +121,28 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %25 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : i1, i1, i1, i1, i1, i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_367: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %26, %0) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_368: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %27, %1) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_369: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %28, %2) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_370: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %29, %3) : i1, i1, i1
+        %30 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_371: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %31, %30) : i1, i1, i1
+        %32 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_372: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %33, %32) : i1, i1, i1
+        %34 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_373: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %35, %34) : i1, i1, i1
+        %36 = hw.constant 0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_374: assert (~({{0}}) | ({{1}} == {{2}}));" (%0, %37, %36) : i1, i1, i1
+        %39 = hw.constant -1 : i1
+        %38 = comb.xor %39, %0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_375: assert (~({{0}}) | ({{1}} == {{2}}));" (%38, %26, %0) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_376: assert (~({{0}}) | ({{1}} == {{2}}));" (%38, %27, %1) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_377: assert (~({{0}}) | ({{1}} == {{2}}));" (%38, %28, %2) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_378: assert (~({{0}}) | ({{1}} == {{2}}));" (%38, %29, %3) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_379: assert (~({{0}}) | ({{1}} == {{2}}));" (%38, %31, %5) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_380: assert (~({{0}}) | ({{1}} == {{2}}));" (%38, %33, %6) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_381: assert (~({{0}}) | ({{1}} == {{2}}));" (%38, %35, %7) : i1, i1, i1
+        sv.verbatim "always @(*) WHEN_ASSERT_382: assert (~({{0}}) | ({{1}} == {{2}}));" (%38, %37, %8) : i1, i1, i1
         hw.output %25 : i8
     }
     hw.module @test_when_unique(%a: i8) -> (y: i8) {

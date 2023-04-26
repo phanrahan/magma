@@ -14,6 +14,11 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
+        %6 = comb.and %0, %1 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_2: assert (~({{0}}) | ({{1}} == {{2}}));" (%6, %4, %3) : i1, i1, i1
+        %8 = hw.constant -1 : i1
+        %7 = comb.xor %8, %0 : i1
+        sv.verbatim "always @(*) WHEN_ASSERT_3: assert (~({{0}}) | ({{1}} == {{2}}));" (%7, %4, %2) : i1, i1, i1
         hw.output %4 : i1
     }
 }
