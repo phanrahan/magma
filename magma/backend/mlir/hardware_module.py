@@ -921,7 +921,7 @@ class ModuleVisitor:
                             assert isinstance(curr.name, ArrayRef)
                             idxs.append(curr.name._index)
                             curr = curr.name.parent_value
-                    for i in idxs:
+                    for i in reversed(idxs):
                         if isinstance(i, slice):
                             # convert to tuple for hashing
                             i = (i.start, i.stop, i.step)
