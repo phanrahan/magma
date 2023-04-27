@@ -744,8 +744,12 @@ class DefineCircuitKind(CircuitKind):
             # block. Therefore we have to stash it in a local variable to be
             # able to raise it later.
             error = e
+        # NOTE(rsetaluri): We need to use object.__getattribute__ to avoid
+        # potential infinite loops. See
+        # https://github.com/phanrahan/magma/pull/1263.
+        instances = object.__getattribute__(self, "instances")
         try:
-            return only(filter(lambda i: i.name == attr, self.instances))
+            return only(filter(lambda i: i.name == attr, instances))
         except IterableException:
             pass
         raise error from None
@@ -756,7 +760,12 @@ class DefineCircuitKind(CircuitKind):
 
     @property
     def instances(self):
-        return self._context_.placer.instances()
+        # NOTE(rsetaluri): We need to use object.__getattribute__ here because
+        # the instances() property might get called in the __getattr__ pipeline
+        # resulting in an infinite loop. See
+        # https://github.com/phanrahan/magma/pull/1263.
+        context = object.__getattribute__(self, "_context_")
+        return context.placer.instances()
 
     @property
     def logs(self):
