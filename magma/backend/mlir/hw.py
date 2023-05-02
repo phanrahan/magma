@@ -32,6 +32,12 @@ class StructType(MlirType):
         field_str = ", ".join(f"{k}: {t.emit()}" for k, t in self.fields)
         return f"!hw.struct<{field_str}>"
 
+    def get_field(self, field: str) -> MlirType:
+        for key, value in self.fields:
+            if key == field:
+                return value
+        raise KeyError(f"Could not find struct key {field} in {self.emit()}")
+
 
 @dataclasses.dataclass(frozen=True)
 class InOutType(MlirType):

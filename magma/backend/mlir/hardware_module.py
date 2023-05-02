@@ -339,6 +339,12 @@ class ModuleVisitor:
         hw.ArrayGetOp(operands=[arr, start], results=[operand])
         return operand
 
+    @functools.lru_cache()
+    def make_struct_ref(self, struct: MlirValue, i: str) -> MlirValue:
+        operand = self.ctx.new_value(struct.type.get_field(i))
+        hw.StructExtractOp(field=i, operands=[struct], results=[operand])
+        return operand
+
     def make_concat(self, operands, result):
         """Collect single elements and put them into an array create op,
         this allows slices to be concatenated with the surround elements.

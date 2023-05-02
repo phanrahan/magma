@@ -112,14 +112,14 @@ class WhenCompiler:
         """Search ancestor tree until we find either not an Array or we find a
         an array that is in the index map"""
         for ref in val.name.root_iter(
-            stop_if=lambda ref: not isinstance(ref, ArrayRef)
+            stop_if=lambda ref: not isinstance(ref, DerivedRef)
         ):
             try:
-                idx = to_index[ref.array]
+                idx = to_index[ref.parent_value]
             except KeyError:
                 pass  # try next parent
             else:
-                return collection[idx], ref.array
+                return collection[idx], ref.parent_value
         return None, None  # didn't find parent
 
     def _check_array_child_wire(self, val, collection, to_index):
@@ -138,6 +138,10 @@ class WhenCompiler:
                 self.index += (idx, )
                 return self
 
+            def __getattr__(self, idx):
+                self.index += (idx, )
+                return self
+
         builder = _IndexBuilder()
         make_selector(val, stop_at=parent).select(builder)
         return wire, builder.index
@@ -152,7 +156,11 @@ class WhenCompiler:
             # convert to tuple for hashing
             i = (i.start, i.stop, i.step)
         with push_block(self._outer_block):
-            operand = self._module_visitor.make_array_ref(wire, i)
+            if isinstance(wire.type, (hw.ArrayType, builtin.IntegerType)):
+                operand = self._module_visitor.make_array_ref(wire, i)
+            else:
+                assert isinstance(wire.type, hw.StructType)
+                operand = self._module_visitor.make_struct_ref(wire, i)
         return self._make_operand(operand, index[1:])
 
     def _build_wire_map(self, connections):
@@ -193,6 +201,8 @@ class WhenCompiler:
         populate the elements of an array create op"""
         if isinstance(T, builtin.IntegerType):
             return [None for _ in range(T.n)]
+        if isinstance(T, hw.StructType):
+            return {k: self._make_arr_list(v) for k, v in T.fields}
         assert isinstance(T, hw.ArrayType), T
         return [self._make_arr_list(T.T) for _ in range(T.dims[0])]
 
@@ -216,6 +226,14 @@ class WhenCompiler:
         result = self._module_visitor.ctx.new_value(T)
         if not isinstance(T, builtin.IntegerType):
             # recursive combine children
+            if isinstance(T, hw.StructType):
+                value = [self._combine_array_assign(v, value[k])
+                         for k, v in T.fields]
+                hw.StructCreateOp(
+                    operands=value,
+                    results=[result])
+                return result
+            assert isinstance(T, hw.ArrayType)
             assert len(T.dims) == 1, "Expected 1d array"
             value = [self._combine_array_assign(T.T, value[i])
                      for i in range(T.dims[0])]

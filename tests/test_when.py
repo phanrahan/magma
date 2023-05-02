@@ -313,18 +313,24 @@ def test_multiple_drivers():
     update_gold(__file__, "test_when_multiple_drivers.mlir")
 
 
-@pytest.mark.parametrize('T, bits_to_fault_value', [
-    (m.Bits[8], lambda x: x),
+@pytest.mark.parametrize('T, bits_to_fault_value, flatten_all_tuples', [
+    (m.Bits[8], lambda x: x, True),
     (
         m.AnonProduct[{"x": m.Bit, "y": m.Bits[7]}],
         lambda x: (bool(x[7]), int(x[:7])),
-    )
+        False
+    ),
+    (
+        m.AnonProduct[{"x": m.Bit, "y": m.Bits[7]}],
+        lambda x: (bool(x[7]), int(x[:7])),
+        True
+    ),
 ])
-def test_memory(T, bits_to_fault_value):
+def test_memory(T, bits_to_fault_value, flatten_all_tuples):
     T_str = type_to_sanitized_string(T)
 
     class test_when_memory(m.Circuit):
-        name = f"test_when_memory_{T_str}"
+        name = f"test_when_memory_{T_str}_{flatten_all_tuples}"
         io = m.IO(
             data0=m.In(T), addr0=m.In(m.Bits[5]), en0=m.In(m.Bit),
             data1=m.In(T), addr1=m.In(m.Bits[5]), en1=m.In(m.Bit),
@@ -341,10 +347,16 @@ def test_memory(T, bits_to_fault_value):
         with m.otherwise():
             io.out @= m.from_bits(T, m.Bits[8](0xFF))
 
-    m.compile(f"build/test_when_memory_{T_str}", test_when_memory,
-              output="mlir", flatten_all_tuples=True)
+    m.compile(f"build/test_when_memory_{T_str}_{flatten_all_tuples}",
+              test_when_memory, flatten_all_tuples=flatten_all_tuples,
+              output="mlir")
 
-    if check_gold(__file__, f"test_when_memory_{T_str}.mlir"):
+    if not flatten_all_tuples:
+        # TODO(leonardt): fault does not support unflattened tuples
+        assert check_gold(__file__, f"test_when_memory_{T_str}_False.mlir")
+        return
+
+    if check_gold(__file__, f"test_when_memory_{T_str}_True.mlir"):
         return
 
     tester = f.SynchronousTester(test_when_memory, clock=test_when_memory.CLK)
@@ -380,7 +392,7 @@ def test_memory(T, bits_to_fault_value):
                            magma_opts={"flatten_all_tuples": True},
                            flags=['-Wno-UNUSED'])
 
-    update_gold(__file__, f"test_when_memory_{T_str}.mlir")
+    update_gold(__file__, f"test_when_memory_{T_str}_True.mlir")
 
 
 @pytest.mark.parametrize(
