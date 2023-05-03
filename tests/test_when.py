@@ -1122,7 +1122,8 @@ def test_when_output_resolve2():
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_spurious_assign():
+@pytest.mark.parametrize('flatten', [True, False])
+def test_when_spurious_assign(flatten):
 
     class U(m.Product):
         x = m.Bits[8]
@@ -1133,7 +1134,7 @@ def test_when_spurious_assign():
         y = U
 
     class _Test(m.Circuit):
-        name = "test_when_spurious_assign"
+        name = f"test_when_spurious_assign_{flatten}"
         io = m.IO(x=m.In(m.Bits[8]),
                   y=m.In(m.Bit),
                   z=m.In(m.Bits[2]),
@@ -1158,7 +1159,7 @@ def test_when_spurious_assign():
         reg.CE.rewire(io.z[0])
 
     m.compile(f"build/{_Test.name}", _Test,
-              output="mlir", flatten_all_tuples=True)
+              output="mlir", flatten_all_tuples=flatten)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
