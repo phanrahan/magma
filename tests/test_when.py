@@ -665,8 +665,7 @@ def test_nested_otherwise():
                 io.O @= io.I
 
     m.compile("build/test_when_nested_otherwise",
-              test_when_nested_otherwise, output="mlir",
-              flatten_all_tuples=True)
+              test_when_nested_otherwise, output="mlir")
 
     assert check_gold(__file__, "test_when_nested_otherwise.mlir")
 
