@@ -1156,7 +1156,7 @@ def test_when_spurious_assign(flatten):
             reg.I.y.y @= ~io.y
 
         reg.I.x @= io.x
-        reg.CE.rewire(io.z[0])
+        reg.CE @= io.z[0]
 
     m.compile(f"build/{_Test.name}", _Test,
               output="mlir", flatten_all_tuples=flatten)
