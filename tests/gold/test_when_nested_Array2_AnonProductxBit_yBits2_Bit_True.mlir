@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @test_when_nested_Array2_AnonProductxBit_yBits2_Bit(%I_0_0_x: i1, %I_0_0_y: i2, %I_0_1_x: i1, %I_0_1_y: i2, %I_1_0_x: i1, %I_1_0_y: i2, %I_1_1_x: i1, %I_1_1_y: i2, %S: i1) -> (O_0_x: i1, O_0_y: i2, O_1_x: i1, O_1_y: i2) {
+    hw.module @test_when_nested_Array2_AnonProductxBit_yBits2_Bit_True(%I_0_0_x: i1, %I_0_0_y: i2, %I_0_1_x: i1, %I_0_1_y: i2, %I_1_0_x: i1, %I_1_0_y: i2, %I_1_1_x: i1, %I_1_1_y: i2, %S: i1) -> (O_0_x: i1, O_0_y: i2, O_1_x: i1, O_1_y: i2) {
         %4 = sv.reg : !hw.inout<i1>
         %0 = sv.read_inout %4 : !hw.inout<i1>
         %5 = sv.reg : !hw.inout<i2>

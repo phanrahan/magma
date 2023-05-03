@@ -313,7 +313,7 @@ def test_multiple_drivers():
     update_gold(__file__, "test_when_multiple_drivers.mlir")
 
 
-@pytest.mark.parametrize('T, bits_to_fault_value, flatten_all_tuples', [
+@pytest.mark.parametrize('T, bits_to_fault_value, flatten', [
     (m.Bits[8], lambda x: x, True),
     (
         m.AnonProduct[{"x": m.Bit, "y": m.Bits[7]}],
@@ -326,11 +326,11 @@ def test_multiple_drivers():
         True
     ),
 ])
-def test_memory(T, bits_to_fault_value, flatten_all_tuples):
+def test_memory(T, bits_to_fault_value, flatten):
     T_str = type_to_sanitized_string(T)
 
     class test_when_memory(m.Circuit):
-        name = f"test_when_memory_{T_str}_{flatten_all_tuples}"
+        name = f"test_when_memory_{T_str}_{flatten}"
         io = m.IO(
             data0=m.In(T), addr0=m.In(m.Bits[5]), en0=m.In(m.Bit),
             data1=m.In(T), addr1=m.In(m.Bits[5]), en1=m.In(m.Bit),
@@ -347,16 +347,16 @@ def test_memory(T, bits_to_fault_value, flatten_all_tuples):
         with m.otherwise():
             io.out @= m.from_bits(T, m.Bits[8](0xFF))
 
-    m.compile(f"build/test_when_memory_{T_str}_{flatten_all_tuples}",
-              test_when_memory, flatten_all_tuples=flatten_all_tuples,
+    m.compile(f"build/test_when_memory_{T_str}_{flatten}",
+              test_when_memory, flatten_all_tuples=flatten,
               output="mlir")
 
-    if not flatten_all_tuples:
+    if not flatten:
         # TODO(leonardt): fault does not support unflattened tuples
-        assert check_gold(__file__, f"test_when_memory_{T_str}_False.mlir")
+        assert check_gold(__file__, f"test_when_memory_{T_str}_{flatten}.mlir")
         return
 
-    if check_gold(__file__, f"test_when_memory_{T_str}_True.mlir"):
+    if check_gold(__file__, f"test_when_memory_{T_str}_{flatten}.mlir"):
         return
 
     tester = f.SynchronousTester(test_when_memory, clock=test_when_memory.CLK)
@@ -389,10 +389,10 @@ def test_memory(T, bits_to_fault_value, flatten_all_tuples):
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"),
-                           magma_opts={"flatten_all_tuples": True},
+                           magma_opts={"flatten_all_tuples": flatten},
                            flags=['-Wno-UNUSED'])
 
-    update_gold(__file__, f"test_when_memory_{T_str}_True.mlir")
+    update_gold(__file__, f"test_when_memory_{T_str}_{flatten}.mlir")
 
 
 @pytest.mark.parametrize(
@@ -404,11 +404,12 @@ def test_memory(T, bits_to_fault_value, flatten_all_tuples):
          [(0b10, 0b1), (0b01, 0b0)])
     ]
 )
-def test_nested(T, x):
+@pytest.mark.parametrize('flatten', [True, False])
+def test_nested(T, x, flatten):
     T_str = type_to_sanitized_string(T)
 
     class test_when_nested(m.Circuit):
-        name = f"test_when_nested_{T_str}"
+        name = f"test_when_nested_{T_str}_{flatten}"
         io = m.IO(I=m.In(m.Array[2, T]),
                   S=m.In(m.Bit),
                   O=m.Out(T))
@@ -417,10 +418,15 @@ def test_nested(T, x):
         with m.when(io.S):
             io.O @= io.I[0]
 
-    m.compile(f"build/test_when_nested_{T_str}", test_when_nested,
-              output="mlir", flatten_all_tuples=True)
+    m.compile(f"build/test_when_nested_{T_str}_{flatten}", test_when_nested,
+              output="mlir", flatten_all_tuples=flatten)
 
-    if check_gold(__file__, f"test_when_nested_{T_str}.mlir"):
+    if not flatten:
+        # TODO(leonardt): fault does not support unflattened tuples
+        assert check_gold(__file__, f"test_when_nested_{T_str}_{flatten}.mlir")
+        return
+
+    if check_gold(__file__, f"test_when_nested_{T_str}_{flatten}.mlir"):
         return
 
     tester = f.Tester(test_when_nested)
@@ -435,8 +441,8 @@ def test_nested(T, x):
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"),
-                           magma_opts={"flatten_all_tuples": True})
-    update_gold(__file__, f"test_when_nested_{T_str}.mlir")
+                           magma_opts={"flatten_all_tuples": flatten})
+    update_gold(__file__, f"test_when_nested_{T_str}_{flatten}.mlir")
 
 
 def test_non_port():
