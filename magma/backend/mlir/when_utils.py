@@ -123,8 +123,8 @@ class WhenCompiler:
         return None, None  # didn't find parent
 
     def _check_array_child_wire(self, val, collection, to_index):
-        """If val is a child of an array in the index map, get the parent wire
-        (so we add to a collection of drivers for a bulk assign)
+        """If val is a child of an array or tuple in the index map, get the
+        parent wire (so we add to a collection of drivers for a bulk assign)
         """
         wire, parent = self._get_parent(val, collection, to_index)
         if wire is None:
@@ -196,20 +196,22 @@ class WhenCompiler:
                     wire_map[drivee_wire] = operand
         return wire_map
 
-    def _make_arr_list(self, T):
-        """Create a nested list structure matching the dimensions of T, used to
-        populate the elements of an array create op"""
+    def _make_recursive_collection(self, T):
+        """Create a nested data structure matching T, used to populate the
+        elements of an array or struct create op
+        """
         if isinstance(T, builtin.IntegerType):
             return [None for _ in range(T.n)]
         if isinstance(T, hw.StructType):
-            return {k: self._make_arr_list(v) for k, v in T.fields}
+            return {k: self._make_recursive_collection(v) for k, v in T.fields}
         assert isinstance(T, hw.ArrayType), T
-        return [self._make_arr_list(T.T) for _ in range(T.dims[0])]
+        return [self._make_recursive_collection(T.T) for _ in range(T.dims[0])]
 
-    def _build_array_value(self, T, value):
-        """Unpack the contents of value into a nested list structure"""
-        # TODO(leonardt): we could use an ndarray here, would simplify indexing
-        arr = self._make_arr_list(T)
+    def _populate_recursive_collection(self, T, value):
+        """Unpack the contents of value into the corresponding nested structure
+        create in `_make_recursive_collection`
+        """
+        arr = self._make_recursive_collection(T)
         for idx, elem in value.items():
             curr = arr
             for i in idx[:-1]:  # descend up to last index
@@ -217,7 +219,15 @@ class WhenCompiler:
             curr[idx[-1]] = elem  # use last index for setitem
         return arr
 
-    def _combine_array_assign(self, T, value):
+    def _create_struct_from_collection(self, T, value, result):
+        value = [self._create_from_recursive_collection(v, value[k])
+                 for k, v in T.fields]
+        hw.StructCreateOp(
+            operands=value,
+            results=[result])
+        return result
+
+    def _create_from_recursive_collection(self, T, value):
         """Sort drivers by index, use concat or create depending on type"""
         if isinstance(value, MlirValue):
             return value  # found whole value, no need to combine
@@ -227,15 +237,10 @@ class WhenCompiler:
         if not isinstance(T, builtin.IntegerType):
             # recursive combine children
             if isinstance(T, hw.StructType):
-                value = [self._combine_array_assign(v, value[k])
-                         for k, v in T.fields]
-                hw.StructCreateOp(
-                    operands=value,
-                    results=[result])
-                return result
+                return self._create_struct_from_collection(T, value, result)
             assert isinstance(T, hw.ArrayType)
             assert len(T.dims) == 1, "Expected 1d array"
-            value = [self._combine_array_assign(T.T, value[i])
+            value = [self._create_from_recursive_collection(T.T, value[i])
                      for i in range(T.dims[0])]
         # Filter None elements (indices covered by a previous slice)
         value = [x for x in reversed(value) if x is not None]
@@ -246,14 +251,16 @@ class WhenCompiler:
         """
         * _build_wire_map: contructs mapping from output wire to driver
 
-        * _build_array_value,
-          _combine_array_assign: handle collection elaborated drivers for a bulk
-                                 assign
+        * _populate_recursive_collection,
+          _create_from_recursive_collection: handle collection of elaborated
+                                             drivers for a bulk assign
         """
         for wire, value in self._build_wire_map(connections).items():
             if isinstance(value, dict):
-                value = self._build_array_value(wire.type.T, value)
-                value = self._combine_array_assign(wire.type.T, value)
+                value = self._populate_recursive_collection(wire.type.T, value)
+                value = self._create_from_recursive_collection(
+                    wire.type.T, value
+                )
             sv.BPAssignOp(operands=[wire, value])
 
     def _process_connections(self, block):
