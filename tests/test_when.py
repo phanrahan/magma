@@ -1180,7 +1180,8 @@ def test_reg_ce_implicit_override():
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_tuple_bulk_resolve(caplog):
+@pytest.mark.parametrize('flatten', [True, False])
+def test_when_tuple_bulk_resolve(caplog, flatten):
 
     class V(m.Product):
         x = m.Bits[8]
@@ -1195,7 +1196,7 @@ def test_when_tuple_bulk_resolve(caplog):
         y = U
 
     class _Test(m.Circuit):
-        name = "test_when_tuple_bulk_resolve"
+        name = f"test_when_tuple_bulk_resolve_{flatten}"
         io = m.IO(I=m.In(T), S=m.In(m.Bits[2]), O=m.Out(T))
 
         x = m.Register(T)(name="x")
@@ -1214,7 +1215,7 @@ def test_when_tuple_bulk_resolve(caplog):
 
     assert not caplog.messages
     m.compile(f"build/{_Test.name}", _Test, output="mlir",
-              flatten_all_tuples=True)
+              flatten_all_tuples=flatten)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
