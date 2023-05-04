@@ -11,7 +11,7 @@ from magma.backend.mlir.mlir import get_block_stack, MlirValue, push_block
 from magma.backend.mlir.sv import sv
 from magma.common import sort_by_value
 from magma.primitives.when import iswhen
-from magma.ref import ArrayRef, TupleRef, DerivedRef
+from magma.ref import TupleRef, DerivedRef
 from magma.value_utils import make_selector
 
 
@@ -56,7 +56,10 @@ class WhenCompiler:
 
         def _index_map_visit(value):
             nonlocal counter, value_to_index
-            if isinstance(value.name, TupleRef) and value in value_to_index:
+            if (
+                self._flatten_all_tuples and
+                isinstance(value.name, TupleRef) and value in value_to_index
+            ):
                 # tuples are flattened by the
                 # `visit_magma_value_or_value_wrapper_by_direction`, so we avoid
                 # adding them twice which invalidates the count logic
