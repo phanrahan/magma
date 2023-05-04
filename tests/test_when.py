@@ -1269,12 +1269,14 @@ def test_when_2d_array_assign():
     assert check_gold(__file__, "test_when_2d_array_assign.mlir")
 
 
-def test_when_nested_array_assign():
+@pytest.mark.parametrize('flatten', [True, False])
+def test_when_nested_array_assign(flatten):
     class T(m.Product):
         x = m.Bit
         y = m.Tuple[m.Bit, m.Bits[8]]
 
     class test_when_nested_array_assign(m.Circuit):
+        name = f"test_when_nested_array_assign_{flatten}"
         io = m.IO(I=m.In(T), S=m.In(m.Bit),
                   O=m.Out(T))
         io.O.x @= io.I.x
@@ -1285,11 +1287,11 @@ def test_when_nested_array_assign():
         with m.otherwise():
             io.O.y[1] @= io.I.y[1][::-1]
 
-    m.compile("build/test_when_nested_array_assign",
+    m.compile(f"build/test_when_nested_array_assign_{flatten}",
               test_when_nested_array_assign, output="mlir",
-              flatten_all_tuples=True)
+              flatten_all_tuples=flatten)
 
-    assert check_gold(__file__, "test_when_nested_array_assign.mlir")
+    assert check_gold(__file__, f"test_when_nested_array_assign_{flatten}.mlir")
 
 
 def test_when_partial_assign_order():
