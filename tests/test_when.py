@@ -1445,7 +1445,8 @@ def test_when_unique():
     assert check_gold(__file__, "test_when_unique.mlir")
 
 
-def test_when_tuple_as_bits_resolve():
+@pytest.mark.parametrize('flatten', [True, False])
+def test_when_tuple_as_bits_resolve(flatten):
 
     class V(m.Product):
         x = m.Bits[8]
@@ -1461,6 +1462,7 @@ def test_when_tuple_as_bits_resolve():
         y = m.Bits[8]
 
     class test_when_tuple_as_bits_resolve(m.Circuit):
+        name = f"test_when_tuple_as_bits_resolve_{flatten}"
         io = m.IO(I=m.In(U), S=m.In(m.Bit),
                   O=m.Out(U), X=m.Out(m.Bits[U.flat_length()]))
         io.O.y @= io.I.y
@@ -1475,10 +1477,11 @@ def test_when_tuple_as_bits_resolve():
             io.O @= io.I
         io.X @= m.as_bits(io.O.value())
 
-    m.compile("build/test_when_tuple_as_bits_resolve",
+    m.compile(f"build/test_when_tuple_as_bits_resolve_{flatten}",
               test_when_tuple_as_bits_resolve, output="mlir",
-              flatten_all_tuples=True, disallow_local_variables=True)
-    assert check_gold(__file__, "test_when_tuple_as_bits_resolve.mlir")
+              flatten_all_tuples=flatten, disallow_local_variables=True)
+    assert check_gold(__file__,
+                      f"test_when_tuple_as_bits_resolve_{flatten}.mlir")
 
 
 def test_when_alwcomb_order():
