@@ -7,6 +7,9 @@ import subprocess
 import sys
 from typing import List, Optional
 
+import circt
+import circt.passmanager
+
 from magma.backend.mlir.common import try_call
 from magma.backend.mlir.errors import MlirCompilerError
 from magma.config import config, EnvConfig
@@ -145,6 +148,32 @@ def circt_opt_binary_exists() -> bool:
     except (FileNotFoundError, PermissionError):
         return False
     return returncode == 0
+
+
+def mlir_to_verilog_python_api(
+        istream: io.RawIOBase,
+        ostream: io.RawIOBase,
+        opts: MlirToVerilogOpts = MlirToVerilogOpts(),
+):
+    ir = io.TextIOWrapper(istream).read()
+    with circt.ir.Context() as ctx:
+        circt.register_dialects(ctx)
+        module = circt.ir.Module.parse(ir)
+        passes = [
+            "lower-seq-to-sv",
+            "canonicalize",
+            "hw.module(hw-cleanup)",
+            "hw.module(prettify-verilog)",
+        ]
+        pass_string = ",".join(passes)
+        pm = circt.passmanager.PassManager.parse(
+            f"builtin.module({pass_string})"
+        )
+        pm.run(module.operation)
+    if opts.split_verilog:
+        circt.export_split_verilog(module, "")
+    else:
+        circt.export_verilog(module, io.TextIOWrapper(ostream))
 
 
 def mlir_to_verilog(

@@ -7,6 +7,7 @@ from magma.backend.mlir.mlir_to_verilog import (
     circt_opt_binary_exists,
     circt_opt_version,
     mlir_to_verilog,
+    mlir_to_verilog_python_api,
     MlirToVerilogError,
     MlirToVerilogOpts,
 )
@@ -24,13 +25,18 @@ def _skip_if_circt_opt_binary_does_not_exist():
 
 
 def _run_test(input_: Optional[str] = None, **kwargs):
+    use_python_api = kwargs.pop("use_python_api", False)
     istream = io.TextIOWrapper(io.BytesIO())
     ostream = io.TextIOWrapper(io.BytesIO())
     if input_ is not None:
         istream.write(input_)
         istream.seek(0)
     opts = MlirToVerilogOpts(**kwargs)
-    mlir_to_verilog(istream.buffer, ostream.buffer, opts)
+    if use_python_api:
+        func = mlir_to_verilog_python_api
+    else:
+        func = mlir_to_verilog
+    func(istream.buffer, ostream.buffer, opts)
     return istream, ostream
 
 
@@ -39,9 +45,11 @@ def test_no_binary(_with_nonexistent_circt_home):
         _run_test()
 
 
-def test_basic():
-    _skip_if_circt_opt_binary_does_not_exist()
-    _, __ = _run_test()
+@pytest.mark.parametrize("use_python_api", (False, True))
+def test_basic(use_python_api):
+    if not use_python_api:
+        _skip_if_circt_opt_binary_does_not_exist()
+    _, __ = _run_test(use_python_api=use_python_api)
 
 
 def test_module():
