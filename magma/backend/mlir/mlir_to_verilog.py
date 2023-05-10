@@ -147,6 +147,34 @@ def circt_opt_binary_exists() -> bool:
     return returncode == 0
 
 
+def mlir_to_verilog_python_api(
+        istream: io.RawIOBase,
+        ostream: io.RawIOBase = sys.stdout,
+        opts: MlirToVerilogOpts = MlirToVerilogOpts(),
+):
+    try:
+        import circt
+        import circt.passmanager
+    except ImportError:
+        raise MlirToVerilogError("Could not import circt")
+    ir = io.TextIOWrapper(istream).read()
+    with circt.ir.Context() as ctx:
+        circt.register_dialects(ctx)
+        module = circt.ir.Module.parse(ir)
+        passes = [
+            "lower-seq-to-sv",
+            "canonicalize",
+            "hw.module(hw-cleanup)",
+            "hw.module(prettify-verilog)",
+        ]
+        pass_string = ",".join(passes)
+        pm = circt.passmanager.PassManager.parse(
+            f"builtin.module({pass_string})"
+        )
+        pm.run(module.operation)
+    circt.export_verilog(module, ostream)
+
+
 def mlir_to_verilog(
         istream: io.RawIOBase,
         ostream: io.RawIOBase = sys.stdout,
