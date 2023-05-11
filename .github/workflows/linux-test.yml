@@ -32,8 +32,8 @@ jobs:
       shell: bash
       run: |
         pushd ~
-        sudo apt-get update
-        sudo apt-get install -y cmake zlib ninja
+        sudo apt-get update -y
+        sudo apt-get install -y cmake zlib1g-dev ninja-build
         git clone https://github.com/llvm/circt
         cd circt
         git submodule init
