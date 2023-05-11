@@ -29,7 +29,6 @@ jobs:
         path: ~/circt
     - if: ${{ steps.cache-circt.outputs.cache-hit != 'true' }}
       name: Build CIRCT
-      shell: bash
       run: |
         pushd ~
         sudo apt-get update -y
