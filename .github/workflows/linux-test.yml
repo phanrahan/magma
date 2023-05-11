@@ -72,7 +72,7 @@ jobs:
         python setup.py install
     - name: Test with pytest
       run: |
-        export PATH=$PWD/circt/build/bin:$PATH
+        export PATH=$HOME/circt/build/bin:$PATH
         py.test --cov magma -v --cov-report term-missing tests
         pycodestyle magma/
     - name: Smoke test package
