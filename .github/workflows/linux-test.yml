@@ -11,6 +11,8 @@ jobs:
   test:
 
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/circt/images/circt-ci-build:20230126201226
     strategy:
       matrix:
         python-version: ['3.8', '3.10']
@@ -21,6 +23,33 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Build CIRCT
+      run: |
+        git clone git@github.com:llvm/circt.git
+        cd circt
+        git submodule init
+        git submodule update
+        cd llvm
+        git fetch --unshallow
+        mkdir build
+        cd build
+        cmake -G Ninja ../llvm \
+          -DLLVM_ENABLE_PROJECTS="mlir" \
+          -DLLVM_TARGETS_TO_BUILD="host" \
+          -DLLVM_ENABLE_ASSERTIONS=ON \
+          -DCMAKE_BUILD_TYPE=RELEASE
+        ninja
+        cd ../..
+        mkdir build
+        cd build
+        cmake -G Ninja .. \
+          -DMLIR_DIR=$PWD/../llvm/build/lib/cmake/mlir \
+          -DLLVM_DIR=$PWD/../llvm/build/lib/cmake/llvm \
+          -DLLVM_ENABLE_ASSERTIONS=ON \
+          -DCMAKE_BUILD_TYPE=RELEASE \
+          -DCIRCT_RELEASE_TAG_ENABLED=ON
+        ninja
+        cd ..
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -35,6 +64,7 @@ jobs:
         python setup.py install
     - name: Test with pytest
       run: |
+        export PATH=$PWD/circt/build/bin:$PATH
         py.test --cov magma -v --cov-report term-missing tests
         pycodestyle magma/
     - name: Smoke test package
@@ -42,6 +72,6 @@ jobs:
         pushd /tmp
         python -c "import magma"
         popd
-    - name: Test with pytest
+    - name: Upload coverage
       run: |
         bash <(curl -s https://codecov.io/bash)
