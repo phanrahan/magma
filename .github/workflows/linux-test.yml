@@ -31,6 +31,7 @@ jobs:
         path: ~/circt
     - if: ${{ steps.cache-circt.outputs.cache-hit != 'true' }}
       name: Build CIRCT
+      shell: bash
       run: |
         pushd ~
         git clone https://github.com/llvm/circt
