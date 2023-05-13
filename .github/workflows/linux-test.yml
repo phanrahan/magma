@@ -30,6 +30,7 @@ jobs:
     - if: ${{ steps.cache-circt.outputs.cache-hit != 'true' }}
       name: Build CIRCT
       run: |
+        export CIRCT_HASH=$(<circt-hash.txt)
         pushd ~
         sudo apt-get update -y
         sudo apt-get install -y cmake zlib1g-dev ninja-build
@@ -37,7 +38,7 @@ jobs:
         cd circt
         git submodule init
         git submodule update
-        git checkout $(<circt-hash.txt)
+        git checkout $CIRCT_HASH
         cd llvm
         git fetch --unshallow
         mkdir build
