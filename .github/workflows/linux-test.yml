@@ -37,8 +37,8 @@ jobs:
         git clone https://github.com/llvm/circt
         cd circt
         git submodule init
-        git submodule update
         git checkout $CIRCT_HASH
+        git submodule update
         cd llvm
         git fetch --unshallow
         mkdir build
