@@ -17,10 +17,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Check CIRCT cache
       id: cache-circt
       uses: actions/cache@v3
@@ -60,6 +62,7 @@ jobs:
           -DCIRCT_RELEASE_TAG_ENABLED=ON
         ninja
         popd
+
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -72,15 +75,18 @@ jobs:
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
         pip install kratos  # test optional dependency
         python setup.py install
+
     - name: Test with pytest
       run: |
         py.test --cov magma -v --cov-report term-missing tests
         pycodestyle magma/
+
     - name: Smoke test package
       run: |
         pushd /tmp
         python -c "import magma"
         popd
+
     - name: Test riscv_mini
       run: |
         cd examples/riscv_mini
@@ -92,6 +98,7 @@ jobs:
         # TODO(leonardt): Merge with top-level coverage
         pytest --pycodestyle tests/ riscv_mini/
         cd -
+
     - name: Upload coverage
       run: |
         bash <(curl -s https://codecov.io/bash)
