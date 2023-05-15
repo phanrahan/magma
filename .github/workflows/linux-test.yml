@@ -26,7 +26,7 @@ jobs:
       uses: actions/cache@v3
       with:
         key: ${{ runner.os }}-build-cache-circt-${{ hashFiles('circt-hash.txt') }}
-        path: ~/circt
+        path: ~/circt/build
     - if: ${{ steps.cache-circt.outputs.cache-hit != 'true' }}
       name: Build CIRCT
       run: |
