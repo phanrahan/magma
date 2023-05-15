@@ -124,8 +124,11 @@ def circt_opt_version() -> str:
     return match["hash"]
 
 
+_EXPECTED_CIRCT_OPT_VERSION = "7abbc4313"
+
+
 def is_supported_circt_opt_version(version: str) -> bool:
-    return version == "7abbc4313"
+    return version == _EXPECTED_CIRCT_OPT_VERSION
 
 
 def circt_opt_binary_exists() -> bool:
@@ -155,7 +158,9 @@ def mlir_to_verilog(
     if opts.check_circt_opt_version:
         version = circt_opt_version()
         if not is_supported_circt_opt_version(version):
-            raise UnsupportedCirctOptVersionError(version)
+            raise UnsupportedCirctOptVersionError(
+                f"Got={version}, expected={_EXPECTED_CIRCT_OPT_VERSION}"
+            )
     circt_home = _circt_home()
     cmd = _circt_opt_cmd(circt_home, opts)
     _logger.debug(f"Running cmd: {' '.join(cmd)}")
