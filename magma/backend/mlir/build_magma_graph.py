@@ -69,39 +69,41 @@ class ModuleContext:
             value: Type,
             index: Any,
             op_maker: Callable,
-            args: Tuple[Any]) -> InstanceWrapper:
+            args: Tuple[Any],
+            inline_ref: bool) -> InstanceWrapper:
         key = (value, index)
         try:
             return self._getter_cache[key]
         except KeyError:
             pass
         getter = op_maker(type(value), *args)
-        _visit_driver(self, getter.I, value, getter)
+        _visit_driver(self, getter.I, value, getter, inline_ref)
         self._getter_cache[key] = getter
         return getter
 
 
 def _visit_driver(
-        ctx: ModuleContext, value: Type, driver: Type, module: ModuleLike):
+        ctx: ModuleContext, value: Type, driver: Type, module: ModuleLike,
+        inline_ref: bool):
     if driver.const():
         if isinstance(driver, Digital):
             as_bool = _const_digital_to_bool(driver)
             const = MagmaBitConstantOp(type(driver), as_bool)
-            info = dict(src=const.O, dst=value)
+            info = dict(src=const.O, dst=value, inline_ref=inline_ref)
             ctx.graph.add_edge(const, module, info=info)
             return
         if isinstance(driver, Bits):
             const = MagmaBitsConstantOp(type(driver), int(driver))
-            info = dict(src=const.O, dst=value)
+            info = dict(src=const.O, dst=value, inline_ref=inline_ref)
             ctx.graph.add_edge(const, module, info=info)
             return
     ref = driver.name
     if isinstance(ref, InstRef):
-        info = dict(src=driver, dst=value)
+        info = dict(src=driver, dst=value, inline_ref=inline_ref)
         ctx.graph.add_edge(ref.inst, module, info=info)
         return
     if isinstance(ref, DefnRef):
-        info = dict(src=driver, dst=value)
+        info = dict(src=driver, dst=value, inline_ref=inline_ref)
         ctx.graph.add_edge(ref.defn, module, info=info)
         return
     if isinstance(ref, AnonRef):
@@ -110,8 +112,8 @@ def _visit_driver(
             creator = MagmaArrayCreateOp(driver)
             for i, element in driver._enumerate_children():
                 creator_input = getattr(creator, f"I{i}")
-                _visit_driver(ctx, creator_input, element, creator)
-            info = dict(src=creator.O, dst=value)
+                _visit_driver(ctx, creator_input, element, creator, inline_ref)
+            info = dict(src=creator.O, dst=value, inline_ref=inline_ref)
             ctx.graph.add_edge(creator, module, info=info)
             return
         if isinstance(driver, m_Tuple):
@@ -119,14 +121,14 @@ def _visit_driver(
             creator = MagmaTupleCreateOp(T)
             for k, element in driver.items():
                 creator_input = getattr(creator, f"I{k}")
-                _visit_driver(ctx, creator_input, element, creator)
-            info = dict(src=creator.O, dst=value)
+                _visit_driver(ctx, creator_input, element, creator, inline_ref)
+            info = dict(src=creator.O, dst=value, inline_ref=inline_ref)
             ctx.graph.add_edge(creator, module, info=info)
             return
         raise NotImplementedError(driver, ref)
     if isinstance(ref, ArrayRef):
         if ref.array.is_mixed():
-            info = dict(src=driver, dst=value)
+            info = dict(src=driver, dst=value, inline_ref=inline_ref)
             src_module = _get_inst_or_defn_or_die(safe_root(ref.array.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
@@ -139,29 +141,29 @@ def _visit_driver(
         else:
             getter_cls, getter_args = MagmaArrayGetOp, (index,)
         getter = ctx.get_or_make_getter(
-            ref.array, index, getter_cls, getter_args)
-        info = dict(src=getter.O, dst=value)
+            ref.array, index, getter_cls, getter_args, inline_ref)
+        info = dict(src=getter.O, dst=value, inline_ref=inline_ref)
         ctx.graph.add_edge(getter, module, info=info)
         return
     if isinstance(ref, TupleRef):
         if ref.tuple.is_mixed() or ctx.opts.flatten_all_tuples:
-            info = dict(src=driver, dst=value)
+            info = dict(src=driver, dst=value, inline_ref=inline_ref)
             src_module = _get_inst_or_defn_or_die(safe_root(ref.tuple.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
         getter = ctx.get_or_make_getter(
-            ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
-        info = dict(src=getter.O, dst=value)
+            ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,), inline_ref)
+        info = dict(src=getter.O, dst=value, inline_ref=inline_ref)
         ctx.graph.add_edge(getter, module, info=info)
         return
     raise NotImplementedError(driver, type(driver), ref, type(ref))
 
 
-def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
+def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike, inline_ref: bool=False):
     driver = value.trace()
     if driver is None:
         raise UnconnectedPortException(value)
-    _visit_driver(ctx, value, driver, module)
+    _visit_driver(ctx, value, driver, module, inline_ref)
 
 
 def _visit_inputs(
@@ -195,5 +197,16 @@ def build_magma_graph(
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
+        if getattr(type(inst), 'inline_verilog_strs', False):
+            for _, references in type(inst).inline_verilog_strs:
+                for ref in references.values():
+                    port = get_magma_value(ref)
+                    visit_value_or_value_wrapper_by_direction(
+                        port,
+                        lambda p: _visit_input(ctx, p, inst, inline_ref=True),
+                        lambda _: None,
+                        flatten_all_tuples=opts.flatten_all_tuples,
+                    )
+                    
     _check_for_when_cycles(ctx.graph)
     return ctx.graph

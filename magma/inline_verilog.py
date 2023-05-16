@@ -42,7 +42,7 @@ def _make_inline_value(
             _make_inline_value(inline_value_map, t)
             for t in reversed(value)
         )
-        return f"'{{{key}}}"
+        return f"{{{key}}}"
     if isinstance(value, Tuple):
         raise NotImplementedError(value)
     key = f"__magma_inline_value_{len(inline_value_map)}"

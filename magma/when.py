@@ -531,7 +531,7 @@ def find_inferred_latches(block: _BlockBase) -> Set:
 
 
 _WHEN_ASSERT_COUNTER = itertools.count()
-_ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (~({cond}) |"
+_ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
                     " ({drivee} == {driver}));")
 
 
@@ -541,12 +541,6 @@ def _emit_when_assert(cond, drivee, driver):
         for x, y in zip(drivee, driver):
             _emit_when_assert(cond, x, y)
         return
-
-    # Add a temporary so that the inline verilog refers to the the shared
-    # value rather than having separate, copied drivers.
-    # temp = type(drivee).undirected_t()
-    # temp @= drivee.value()
-    # drivee.rewire(temp)
 
     from magma.inline_verilog import inline_verilog
     inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=drivee,
