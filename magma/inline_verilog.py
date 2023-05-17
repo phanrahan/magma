@@ -19,6 +19,7 @@ from magma.t import Type, Direction, In
 from magma.tuple import Tuple
 from magma.view import PortView, InstView
 from magma.wire_utils import wire_value_or_port_view, WiringError
+from magma.wire_container import set_skip_when_wire
 
 
 ValueLike = Union[Type, PortView]
@@ -58,8 +59,6 @@ def _build_io(inline_value_map: Mapping[str, ValueLike]) -> IO:
         return io
     io = IO()
     for key, value in inline_value_map.items():
-        if value.is_input():
-            continue
         if isinstance(value, PortView):
             T = value.T
         else:
@@ -100,12 +99,9 @@ def _inline_verilog(
         # connect_references dictionary with a map from key to port.
         connect_references = {}
         for key, value in inline_value_map.items():
-            if value.is_input():
-                connect_references[key] = value
-            else:
-                port = getattr(io, key)
-                port.unused()  # needed so CoreIR knows it's a definition
-                connect_references[key] = port
+            port = getattr(io, key)
+            port.unused()  # needed so CoreIR knows it's a definition
+            connect_references[key] = port
         inline_verilog_strs = [(inline_str, connect_references)]
 
     inline_verilog_modules.append(_InlineVerilog)
@@ -118,8 +114,9 @@ def _inline_verilog(
 
     for key, value in inline_value_map.items():
         try:
-            if not value.is_input():
-                wire_value_or_port_view(getattr(inst, key), value)
+            set_skip_when_wire(True)
+            wire_value_or_port_view(getattr(inst, key), value)
+            set_skip_when_wire(False)
         except WiringError:
             raise InlineVerilogError(
                 f"Found reference to undriven input port: {repr(value)}"

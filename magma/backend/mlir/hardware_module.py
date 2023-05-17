@@ -918,7 +918,7 @@ class ModuleVisitor:
                             operand = self._ctx.get_mapped_value(curr)
                             break
                         except KeyError:
-                            assert isinstance(curr.name, ArrayRef)
+                            assert isinstance(curr.name, ArrayRef), (value, curr)
                             idxs.append(curr.name._index)
                             curr = curr.name.parent_value
                     for i in reversed(idxs):
