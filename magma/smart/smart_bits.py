@@ -2,7 +2,7 @@ import abc
 import dataclasses
 import inspect
 import operator
-from typing import Callable, Union
+from typing import Any, Callable, Optional, Union
 
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta, SInt, reduce as bits_reduce
@@ -416,12 +416,23 @@ class SmartBitsMeta(SmartExprMeta):
         return f"SmartBits[{len(cls._T_)}, {cls._signed_}]"
 
 
+def _make_initializer(
+        value: Optional[Any],
+        T: SmartBitsMeta,
+        name: Optional[str]
+) -> Bits:
+    if value is None:
+        return T._to_magma_()(name=name)
+    size = len(T._T_)
+    if isinstance(value, Bits[size]):
+        return value
+    return Bits[size](value)
+
+
 class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
     def __init__(self, value=None, name=None):
         super().__init__(self)
-        if value is None:
-            value = type(self)._to_magma_()(name=name)
-        self._value = value
+        self._value = _make_initializer(value, type(self), name)
 
     def __len__(self):
         return len(type(self)._T_)
