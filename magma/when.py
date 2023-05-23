@@ -542,9 +542,17 @@ def _emit_when_assert(cond, drivee, driver):
             _emit_when_assert(cond, x, y)
         return
 
+    from magma.wire_container import set_skip_when_wire
+    set_skip_when_wire(True)
+    id = next(_WHEN_ASSERT_COUNTER)
+    temp = type(drivee).undirected_t(name=f"_WHEN_ASSERT_TEMP_{id}")
+    temp @= driver
+    drivee.rewire(temp)
+
     from magma.inline_verilog import inline_verilog
-    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=drivee,
-                   driver=driver, id=next(_WHEN_ASSERT_COUNTER))
+    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=temp,
+                   driver=driver, id=id)
+    set_skip_when_wire(False)
 
 
 def _make_else_cond(block, precond):

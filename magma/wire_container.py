@@ -82,6 +82,7 @@ class Wire:
     def unwire(self, other=None, debug_info=None):
         if other is None:
             if self._driver is None:
+                raise Exception(f"{self._bit}, {self._bit._resolved}")
                 _logger.warning(
                     WiringLog("Unwire called on undriven value {}, ignoring",
                               self._bit),
@@ -435,6 +436,8 @@ def aggregate_wireable_method(fn):
 
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
+        if fn.__name__ in ["wire", "unwire"]:
+            self._check_resolve_parent()
         if self._resolved:
             return fn(self, *args, **kwargs)
         wireable_fn = getattr(AggregateWireable, fn.__name__)

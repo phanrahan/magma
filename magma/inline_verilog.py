@@ -19,7 +19,6 @@ from magma.t import Type, Direction, In
 from magma.tuple import Tuple
 from magma.view import PortView, InstView
 from magma.wire_utils import wire_value_or_port_view, WiringError
-from magma.wire_container import set_skip_when_wire
 
 
 ValueLike = Union[Type, PortView]
@@ -114,9 +113,7 @@ def _inline_verilog(
 
     for key, value in inline_value_map.items():
         try:
-            set_skip_when_wire(True)
             wire_value_or_port_view(getattr(inst, key), value)
-            set_skip_when_wire(False)
         except WiringError:
             raise InlineVerilogError(
                 f"Found reference to undriven input port: {repr(value)}"
