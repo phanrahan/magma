@@ -88,6 +88,18 @@ jobs:
         python -c "import magma"
         popd
 
+    - name: Test riscv_mini
+      run: |
+        cd examples/riscv_mini
+        export PATH=$HOME/circt/build/bin:$PATH
+        pip install -e git+https://github.com/phanrahan/mantle.git#egg=mantle
+        pip install -e git+https://github.com/leonardt/mantle2.git#egg=mantle2
+        pip install pytest pytest-pycodestyle
+        pip install -e .
+        # TODO(leonardt): Merge with top-level coverage
+        pytest --pycodestyle tests/ riscv_mini/
+        cd -
+
     - name: Upload coverage
       run: |
         bash <(curl -s https://codecov.io/bash)
