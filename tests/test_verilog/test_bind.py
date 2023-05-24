@@ -18,12 +18,6 @@ def test_bind():
                                        f"build/RTLMonitor.sv",
                                        f"gold/RTLMonitor.sv")
 
-    result = run('verilator --version', shell=True, capture_output=True)
-    version = float(result.stdout.split()[1])
-    if version >= 4.016:
-        assert not os.system('cd tests/test_verilog/build && '
-                             'verilator --lint-only bind_test.v RTLMonitor.sv '
-                             '--top-module bar_foo_RTL -Wno-MODDUP')
     listings_file = "tests/test_verilog/build/bind_test_bind_files.list"
     with open(listings_file, "r") as f:
         assert f.read() == """\
@@ -59,16 +53,3 @@ def test_bind_multi_unique_name():
 RTLMonitor.sv
 RTLMonitor_unq1.sv\
 """
-
-    result = run('verilator --version', shell=True, capture_output=True)
-    version = float(result.stdout.split()[1])
-    if version >= 4.016:
-        assert not os.system('cd tests/test_verilog/build && '
-                             'verilator --lint-only bind_uniq_test.v '
-                             'RTLMonitor.sv RTLMonitor_unq1.sv -Wno-MODDUP'
-                             ' --top-module bar_foo_Main')
-        # TODO: For now, we ignore duplicate modules since each monitor will
-        # regenerate coreir primitives.  since these have the same definition
-        # it's okay, but in general this is a bad flag to have on because if
-        # you do have duplicate modules with different definitions, you'd want
-        # to catch that

@@ -578,3 +578,16 @@ def test_concat_subnode():
         io.O0 @= O0
 
     return _Test, _Gold
+
+
+def test_constant_constructor():
+    t = m.smart.SmartBits[8](10)
+    value = t.untyped_value()
+    assert isinstance(value, m.Bits[8])
+    assert value.const()
+    assert int(value) == 10
+
+
+def test_bad_constructor():
+    with pytest.raises(TypeError):
+        m.smart.SmartBits[8](object())

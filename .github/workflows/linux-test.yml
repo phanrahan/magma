@@ -78,6 +78,7 @@ jobs:
 
     - name: Test with pytest
       run: |
+        export PATH=$HOME/circt/build/bin:$PATH
         py.test --cov magma -v --cov-report term-missing tests
         pycodestyle magma/
 
