@@ -43,7 +43,8 @@ setup(
         "ast_tools>=0.0.16",
         "staticfg",
         "networkx",
-        "uinspect"
+        "uinspect",
+        "circt==1.42.0",
     ],
     python_requires='>=3.6',
     long_description=long_description,
