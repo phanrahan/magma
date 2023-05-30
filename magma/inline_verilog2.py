@@ -3,6 +3,7 @@ from typing import Iterable, Mapping, Tuple
 from ast_tools.stack import get_symbol_table
 
 from magma.circuit import Circuit
+from magma.common import hash_expr
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.t import In, Kind, Type
@@ -15,7 +16,6 @@ from magma.inline_verilog import (
     ValueLike,
     InlineVerilogError,
 )
-from magma.inline_verilog_expression import _hash_expr
 
 
 ValueLikeMap = Mapping[str, ValueLike]
@@ -59,7 +59,7 @@ class _InlineVerilog2(Generator2):
             for i, T in enumerate(arg_types)
         })
         self.primitive = True
-        self.name = f"InlineVerilog2_{_hash_expr(expr)}"
+        self.name = f"InlineVerilog2_{hash_expr(expr)}"
 
 
 InlineVerilog2 = _InlineVerilog2

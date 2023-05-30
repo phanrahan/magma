@@ -3,6 +3,7 @@ import collections
 import collections.abc
 import dataclasses
 from functools import wraps, partial, reduce
+import hashlib
 import operator
 from typing import Any, Callable, Dict, Iterable
 import warnings
@@ -363,3 +364,9 @@ def find_by_value(
     for k, v in dct.items():
         if eq(v, value):
             yield k
+
+
+def hash_expr(expr: str) -> str:
+    hasher = hashlib.shake_128()
+    hasher.update(expr.encode())
+    return hasher.hexdigest(8)
