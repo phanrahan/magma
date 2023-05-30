@@ -148,3 +148,63 @@ def test_uniquification():
         Foo()(io.I)
 
     _compile_and_check(_Top)
+
+
+
+
+def test_share_default_clocks():
+
+    class _Top(m.Circuit):
+        name = "inline_verilog2_share_default_clocks"
+        io = m.IO(x=m.In(m.Bit), y=m.In(m.Bit)) + m.ClockIO(has_reset=True)
+
+        clk = m.Clock()
+        rst = m.Reset()
+        m.inline_verilog(
+            "assert property (@(posedge {clk}) "
+            "disable iff (! {rst}) {io.x} |-> ##1 {io.y});"
+        )
+        m.inline_verilog(
+            "assert property (@(posedge {clk}) "
+            "disable iff (! {rst}) {io.x} |-> ##1 {io.y});"
+        )
+
+    _compile_and_check(_Top)
+
+
+def test_passthrough_wire():
+
+    class _Top(m.Circuit):
+        name = "test_inline_verilog2_passthrough_wire"
+        T = m.AnonProduct[dict(x=m.Bit, y=m.Bits[4])]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O @= io.I
+
+        m.inline_verilog("assert {io.I.y[0]} == {io.I.y[1]}")
+        m.inline_verilog("assert {io.I.y[1:3]} == {io.I.y[2:4]}")
+
+    _compile_and_check(_Top)
+
+
+def test_clock_output():
+
+    class _Top(m.Circuit):
+        name = "test_inline_verilog2_clock_output"
+        io = m.IO(x=m.In(m.Clock), y=m.In(m.Clock))
+        m.inline_verilog("Foo bar (.x({io.x}), .y({io.y}))")
+
+    _compile_and_check(_Top)
+
+
+def test_wire_insertion_bad_verilog():
+    # See #1133 (https://github.com/phanrahan/magma/issues/1133).
+
+    class _Top(m.Circuit):
+        name = "test_inline_verilog2_wire_insertion_bad_verilog"
+        io = m.IO(I=m.In(m.Bits[32]), O=m.Out(m.Bit))
+        m.inline_verilog("`ifdef LOGGING_ON")
+        m.inline_verilog("$display(\"%x\", {io.I[0]});")
+        m.inline_verilog("`endif LOGGING_ON")
+        io.O @= io.I[0]
+
+    _compile_and_check(_Top)
