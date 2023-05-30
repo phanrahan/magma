@@ -2,6 +2,7 @@ import pytest
 
 import magma as m
 import magma.testing
+from magma.inline_verilog2 import InlineVerilogError
 
 
 def test_simple():
@@ -101,6 +102,55 @@ def test_tuple():
             valid_out=delay.inner_delay.inner_inner_delay.OUTPUT[0].valid,
             ready_out=delay.inner_delay.inner_inner_delay.INPUT[1].ready,
         )
+
+    basename = f"test_{top_name}"
+    m.compile(f"build/{basename}", _Top, output="mlir-verilog")
+    assert m.testing.check_files_equal(
+        __file__,
+        f"build/{basename}.mlir",
+        f"gold/{basename}.mlir",
+    )
+
+
+def test_undriven_port_error():
+
+    def gen():
+
+        class _(m.Circuit):
+            io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), arr=m.In(m.Bits[2])) + m.ClockIO()
+            # Expect an error because io.O is undriven.
+            m.inline_verilog(
+                "assert property (@(posedge CLK) {I} |-> ##1 {O});",
+                O=io.O, I=io.I,
+            )
+
+    with pytest.raises(InlineVerilogError) as e:
+        gen()
+
+    assert str(e.value) == "Found reference to undriven input port: LazyCircuit.O"
+
+
+def test_uniquification():
+    # Check that 2 modules that differ only in their inlined modules (e.g. one
+    # displays in "%d" format, the other "%x") are uniquified.
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        m.inline_verilog("always @(*) $display(\"%d\\n\", {io.I});")
+
+    Bar = Foo
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        m.inline_verilog("always @(*) $display(\"%x\\n\", {io.I});")
+
+    top_name = "inline_verilog2_uniquification"
+
+    class _Top(m.Circuit):
+        name = top_name
+        io = m.IO(I=m.In(m.Bit))
+        Bar()(io.I)
+        Foo()(io.I)
 
     basename = f"test_{top_name}"
     m.compile(f"build/{basename}", _Top, output="mlir-verilog")
