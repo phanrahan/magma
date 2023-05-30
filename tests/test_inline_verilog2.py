@@ -5,6 +5,16 @@ import magma.testing
 from magma.inline_verilog2 import InlineVerilogError
 
 
+def _compile_and_check(top: m.DefineCircuitKind, **opts):
+    basename = f"test_{top.name}"
+    m.compile(f"build/{basename}", top, output="mlir-verilog", **opts)
+    assert m.testing.check_files_equal(
+        __file__,
+        f"build/{basename}.mlir",
+        f"gold/{basename}.mlir",
+    )
+
+
 def test_simple():
 
     class _Top(m.Circuit):
@@ -21,12 +31,7 @@ def test_simple():
             "assert property (@(posedge CLK) {io.arr[0]} |-> ##1 {io.arr[1]});\n",
         )
 
-    m.compile(f"build/test_inline_verilog2_simple", _Top, output="mlir-verilog")
-    assert m.testing.check_files_equal(
-        __file__,
-        f"build/test_inline_verilog2_simple.mlir",
-        f"gold/test_inline_verilog2_simple.mlir",
-    )
+    _compile_and_check(_Top)
 
 
 def test_tuple():
@@ -60,11 +65,9 @@ def test_tuple():
         io.OUTPUT[0] <= delay.OUTPUT[1]
         io.OUTPUT[1] <= delay.OUTPUT[0]
 
-    top_name = "inline_verilog2_tuple"
-
     class _Top(m.Circuit):
         io = m.IO(I=RVDATAIN, O=m.Flip(RVDATAIN)) + m.ClockIO()
-        name = top_name
+        name = "inline_verilog2_tuple"
 
         delay = DelayUnit()
         delay.INPUT[0] <= io.I[1]
@@ -103,13 +106,7 @@ def test_tuple():
             ready_out=delay.inner_delay.inner_inner_delay.INPUT[1].ready,
         )
 
-    basename = f"test_{top_name}"
-    m.compile(f"build/{basename}", _Top, output="mlir-verilog")
-    assert m.testing.check_files_equal(
-        __file__,
-        f"build/{basename}.mlir",
-        f"gold/{basename}.mlir",
-    )
+    _compile_and_check(_Top)
 
 
 def test_undriven_port_error():
@@ -144,18 +141,10 @@ def test_uniquification():
         io = m.IO(I=m.In(m.Bit))
         m.inline_verilog("always @(*) $display(\"%x\\n\", {io.I});")
 
-    top_name = "inline_verilog2_uniquification"
-
     class _Top(m.Circuit):
-        name = top_name
+        name = "inline_verilog2_uniquification"
         io = m.IO(I=m.In(m.Bit))
         Bar()(io.I)
         Foo()(io.I)
 
-    basename = f"test_{top_name}"
-    m.compile(f"build/{basename}", _Top, output="mlir-verilog")
-    assert m.testing.check_files_equal(
-        __file__,
-        f"build/{basename}.mlir",
-        f"gold/{basename}.mlir",
-    )
+    _compile_and_check(_Top)
