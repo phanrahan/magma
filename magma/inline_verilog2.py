@@ -2,6 +2,7 @@ from typing import Iterable, Mapping, Tuple
 
 from ast_tools.stack import get_symbol_table
 
+from magma.circuit import Circuit
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.t import In, Kind, Type
@@ -39,6 +40,16 @@ def _process_expr(expr: str, format_args: ValueLikeMap) -> Tuple[str, ValueLikeM
     return expr, value_map
 
 
+def _wire_ports(value_map: ValueLikeMap, inst: Circuit):
+    for i, value in enumerate(value_map.values()):
+        try:
+            wire_value_or_port_view(getattr(inst, f"I{i}"), value)
+        except WiringError:
+            raise InlineVerilogError(
+                f"Found reference to undriven input port: {repr(value)}"
+            ) from None
+
+
 class _InlineVerilog2(Generator2):
     def __init__(self, expr: str, arg_types: Iterable[Kind]):
         import magma as m
@@ -57,10 +68,4 @@ InlineVerilog2 = _InlineVerilog2
 def inline_verilog2(expr, **kwargs):
     expr, value_map = _process_expr(expr, kwargs)
     inst = _InlineVerilog2(expr, map(type, value_map.values()))()
-    for i, value in enumerate(value_map.values()):
-        try:
-            wire_value_or_port_view(getattr(inst, f"I{i}"), value)
-        except WiringError:
-            raise InlineVerilogError(
-                f"Found reference to undriven input port: {repr(value)}"
-            ) from None
+    _wire_ports(value_map, inst)
