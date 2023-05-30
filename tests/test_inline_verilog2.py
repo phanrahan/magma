@@ -79,28 +79,28 @@ def test_tuple():
             "assert property (@(posedge CLK) {valid_out} |-> ##3 {ready_out});"
         )
 
-        m.inline_verilog(
+        m.inline_verilog2(
             assertion,
             valid_out=io.I[0].valid,
             ready_out=io.O[1].ready,
         )
 
         # Test inst ref.
-        m.inline_verilog(
+        m.inline_verilog2(
             assertion,
             valid_out=delay.OUTPUT[1].valid,
             ready_out=delay.INPUT[0].ready,
         )
 
         # Test recursive ref.
-        m.inline_verilog(
+        m.inline_verilog2(
             assertion,
             valid_out=delay.inner_delay.OUTPUT[0].valid,
             ready_out=delay.inner_delay.INPUT[1].ready,
         )
 
         # Test double recursive ref.
-        m.inline_verilog(
+        m.inline_verilog2(
             assertion,
             valid_out=delay.inner_delay.inner_inner_delay.OUTPUT[0].valid,
             ready_out=delay.inner_delay.inner_inner_delay.INPUT[1].ready,
@@ -116,7 +116,7 @@ def test_undriven_port_error():
         class _(m.Circuit):
             io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), arr=m.In(m.Bits[2])) + m.ClockIO()
             # Expect an error because io.O is undriven.
-            m.inline_verilog(
+            m.inline_verilog2(
                 "assert property (@(posedge CLK) {I} |-> ##1 {O});",
                 O=io.O, I=io.I,
             )
@@ -133,13 +133,13 @@ def test_uniquification():
 
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit))
-        m.inline_verilog("always @(*) $display(\"%d\\n\", {io.I});")
+        m.inline_verilog2("always @(*) $display(\"%d\\n\", {io.I});")
 
     Bar = Foo
 
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit))
-        m.inline_verilog("always @(*) $display(\"%x\\n\", {io.I});")
+        m.inline_verilog2("always @(*) $display(\"%x\\n\", {io.I});")
 
     class _Top(m.Circuit):
         name = "inline_verilog2_uniquification"
@@ -160,11 +160,11 @@ def test_share_default_clocks():
 
         clk = m.Clock()
         rst = m.Reset()
-        m.inline_verilog(
+        m.inline_verilog2(
             "assert property (@(posedge {clk}) "
             "disable iff (! {rst}) {io.x} |-> ##1 {io.y});"
         )
-        m.inline_verilog(
+        m.inline_verilog2(
             "assert property (@(posedge {clk}) "
             "disable iff (! {rst}) {io.x} |-> ##1 {io.y});"
         )
@@ -180,8 +180,8 @@ def test_passthrough_wire():
         io = m.IO(I=m.In(T), O=m.Out(T))
         io.O @= io.I
 
-        m.inline_verilog("assert {io.I.y[0]} == {io.I.y[1]}")
-        m.inline_verilog("assert {io.I.y[1:3]} == {io.I.y[2:4]}")
+        m.inline_verilog2("assert {io.I.y[0]} == {io.I.y[1]}")
+        m.inline_verilog2("assert {io.I.y[1:3]} == {io.I.y[2:4]}")
 
     _compile_and_check(_Top)
 
@@ -191,7 +191,7 @@ def test_clock_output():
     class _Top(m.Circuit):
         name = "test_inline_verilog2_clock_output"
         io = m.IO(x=m.In(m.Clock), y=m.In(m.Clock))
-        m.inline_verilog("Foo bar (.x({io.x}), .y({io.y}))")
+        m.inline_verilog2("Foo bar (.x({io.x}), .y({io.y}))")
 
     _compile_and_check(_Top)
 
@@ -202,9 +202,9 @@ def test_wire_insertion_bad_verilog():
     class _Top(m.Circuit):
         name = "test_inline_verilog2_wire_insertion_bad_verilog"
         io = m.IO(I=m.In(m.Bits[32]), O=m.Out(m.Bit))
-        m.inline_verilog("`ifdef LOGGING_ON")
-        m.inline_verilog("$display(\"%x\", {io.I[0]});")
-        m.inline_verilog("`endif LOGGING_ON")
+        m.inline_verilog2("`ifdef LOGGING_ON")
+        m.inline_verilog2("$display(\"%x\", {io.I[0]});")
+        m.inline_verilog2("`endif LOGGING_ON")
         io.O @= io.I[0]
 
     _compile_and_check(_Top)

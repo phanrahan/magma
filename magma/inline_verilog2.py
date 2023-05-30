@@ -40,6 +40,12 @@ def _process_expr(expr: str, format_args: ValueLikeMap) -> Tuple[str, ValueLikeM
     return expr, value_map
 
 
+def _get_arg_type(value: ValueLike) -> Kind:
+    if isinstance(value, PortView):
+        return value.T
+    return type(value)
+
+
 def _wire_ports(value_map: ValueLikeMap, inst: Circuit):
     for i, value in enumerate(value_map.values()):
         try:
@@ -67,5 +73,5 @@ InlineVerilog2 = _InlineVerilog2
 
 def inline_verilog2(expr, **kwargs):
     expr, value_map = _process_expr(expr, kwargs)
-    inst = _InlineVerilog2(expr, map(type, value_map.values()))()
+    inst = _InlineVerilog2(expr, map(_get_arg_type, value_map.values()))()
     _wire_ports(value_map, inst)
