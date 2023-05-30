@@ -4,7 +4,6 @@ from ast_tools.stack import get_symbol_table
 
 from magma.generator import Generator2
 from magma.interface import IO
-from magma.logging import root_logger
 from magma.t import In, Kind, Type
 from magma.view import PortView
 from magma.wire_utils import wire_value_or_port_view, WiringError
@@ -18,18 +17,7 @@ from magma.inline_verilog import (
 from magma.inline_verilog_expression import _hash_expr
 
 
-_logger = root_logger().getChild("inline_verilog2")
-
 ValueLikeMap = Mapping[str, ValueLike]
-
-
-def _clean_kwargs(kwargs):
-    try:
-        kwargs.pop("inline_wire_prefix")
-        # TODO(rsetaluri): Improve this error/warning.
-        _logger.warning("bad")
-    except KeyError:
-        pass
 
 
 def _process_expr(expr: str, format_args: ValueLikeMap) -> Tuple[str, ValueLikeMap]:
@@ -67,7 +55,6 @@ InlineVerilog2 = _InlineVerilog2
 
 
 def inline_verilog2(expr, **kwargs):
-    _clean_kwargs(kwargs)
     expr, value_map = _process_expr(expr, kwargs)
     inst = _InlineVerilog2(expr, map(type, value_map.values()))()
     for i, value in enumerate(value_map.values()):
