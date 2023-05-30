@@ -379,6 +379,30 @@ class complex_inline_verilog(m.Circuit):
     m.inline_verilog("// A fun{{k}}y comment with {I}", I=io.I)
 
 
+class simple_inline_verilog2(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= io.I
+    m.inline_verilog2(
+"""
+	// This is 'a' "comment".
+""")
+
+
+class complex_inline_verilog2(m.Circuit):
+    io = m.IO(I=m.In(m.Bits[12]), O=m.Out(m.Bits[12]))
+    io.O @= m.register(io.I)
+    string = "\n".join(
+        f"assert property (@(posedge CLK) {{I{i}}} |-> ##1 {{O{i}}});"
+        for i in range(12)
+    )
+    refs = {}
+    for i in range(12):
+        refs[f"I{i}"] = io.I[i]
+        refs[f"O{i}"] = io.O[i]
+    m.inline_verilog2(string, **refs)
+    m.inline_verilog2("// A fun{{k}}y comment with {I}", I=io.I)
+
+
 class simple_bind(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     io.O @= m.register(io.I)

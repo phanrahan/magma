@@ -34,8 +34,13 @@ def _process_expr(expr: str, format_args: ValueLikeMap) -> Tuple[str, ValueLikeM
             arg = _make_inline_value(value_map, arg)
         format_args[key] = arg
     expr = expr.format(**format_args)
-    # Replace all __magma_inline_value_x with x.
-    for i, key in enumerate(value_map.keys()):
+    # Replace all __magma_inline_value_x with x. Note that the value_map is
+    # assumed to be ordered, specifically, in the order of the arguments. We
+    # need to iterate in reverse fashion to avoid clobbering later keys,
+    # e.g. 's/__magma_inline_value_1/{1}/g' would convert
+    # '__magma_inline_value_14' to '14'. It is sufficient to iterate in reverse
+    # order.
+    for i, key in reversed(list(enumerate(value_map.keys()))):
         expr = expr.replace(key, f"{{{str(i)}}}")
     return expr, value_map
 
