@@ -68,6 +68,6 @@ def test_imm_gen_wire(ImmGen):
                                            "terminate_unused": True,
                                            "check_circt_opt_version": False},
                                magma_output="mlir-verilog",
-                               flags=['--assert', "-Wno-unused"],
+                               flags=['--assert', "-Wno-unused", "-Wno-PINCONNECTEMPTY",],
                                disp_type="realtime",
                                directory=tempdir)

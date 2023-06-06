@@ -117,7 +117,7 @@ def test_datapath(test, ImmGen):
                         "disallow_local_variables": True,
                         "check_circt_opt_version": False},
             magma_output="mlir-verilog",
-            flags=['-Wno-unused', '-Wno-undriven', '--assert'],
+            flags=['-Wno-unused', '-Wno-PINCONNECTEMPTY', '-Wno-undriven', '--assert'],
             disp_type="realtime",
             directory=tempdir
         )

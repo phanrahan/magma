@@ -80,4 +80,4 @@ def test_br_cond(BrCond):
                                        "disallow_local_variables": True,
                                        "check_circt_opt_version": False},
                            magma_output="mlir-verilog",
-                           flags=["-Wno-UNUSED"])
+                           flags=["-Wno-UNUSED", "-Wno-PINCONNECTEMPTY",])

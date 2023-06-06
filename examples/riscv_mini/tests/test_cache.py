@@ -557,6 +557,6 @@ def test_cache():
                                "disallow_local_variables": True,
                                "check_circt_opt_version": False
                            },
-                           flags=['-Wno-unused', '--assert', '-Wno-width'],
+                           flags=['-Wno-unused', '-Wno-PINCONNECTEMPTY', '--assert', '-Wno-width'],
                            disp_type="realtime",
                            magma_output="mlir-verilog")

@@ -168,4 +168,4 @@ def test_core(test, ImmGen):
                            magma_opts={"flatten_all_tuples": True,
                                        "disallow_local_variables": True,
                                        "check_circt_opt_version": False},
-                           flags=['-Wno-unused', '-Wno-undriven', '--assert'])
+                           flags=['-Wno-unused', '-Wno-PINCONNECTEMPTY', '-Wno-undriven', '--assert'])
