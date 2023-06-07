@@ -113,11 +113,18 @@ def test_datapath(test, ImmGen):
     with tempfile.TemporaryDirectory() as tempdir:
         tester.compile_and_run(
             "verilator",
-            magma_opts={"flatten_all_tuples": True,
-                        "disallow_local_variables": True,
-                        "check_circt_opt_version": False},
+            magma_opts={
+                "flatten_all_tuples": True,
+                "disallow_local_variables": True,
+                "check_circt_opt_version": False,
+            },
             magma_output="mlir-verilog",
-            flags=['-Wno-unused', '-Wno-PINCONNECTEMPTY', '-Wno-undriven', '--assert'],
+            flags=[
+                '-Wno-unused',
+                '-Wno-PINCONNECTEMPTY',
+                '-Wno-undriven',
+                '--assert',
+            ],
             disp_type="realtime",
-            directory=tempdir
+            directory=tempdir,
         )

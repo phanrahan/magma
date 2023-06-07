@@ -61,13 +61,22 @@ def test_imm_gen_wire(ImmGen):
 
     tester = f.Tester(DUT, DUT.CLK)
     tester.wait_until_high(DUT.done)
+
     with tempfile.TemporaryDirectory() as tempdir:
-        tester.compile_and_run("verilator",
-                               magma_opts={"flatten_all_tuples": True,
-                                           "disallow_local_variables": True,
-                                           "terminate_unused": True,
-                                           "check_circt_opt_version": False},
-                               magma_output="mlir-verilog",
-                               flags=['--assert', "-Wno-unused", "-Wno-PINCONNECTEMPTY",],
-                               disp_type="realtime",
-                               directory=tempdir)
+        tester.compile_and_run(
+            "verilator",
+            magma_opts={
+                "flatten_all_tuples": True,
+                "disallow_local_variables": True,
+                "terminate_unused": True,
+                "check_circt_opt_version": False,
+            },
+            magma_output="mlir-verilog",
+            flags=[
+                '--assert',
+                "-Wno-unused",
+                "-Wno-PINCONNECTEMPTY",
+            ],
+            disp_type="realtime",
+            directory=tempdir,
+        )
