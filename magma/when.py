@@ -534,6 +534,8 @@ _WHEN_ASSERT_COUNTER = itertools.count()
 _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
                     " ({drivee} == {driver}));")
 
+_TEMP_CACHE = {}
+
 
 def _emit_when_assert(cond, drivee, driver):
     from magma.type_utils import contains_tuple
@@ -542,15 +544,22 @@ def _emit_when_assert(cond, drivee, driver):
             _emit_when_assert(cond, x, y)
         return
 
+    if drivee.value() is None:
+        return
     from magma.wire_container import set_skip_when_wire
-    set_skip_when_wire(True)
-    id = next(_WHEN_ASSERT_COUNTER)
-    temp = type(drivee).undirected_t(name=f"_WHEN_ASSERT_TEMP_{id}")
-    temp @= driver
-    drivee.rewire(temp)
+    # if drivee not in _TEMP_CACHE:
+    #     id = next(_WHEN_ASSERT_COUNTER)
+    #     temp = type(drivee).undirected_t(name=f"_WHEN_ASSERT_TEMP_{id}")
+    #     assert not str(drivee.value().name).startswith("_WHEN_ASSERT_TEMP_")
+    #     temp @= drivee.value()
+    #     _TEMP_CACHE[drivee] = temp
+    #     drivee.rewire(temp)
+    # temp = _TEMP_CACHE[drivee]
 
+    set_skip_when_wire(True)
     from magma.inline_verilog import inline_verilog
-    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=temp,
+    id = next(_WHEN_ASSERT_COUNTER)
+    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=drivee.value(),
                    driver=driver, id=id)
     set_skip_when_wire(False)
 

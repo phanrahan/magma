@@ -5,7 +5,10 @@ from magma.passes.passes import DefinitionPass, pass_lambda
 class FinalizeWhens(DefinitionPass):
     def __call__(self, definition):
         with definition.open():
-            for builder in reversed(definition._context_._builders):
+            for builder in definition._context_._builders:
+                if isinstance(builder, WhenBuilder) and not builder._finalized:
+                    builder.emit_when_asserts()
+            for builder in definition._context_._builders:
                 if isinstance(builder, WhenBuilder) and not builder._finalized:
                     definition._context_._placer.place(builder.finalize())
 

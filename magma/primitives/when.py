@@ -250,7 +250,7 @@ class WhenBuilder(CircuitBuilder):
     def remove_default_driver(self, drivee: Type):
         del self._default_drivers[drivee]
 
-    def _finalize(self):
+    def emit_when_asserts(self):
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)
@@ -269,6 +269,9 @@ class WhenBuilder(CircuitBuilder):
 
         if latches:
             raise InferredLatchError(latches)
+
+    def _finalize(self):
+        pass
 
     @property
     def block(self) -> WhenBlock:

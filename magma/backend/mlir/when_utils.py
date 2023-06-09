@@ -86,6 +86,7 @@ class WhenCompiler:
             )
         return value_to_index
 
+    _wire_id = -1
     def _make_output_wires(self):
         """Create the mlir values corresponding to each output"""
         wires = [
@@ -94,7 +95,9 @@ class WhenCompiler:
         ]
 
         for result, wire in zip(self._module.results, wires):
-            sv.RegOp(results=[wire])
+            self._wire_id += 1
+            name = f"_WHEN_WIRE_{self._wire_id}"
+            sv.RegOp(results=[wire], name=name)
             sv.ReadInOutOp(operands=[wire], results=[result])
 
         return wires
