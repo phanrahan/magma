@@ -265,7 +265,7 @@ class WhenBuilder(CircuitBuilder):
         # the default value).
         _add_default_drivers_to_memory_ports(self, latches)
         _add_default_drivers_to_register_inputs(self, latches)
-        emit_when_asserts(self.block)
+        emit_when_asserts(self.block, self)
 
         if latches:
             raise InferredLatchError(latches)

@@ -537,11 +537,11 @@ _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
 _TEMP_CACHE = {}
 
 
-def _emit_when_assert(cond, drivee, driver):
+def _emit_when_assert(cond, drivee, driver, builder):
     from magma.type_utils import contains_tuple
     if contains_tuple(type(drivee)):
         for x, y in zip(drivee, driver):
-            _emit_when_assert(cond, x, y)
+            _emit_when_assert(cond, x, y, builder)
         return
 
     if drivee.value() is None:
@@ -556,10 +556,18 @@ def _emit_when_assert(cond, drivee, driver):
     #     drivee.rewire(temp)
     # temp = _TEMP_CACHE[drivee]
 
+    port = builder._check_existing_derived_ref(drivee, builder._output_to_name,
+            builder._output_to_index)
+    if port is None:
+        port = getattr(builder, builder._output_to_name[drivee])
+    if not port.driving():
+        return
+
     set_skip_when_wire(True)
     from magma.inline_verilog import inline_verilog
     id = next(_WHEN_ASSERT_COUNTER)
-    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=drivee.value(),
+    drivee = port
+    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=drivee,
                    driver=driver, id=id)
     set_skip_when_wire(False)
 
@@ -573,7 +581,7 @@ def _make_else_cond(block, precond):
     return else_cond
 
 
-def emit_when_asserts(block, precond=None):
+def emit_when_asserts(block, builder, precond=None):
     if not config.emit_when_asserts:
         return
 
@@ -589,15 +597,15 @@ def emit_when_asserts(block, precond=None):
     # for the inline verilog inputs, which will modify the list but those new
     # outputs don't need an assert since they are copies of these ones.
     for _wire in list(block.conditional_wires()):
-        _emit_when_assert(cond, _wire.drivee, _wire.driver)
+        _emit_when_assert(cond, _wire.drivee, _wire.driver, builder)
 
     for child in block.children():
-        emit_when_asserts(child, cond)
+        emit_when_asserts(child, builder, cond)
 
     else_block = _get_else_block(block)
     if else_block:
         else_cond = _make_else_cond(block, precond)
-        emit_when_asserts(else_block, else_cond)
+        emit_when_asserts(else_block, builder, else_cond)
     elif (
         block is block.root or
         block is block.root.otherwise_block or
@@ -609,7 +617,7 @@ def emit_when_asserts(block, precond=None):
             if else_cond is None:
                 # Avoid emitting extra expressions
                 else_cond = _make_else_cond(block, precond)
-            _emit_when_assert(else_cond, wire.drivee, wire.driver)
+            _emit_when_assert(else_cond, wire.drivee, wire.driver, builder)
 
 
 def when(cond):
