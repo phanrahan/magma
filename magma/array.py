@@ -950,7 +950,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
                 i += 1
 
     def connection_iter(self, only_slice_bits=False):
-        if self._wire.driven() or self.name.anon():
+        if self._wire.driven():
             driver = self.trace()
             if driver is None:
                 return

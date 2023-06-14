@@ -1044,8 +1044,6 @@ class ModuleVisitor:
             self.visit(predecessor)
         for src, _, data in self._graph.in_edges(magma_module, data=True):
             info = data["info"]
-            if info["inline_ref"]:
-                continue
             src_port, dst_port = info["src"], info["dst"]
             src_value = self._ctx.get_or_make_mapped_value(src_port)
             self._ctx.set_mapped_value(dst_port, src_value)

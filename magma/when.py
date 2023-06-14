@@ -534,41 +534,26 @@ _WHEN_ASSERT_COUNTER = itertools.count()
 _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
                     " ({drivee} == {driver}));")
 
-_TEMP_CACHE = {}
+_seen = set()
 
 
 def _emit_when_assert(cond, drivee, driver, builder):
-    from magma.type_utils import contains_tuple
-    if contains_tuple(type(drivee)):
-        for x, y in zip(drivee, driver):
-            _emit_when_assert(cond, x, y, builder)
-        return
-
     if drivee.value() is None:
         return
-    from magma.wire_container import set_skip_when_wire
-    # if drivee not in _TEMP_CACHE:
-    #     id = next(_WHEN_ASSERT_COUNTER)
-    #     temp = type(drivee).undirected_t(name=f"_WHEN_ASSERT_TEMP_{id}")
-    #     assert not str(drivee.value().name).startswith("_WHEN_ASSERT_TEMP_")
-    #     temp @= drivee.value()
-    #     _TEMP_CACHE[drivee] = temp
-    #     drivee.rewire(temp)
-    # temp = _TEMP_CACHE[drivee]
 
     port = builder._check_existing_derived_ref(drivee, builder._output_to_name,
             builder._output_to_index)
     if port is None:
         port = getattr(builder, builder._output_to_name[drivee])
-    if not port.driving():
+    if not port.wired():
         return
 
+    from magma.wire_container import set_skip_when_wire
     set_skip_when_wire(True)
     from magma.inline_verilog import inline_verilog
     id = next(_WHEN_ASSERT_COUNTER)
-    drivee = port
-    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=drivee,
-                   driver=driver, id=id)
+    inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=port, driver=driver,
+                   id=id)
     set_skip_when_wire(False)
 
 
@@ -612,11 +597,8 @@ def emit_when_asserts(block, builder, precond=None):
         block in block.root.elsewhen_blocks()
     ):
         # For last block of root chain, emit default driver assertion
-        else_cond = None
         for wire in list(block.root.default_drivers()):
-            if else_cond is None:
-                # Avoid emitting extra expressions
-                else_cond = _make_else_cond(block, precond)
+            else_cond = _make_else_cond(block, precond)
             _emit_when_assert(else_cond, wire.drivee, wire.driver, builder)
 
 
