@@ -4,6 +4,7 @@ from typing import List
 from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
 from magma.backend.mlir.mlir_printer_utils import print_names, print_types
 from magma.backend.mlir.mlir import MlirValue, MlirOp
+from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
 
 
@@ -17,7 +18,7 @@ class BaseOp(MlirOp):
     results: List[MlirValue]
     op_name: str
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = comb.{self.op_name} ")
         print_names(self.operands, printer)
@@ -30,7 +31,7 @@ class ConcatOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = comb.concat ")
         print_names(self.operands, printer)
@@ -44,7 +45,7 @@ class ExtractOp(MlirOp):
     results: List[MlirValue]
     lo: int
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(" = comb.extract ")
         print_names(self.operands, printer)
@@ -60,7 +61,7 @@ class ICmpOp(MlirOp):
     results: List[MlirValue]
     predicate: str
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = comb.icmp {self.predicate} ")
         print_names(self.operands, printer)
@@ -73,7 +74,7 @@ class ParityOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = comb.parity ")
         print_names(self.operands, printer)

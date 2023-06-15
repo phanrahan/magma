@@ -27,36 +27,6 @@ class DialectKind(abc.ABCMeta):
         return cls
 
 
-class MlirTypeMeta(DialectKind):
-    def _register_(cls, dialect):
-        dialect.register_type(cls)
-
-
-class MlirType(metaclass=MlirTypeMeta):
-    @abc.abstractmethod
-    def emit(self) -> str:
-        raise NotImplementedError()
-
-
-@dataclasses.dataclass(frozen=True)
-class MlirValue:
-    type: MlirType
-    raw_name: str
-
-    @property
-    def name(self) -> str:
-        return f"%{self.raw_name}"
-
-
-@dataclasses.dataclass(frozen=True)
-class MlirSymbol:
-    raw_name: str
-
-    @property
-    def name(self) -> str:
-        return f"@{self.raw_name}"
-
-
 class MlirAttributeMeta(DialectKind):
     def _register_(cls, dialect):
         dialect.register_attribute(cls)
@@ -104,6 +74,37 @@ def _print_location_epilogue(this, printer, opts):
 
 
 print_location = epilogue(_print_location_epilogue)
+
+
+class MlirTypeMeta(DialectKind):
+    def _register_(cls, dialect):
+        dialect.register_type(cls)
+
+
+class MlirType(metaclass=MlirTypeMeta):
+    @abc.abstractmethod
+    def emit(self) -> str:
+        raise NotImplementedError()
+
+
+@dataclasses.dataclass(frozen=True)
+class MlirValue:
+    type: MlirType
+    raw_name: str
+    location: MlirLocation = default_field(_default_location, init=False)
+
+    @property
+    def name(self) -> str:
+        return f"%{self.raw_name}"
+
+
+@dataclasses.dataclass(frozen=True)
+class MlirSymbol:
+    raw_name: str
+
+    @property
+    def name(self) -> str:
+        return f"@{self.raw_name}"
 
 
 @dataclasses.dataclass
@@ -198,7 +199,7 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
 
     @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
-        self.print_op(printer)
+        self.print_op(printer, opts)
         if not self.regions:
             printer.flush()
             return
@@ -211,7 +212,7 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
         printer.print_line("}")
 
     @abc.abstractmethod
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, opts: PrintOpts):
         raise NotImplementedError()
 
 
