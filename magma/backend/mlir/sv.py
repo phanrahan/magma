@@ -3,8 +3,13 @@ from typing import List, Optional
 
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.mlir import (
-    MlirDialect, MlirOp, MlirBlock, MlirValue, MlirSymbol,
-    begin_dialect, end_dialect,
+    begin_dialect,
+    end_dialect,
+    MlirBlock,
+    MlirDialect,
+    MlirOp,
+    MlirSymbol,
+    MlirValue,
     print_location,
 )
 from magma.backend.mlir.mlir_printer_utils import (
@@ -25,7 +30,7 @@ class RegOp(MlirOp):
     results: List[MlirValue]
     name: Optional[str] = None
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = sv.reg ")
         if self.name is not None:
@@ -39,7 +44,7 @@ class ReadInOutOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = sv.read_inout ")
         print_names(self.operands, printer)
@@ -51,7 +56,7 @@ class ReadInOutOp(MlirOp):
 class AssignBaseOp(MlirOp):
     operands: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print(f"sv.{self.op_name} ")
         print_names(self.operands, printer)
         printer.print(" : ")
@@ -119,7 +124,7 @@ class AlwaysFFOp(MlirOp):
         printer.pop()
         printer.print_line("}")
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         raise NotImplementedError()
 
 
@@ -141,7 +146,7 @@ class AlwaysCombOp(MlirOp):
         printer.pop()
         printer.print_line("}")
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         raise NotImplementedError()
 
 
@@ -153,7 +158,7 @@ class InitialOp(MlirOp):
     def add_operation(self, operation: MlirOp):
         self._block.add_operation(operation)
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print("sv.initial")
 
 
@@ -163,7 +168,7 @@ class WireOp(MlirOp):
     name: Optional[str] = None
     sym: Optional[MlirSymbol] = None
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(" = sv.wire ")
         if self.sym is not None:
@@ -189,7 +194,7 @@ class VerbatimOp(MlirOp):
     operands: List[MlirOp]
     string: str
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         string = _esacpe_string(self.string)
         printer.print(f"sv.verbatim \"{string}\"")
         if self.operands:
@@ -205,7 +210,7 @@ class VerbatimExprOp(MlirOp):
     results: List[MlirOp]
     expr: str
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         expr = _esacpe_string(self.expr)
         print_names(self.results, printer)
         printer.print(f" = sv.verbatim.expr \"{expr}\"")
@@ -222,7 +227,7 @@ class VerbatimExprOp(MlirOp):
 class BindOp(MlirOp):
     instance: hw.InnerRefAttr
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print(f"sv.bind {self.instance.emit()}")
         if self.attr_dict:
             printer.print(" ")
@@ -265,7 +270,7 @@ class IfDefOp(MlirOp):
         printer.pop()
         printer.print_line("}")
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         raise NotImplementedError()
 
 
@@ -307,7 +312,7 @@ class IfOp(MlirOp):
         printer.pop()
         printer.print_line("}")
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         raise NotImplementedError()
 
 
@@ -317,7 +322,7 @@ class XMROp(MlirOp):
     is_rooted: bool
     path: List[str]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = sv.xmr ")
         if self.is_rooted:
@@ -333,7 +338,7 @@ class ArrayIndexInOutOp(MlirOp):
     operands: List[MlirOp]
     results: List[MlirOp]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = sv.array_index_inout ")
         print_names(self.operands[0], printer)

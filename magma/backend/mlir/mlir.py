@@ -199,7 +199,7 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
 
     @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
-        self.print_op(printer)
+        self.print_op(printer, opts)
         if not self.regions:
             printer.flush()
             return
@@ -212,7 +212,7 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
         printer.print_line("}")
 
     @abc.abstractmethod
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, opts: PrintOpts):
         raise NotImplementedError()
 
 
