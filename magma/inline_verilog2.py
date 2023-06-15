@@ -21,7 +21,10 @@ from magma.inline_verilog import (
 ValueLikeMap = Mapping[str, ValueLike]
 
 
-def _process_expr(expr: str, format_args: ValueLikeMap) -> Tuple[str, ValueLikeMap]:
+def _process_expr(
+        expr: str,
+        format_args: ValueLikeMap,
+) -> Tuple[str, ValueLikeMap]:
     symbol_table = get_symbol_table([inline_verilog2], copy_locals=True)
     value_map = {}
     expr = _process_fstring_syntax(
