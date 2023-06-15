@@ -91,6 +91,7 @@ class MlirType(metaclass=MlirTypeMeta):
 class MlirValue:
     type: MlirType
     raw_name: str
+    location: MlirLocation = default_field(_default_location, init=False)
 
     @property
     def name(self) -> str:
