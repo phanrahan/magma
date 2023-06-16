@@ -150,8 +150,6 @@ def test_uniquification():
     _compile_and_check(_Top)
 
 
-
-
 def test_share_default_clocks():
 
     class _Top(m.Circuit):

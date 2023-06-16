@@ -66,7 +66,6 @@ def _wire_ports(value_map: ValueLikeMap, inst: Circuit):
 
 class _InlineVerilog2(Generator2):
     def __init__(self, expr: str, arg_types: Iterable[Kind]):
-        import magma as m
         self.expr = expr
         self.io = IO(**{
             f"I{i}": In(T)
