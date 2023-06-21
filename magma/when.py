@@ -538,9 +538,6 @@ _seen = set()
 
 
 def _emit_when_assert(cond, drivee, driver, builder):
-    if drivee.value() is None:
-        return
-
     port = builder._check_existing_derived_ref(drivee, builder._output_to_name,
             builder._output_to_index)
     if port is None:
@@ -591,15 +588,15 @@ def emit_when_asserts(block, builder, precond=None):
     if else_block:
         else_cond = _make_else_cond(block, precond)
         emit_when_asserts(else_block, builder, else_cond)
-    elif (
-        block is block.root or
-        block is block.root.otherwise_block or
-        block in block.root.elsewhen_blocks()
-    ):
-        # For last block of root chain, emit default driver assertion
-        for wire in list(block.root.default_drivers()):
-            else_cond = _make_else_cond(block, precond)
-            _emit_when_assert(else_cond, wire.drivee, wire.driver, builder)
+    # elif (
+    #     block is block.root or
+    #     block is block.root.otherwise_block or
+    #     block in block.root.elsewhen_blocks()
+    # ):
+    #     # For last block of root chain, emit default driver assertion
+    #     for wire in list(block.root.default_drivers()):
+    #         else_cond = _make_else_cond(block, precond)
+    #         _emit_when_assert(else_cond, wire.drivee, wire.driver, builder)
 
 
 def when(cond):

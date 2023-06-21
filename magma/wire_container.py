@@ -82,7 +82,6 @@ class Wire:
     def unwire(self, other=None, debug_info=None):
         if other is None:
             if self._driver is None:
-                raise Exception(f"{self._bit}, {self._bit._resolved}")
                 _logger.warning(
                     WiringLog("Unwire called on undriven value {}, ignoring",
                               self._bit),

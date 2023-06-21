@@ -95,7 +95,7 @@ class WhenCompiler:
         ]
 
         for result, wire in zip(self._module.results, wires):
-            self._wire_id += 1
+            WhenCompiler._wire_id += 1
             name = f"_WHEN_WIRE_{self._wire_id}"
             sv.RegOp(results=[wire], name=name)
             sv.ReadInOutOp(operands=[wire], results=[result])

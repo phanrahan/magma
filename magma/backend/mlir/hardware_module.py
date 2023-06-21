@@ -902,32 +902,7 @@ class ModuleVisitor:
                 k = "{" + k + "}"
                 string = string.replace(k, v)
 
-            # Convert instance operands/results to verbatim operands
-            operands = []
-            input_counter = itertools.count()
-            for value in references.values():
-                if isinstance(value, PortView):
-                    value = value.port
-                if value.is_output():
-                    operand = module.operands[next(input_counter)]
-                else:
-                    curr = value
-                    idxs = []
-                    while True:
-                        try:
-                            operand = self._ctx.get_mapped_value(curr)
-                            break
-                        except KeyError:
-                            assert isinstance(curr.name, ArrayRef), (value, curr)
-                            idxs.append(curr.name._index)
-                            curr = curr.name.parent_value
-                    for i in reversed(idxs):
-                        if isinstance(i, slice):
-                            # convert to tuple for hashing
-                            i = (i.start, i.stop, i.step)
-                        operand = self.make_array_ref(operand, i)
-                operands.append(operand)
-            sv.VerbatimOp(operands=operands, string=string)
+            sv.VerbatimOp(operands=module.operands, string=string)
         return True
 
     @wrap_with_not_implemented_error
