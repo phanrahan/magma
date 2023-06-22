@@ -12,14 +12,6 @@ from magma.when import (
 )
 
 
-_SKIP_WHEN_WIRE = False
-
-
-def set_skip_when_wire(value):
-    global _SKIP_WHEN_WIRE
-    _SKIP_WHEN_WIRE = value
-
-
 class TraceRecursionError(RecursionError):
     def __init__(self, value):
         msg = (

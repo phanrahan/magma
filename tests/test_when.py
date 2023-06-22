@@ -1463,7 +1463,7 @@ def test_when_tuple_as_bits_resolve():
         io.X @= m.as_bits(io.O.value())
 
     m.compile("build/test_when_tuple_as_bits_resolve",
-              test_when_tuple_as_bits_resolve, output="mlir",
+              test_when_tuple_as_bits_resolve, output="mlir-verilog",
               flatten_all_tuples=True, disallow_local_variables=True)
     assert check_gold(__file__, "test_when_tuple_as_bits_resolve.mlir")
 

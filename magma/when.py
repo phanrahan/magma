@@ -538,20 +538,17 @@ _seen = set()
 
 
 def _emit_when_assert(cond, drivee, driver, builder):
-    port = builder._check_existing_derived_ref(drivee, builder._output_to_name,
-            builder._output_to_index)
+    port = builder._check_existing_derived_ref(
+        drivee, builder._output_to_name, builder._output_to_index)
     if port is None:
         port = getattr(builder, builder._output_to_name[drivee])
     if not port.wired():
         return
 
-    from magma.wire_container import set_skip_when_wire
-    set_skip_when_wire(True)
     from magma.inline_verilog import inline_verilog
     id = next(_WHEN_ASSERT_COUNTER)
     inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=port, driver=driver,
                    id=id)
-    set_skip_when_wire(False)
 
 
 def _make_else_cond(block, precond):
