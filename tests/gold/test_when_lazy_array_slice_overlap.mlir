@@ -1,6 +1,6 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @test_when_lazy_array_slice_overlap(%I: i4, %S: i1) -> (O: i4) {
-        %1 = sv.reg : !hw.inout<i4>
+        %1 = sv.reg name "_WHEN_WIRE_77" : !hw.inout<i4>
         %0 = sv.read_inout %1 : !hw.inout<i4>
         sv.alwayscomb {
             sv.if %S {
@@ -24,20 +24,17 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %14 = comb.extract %I from 0 : (i4) -> i1
         %15 = comb.extract %I from 1 : (i4) -> i1
         %16 = comb.concat %15, %14 : i1, i1
-        %17 = comb.extract %13 from 0 : (i4) -> i2
-        sv.verbatim "always @(*) WHEN_ASSERT_136: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %17, %16) : i1, i2, i2
-        %18 = comb.extract %I from 2 : (i4) -> i1
-        %19 = comb.extract %13 from 2 : (i4) -> i1
-        sv.verbatim "always @(*) WHEN_ASSERT_137: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %19, %18) : i1, i1, i1
-        %20 = comb.extract %I from 3 : (i4) -> i1
-        %21 = comb.extract %13 from 3 : (i4) -> i1
-        sv.verbatim "always @(*) WHEN_ASSERT_138: assert (~({{0}}) | ({{1}} == {{2}}));" (%S, %21, %20) : i1, i1, i1
-        %23 = hw.constant -1 : i1
-        %22 = comb.xor %23, %S : i1
-        %24 = comb.concat %20, %18 : i1, i1
-        sv.verbatim "always @(*) WHEN_ASSERT_139: assert (~({{0}}) | ({{1}} == {{2}}));" (%22, %17, %24) : i1, i2, i2
-        sv.verbatim "always @(*) WHEN_ASSERT_140: assert (~({{0}}) | ({{1}} == {{2}}));" (%22, %19, %14) : i1, i1, i1
-        sv.verbatim "always @(*) WHEN_ASSERT_141: assert (~({{0}}) | ({{1}} == {{2}}));" (%22, %21, %15) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_119: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %10, %16) : i1, i2, i2
+        %17 = comb.extract %I from 2 : (i4) -> i1
+        sv.verbatim "WHEN_ASSERT_120: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %11, %17) : i1, i1, i1
+        %18 = comb.extract %I from 3 : (i4) -> i1
+        sv.verbatim "WHEN_ASSERT_121: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %12, %18) : i1, i1, i1
+        %20 = hw.constant -1 : i1
+        %19 = comb.xor %20, %S : i1
+        %21 = comb.concat %18, %17 : i1, i1
+        sv.verbatim "WHEN_ASSERT_122: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%19, %10, %21) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_123: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%19, %11, %14) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_124: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%19, %12, %15) : i1, i1, i1
         hw.output %13 : i4
     }
 }

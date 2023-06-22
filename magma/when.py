@@ -1,8 +1,10 @@
 import abc
+from collections import defaultdict
 import contextlib
 import dataclasses
 import functools
 import itertools
+import operator
 from typing import Any, Iterable, Optional, Set, Tuple, Union
 
 from magma.config import config, RuntimeConfig
@@ -534,7 +536,6 @@ _WHEN_ASSERT_COUNTER = itertools.count()
 _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
                     " ({drivee} == {driver}));")
 
-_seen = set()
 
 
 def _emit_when_assert(cond, drivee, driver, builder):
@@ -560,7 +561,8 @@ def _make_else_cond(block, precond):
     return else_cond
 
 
-def emit_when_asserts(block, builder, precond=None):
+def emit_when_asserts(block, builder, precond=None,
+                      assignment_map=defaultdict(list)):
     if not config.emit_when_asserts:
         return
 
@@ -576,24 +578,23 @@ def emit_when_asserts(block, builder, precond=None):
     # for the inline verilog inputs, which will modify the list but those new
     # outputs don't need an assert since they are copies of these ones.
     for _wire in list(block.conditional_wires()):
+        assignment_map[_wire.drivee].append(cond)
         _emit_when_assert(cond, _wire.drivee, _wire.driver, builder)
 
     for child in block.children():
-        emit_when_asserts(child, builder, cond)
+        emit_when_asserts(child, builder, cond, assignment_map)
 
     else_block = _get_else_block(block)
     if else_block:
         else_cond = _make_else_cond(block, precond)
-        emit_when_asserts(else_block, builder, else_cond)
-    # elif (
-    #     block is block.root or
-    #     block is block.root.otherwise_block or
-    #     block in block.root.elsewhen_blocks()
-    # ):
-    #     # For last block of root chain, emit default driver assertion
-    #     for wire in list(block.root.default_drivers()):
-    #         else_cond = _make_else_cond(block, precond)
-    #         _emit_when_assert(else_cond, wire.drivee, wire.driver, builder)
+        emit_when_asserts(else_block, builder, else_cond, assignment_map)
+
+    if block is block.root:
+        for wire in list(block.root.default_drivers()):
+            if not assignment_map[wire.drivee]:
+                continue
+            cond = ~functools.reduce(operator.or_, assignment_map[wire.drivee])
+            _emit_when_assert(cond, wire.drivee, wire.driver, builder)
 
 
 def when(cond):
