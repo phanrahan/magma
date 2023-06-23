@@ -5,6 +5,7 @@ from typing import Dict, Optional, Union, Set
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.clock import Enable
+from magma.config import config
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
@@ -265,7 +266,8 @@ class WhenBuilder(CircuitBuilder):
         # the default value).
         _add_default_drivers_to_memory_ports(self, latches)
         _add_default_drivers_to_register_inputs(self, latches)
-        emit_when_asserts(self.block, self)
+        if config.emit_when_asserts:
+            emit_when_asserts(self.block, self)
 
         if latches:
             raise InferredLatchError(latches)

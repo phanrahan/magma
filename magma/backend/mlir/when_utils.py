@@ -13,6 +13,7 @@ from magma.common import sort_by_value
 from magma.primitives.when import iswhen
 from magma.ref import ArrayRef, TupleRef, DerivedRef
 from magma.value_utils import make_selector
+from magma.config import config
 
 
 class WhenCompiler:
@@ -95,8 +96,11 @@ class WhenCompiler:
         ]
 
         for result, wire in zip(self._module.results, wires):
-            name = f"_WHEN_WIRE_{self._module_visitor.new_when_wire_id()}"
-            sv.RegOp(results=[wire], name=name)
+            if config.emit_when_asserts:
+                name = f"_WHEN_WIRE_{self._module_visitor.new_when_wire_id()}"
+                sv.RegOp(results=[wire], name=name)
+            else:
+                sv.RegOp(results=[wire])
             sv.ReadInOutOp(operands=[wire], results=[result])
 
         return wires
