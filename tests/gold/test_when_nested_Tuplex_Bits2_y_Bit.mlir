@@ -12,7 +12,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %3, %I_0_y : i1
             }
         }
-        sv.verbatim "WHEN_ASSERT_49: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %1, %0, %I_0_y, %I_0_x) : i1, i1, i2, i1, i2
+        sv.verbatim "WHEN_ASSERT_36: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %1, %0, %I_0_y, %I_0_x) : i1, i1, i2, i1, i2
         hw.output %0, %1 : i2, i1
     }
 }

@@ -589,12 +589,13 @@ def emit_when_asserts(block, builder, precond=None,
         else_cond = _make_else_cond(block, precond)
         emit_when_asserts(else_block, builder, else_cond, assignment_map)
 
-    if block is block.root:
-        for wire in list(block.root.default_drivers()):
-            if not assignment_map[wire.drivee]:
-                continue
-            cond = ~functools.reduce(operator.or_, assignment_map[wire.drivee])
-            _emit_when_assert(cond, wire.drivee, wire.driver, builder)
+    # if block is block.root:
+    #     # TODO: Handle case when assigned in every case (always false)
+    #     for wire in list(block.root.default_drivers()):
+    #         if not assignment_map[wire.drivee]:
+    #             continue
+    #         cond = ~functools.reduce(operator.or_, assignment_map[wire.drivee])
+    #         _emit_when_assert(cond, wire.drivee, wire.driver, builder)
 
 
 def when(cond):

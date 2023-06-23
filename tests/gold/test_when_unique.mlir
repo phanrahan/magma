@@ -47,30 +47,30 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %25 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : i1, i1, i1, i1, i1, i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_324: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %9, %0) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_325: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %10, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_277: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %9, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_278: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %10, %1) : i1, i1, i1
         %26 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_326: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %11, %26) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_279: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %11, %26) : i1, i1, i1
         %27 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_327: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %12, %27) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_280: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %12, %27) : i1, i1, i1
         %28 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_328: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %13, %28) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_281: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %13, %28) : i1, i1, i1
         %29 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_329: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %14, %29) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_282: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %14, %29) : i1, i1, i1
         %30 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_330: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %15, %30) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_283: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %15, %30) : i1, i1, i1
         %31 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_331: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %16, %31) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_284: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %16, %31) : i1, i1, i1
         %33 = hw.constant -1 : i1
         %32 = comb.xor %33, %0 : i1
-        sv.verbatim "WHEN_ASSERT_332: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %9, %0) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_333: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %10, %1) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_334: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %11, %3) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_335: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %12, %4) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_336: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %13, %5) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_337: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %14, %6) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_338: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %15, %7) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_339: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %16, %8) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_285: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %9, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_286: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %10, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_287: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %11, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_288: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %12, %4) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_289: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %13, %5) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_290: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %14, %6) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_291: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %15, %7) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_292: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%32, %16, %8) : i1, i1, i1
         hw.output %25 : i8
     }
     hw.module @Gen_unq1(%a: i8) -> (y: i8) {
@@ -121,28 +121,28 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %25 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : i1, i1, i1, i1, i1, i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_340: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %9, %0) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_341: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %10, %1) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_342: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %11, %2) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_343: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %12, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_293: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %9, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_294: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %10, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_295: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %11, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_296: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %12, %3) : i1, i1, i1
         %26 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_344: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %13, %26) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_297: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %13, %26) : i1, i1, i1
         %27 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_345: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %14, %27) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_298: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %14, %27) : i1, i1, i1
         %28 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_346: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %15, %28) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_299: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %15, %28) : i1, i1, i1
         %29 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_347: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %16, %29) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_300: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %16, %29) : i1, i1, i1
         %31 = hw.constant -1 : i1
         %30 = comb.xor %31, %0 : i1
-        sv.verbatim "WHEN_ASSERT_348: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %9, %0) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_349: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %10, %1) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_350: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %11, %2) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_351: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %12, %3) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_352: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %13, %5) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_353: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %14, %6) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_354: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %15, %7) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_355: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %16, %8) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_301: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %9, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_302: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %10, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_303: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %11, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_304: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %12, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_305: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %13, %5) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_306: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %14, %6) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_307: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %15, %7) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_308: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %16, %8) : i1, i1, i1
         hw.output %25 : i8
     }
     hw.module @test_when_unique(%a: i8) -> (y: i8) {

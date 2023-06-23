@@ -24,14 +24,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %6, %7 : i8
         }
         %1 = sv.read_inout %6 : !hw.inout<i8>
-        sv.verbatim "WHEN_ASSERT_153: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %2, %I) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_154: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %3, %x) : i1, i1, i1
-        %9 = hw.constant -1 : i1
-        %8 = comb.xor %9, %y : i1
-        sv.verbatim "WHEN_ASSERT_155: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %2, %1) : i1, i8, i8
-        %10 = comb.xor %9, %y : i1
-        %11 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_156: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %3, %11) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_130: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %2, %I) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_131: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %3, %x) : i1, i1, i1
         hw.output %1 : i8
     }
 }

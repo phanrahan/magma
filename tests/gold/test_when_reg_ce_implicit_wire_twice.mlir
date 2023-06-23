@@ -40,24 +40,12 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %14, %15 : i8
         }
         %2 = sv.read_inout %14 : !hw.inout<i8>
-        sv.verbatim "WHEN_ASSERT_161: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %3, %I) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_134: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %3, %I) : i1, i8, i8
         %16 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_162: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %4, %16) : i1, i1, i1
-        %18 = hw.constant -1 : i1
-        %17 = comb.xor %18, %y : i1
-        sv.verbatim "WHEN_ASSERT_163: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%17, %3, %2) : i1, i8, i8
-        %19 = comb.xor %18, %y : i1
-        %20 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_164: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%19, %4, %20) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_165: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %10, %7) : i1, i8, i8
-        %21 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_166: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %11, %21) : i1, i1, i1
-        %22 = comb.or %y, %x : i1
-        %23 = comb.xor %18, %22 : i1
-        sv.verbatim "WHEN_ASSERT_167: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%23, %10, %3) : i1, i8, i8
-        %24 = comb.or %y, %x : i1
-        %25 = comb.xor %18, %24 : i1
-        sv.verbatim "WHEN_ASSERT_168: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%25, %11, %4) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_135: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %4, %16) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_136: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %10, %7) : i1, i8, i8
+        %17 = hw.constant 1 : i1
+        sv.verbatim "WHEN_ASSERT_137: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %11, %17) : i1, i1, i1
         hw.output %2 : i8
     }
 }

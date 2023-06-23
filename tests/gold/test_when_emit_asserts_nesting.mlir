@@ -23,14 +23,11 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %10 = comb.and %0, %1 : i1
-        sv.verbatim "WHEN_ASSERT_435: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %8, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_378: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %8, %3) : i1, i1, i1
         %11 = comb.xor %7, %1 : i1
         %12 = comb.and %0, %11 : i1
         %13 = comb.and %12, %4 : i1
-        sv.verbatim "WHEN_ASSERT_436: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%13, %8, %6) : i1, i1, i1
-        %14 = comb.or %10, %13 : i1
-        %15 = comb.xor %7, %14 : i1
-        sv.verbatim "WHEN_ASSERT_437: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%15, %8, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_379: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%13, %8, %6) : i1, i1, i1
         hw.output %8 : i1
     }
 }

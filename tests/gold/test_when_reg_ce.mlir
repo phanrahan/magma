@@ -25,15 +25,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %7, %8 : i8
         }
         %2 = sv.read_inout %7 : !hw.inout<i8>
-        sv.verbatim "WHEN_ASSERT_141: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%CE, %3, %I) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_123: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%CE, %3, %I) : i1, i8, i8
         %9 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_142: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%CE, %4, %9) : i1, i1, i1
-        %11 = hw.constant -1 : i1
-        %10 = comb.xor %11, %CE : i1
-        sv.verbatim "WHEN_ASSERT_143: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %3, %2) : i1, i8, i8
-        %12 = comb.xor %11, %CE : i1
-        %13 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_144: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %4, %13) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_124: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%CE, %4, %9) : i1, i1, i1
         hw.output %2 : i8
     }
 }

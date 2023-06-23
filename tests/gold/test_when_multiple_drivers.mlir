@@ -19,13 +19,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %8 = comb.and %0, %1 : i1
-        sv.verbatim "WHEN_ASSERT_9: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %4, %3) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_10: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %5, %2) : i1, i1, i1
-        %10 = hw.constant -1 : i1
-        %9 = comb.xor %10, %8 : i1
-        sv.verbatim "WHEN_ASSERT_11: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%9, %4, %2) : i1, i1, i1
-        %11 = comb.xor %10, %8 : i1
-        sv.verbatim "WHEN_ASSERT_12: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %5, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %4, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_8: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %5, %2) : i1, i1, i1
         hw.output %4, %5 : i1, i1
     }
 }

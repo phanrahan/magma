@@ -20,7 +20,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %5, %I_0_0_y : i2
             }
         }
-        sv.verbatim "WHEN_ASSERT_48: assert property (({{0}}) |-> ({{{{1}}, {{2}}}, {{{3}}, {{4}}}} == {{{{5}}, {{6}}}, {{{7}}, {{8}}}}));" (%S, %3, %2, %1, %0, %I_0_1_y, %I_0_1_x, %I_0_0_y, %I_0_0_x) : i1, i2, i1, i2, i1, i2, i1, i2, i1
+        sv.verbatim "WHEN_ASSERT_35: assert property (({{0}}) |-> ({{{{1}}, {{2}}}, {{{3}}, {{4}}}} == {{{{5}}, {{6}}}, {{{7}}, {{8}}}}));" (%S, %3, %2, %1, %0, %I_0_1_y, %I_0_1_x, %I_0_0_y, %I_0_0_x) : i1, i2, i1, i2, i1, i2, i1, i2, i1
         hw.output %0, %1, %2, %3 : i1, i2, i1, i2
     }
 }

@@ -11,9 +11,6 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %2, %1) : i1, i1, i1
-        %5 = hw.constant -1 : i1
-        %4 = comb.xor %5, %S : i1
-        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%4, %2, %0) : i1, i1, i1
         hw.output %2 : i1
     }
 }
