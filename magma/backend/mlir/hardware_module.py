@@ -288,6 +288,7 @@ class ModuleVisitor:
         self._graph = graph
         self._ctx = ctx
         self._visited = set()
+        self._when_wire_id = -1
 
     @property
     def ctx(self):
@@ -1034,6 +1035,12 @@ class ModuleVisitor:
             if inst in self._visited:
                 continue
             self.visit(inst)
+
+    def new_when_wire_id(self):
+        # TODO(leonardt): Maybe compiler class can store a map from module to
+        # counter
+        self._when_wire_id += 1
+        return self._when_wire_id
 
 
 def treat_as_primitive(

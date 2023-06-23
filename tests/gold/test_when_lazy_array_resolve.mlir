@@ -4,7 +4,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %1 = comb.shru %I, %0 : i2
         %2 = comb.extract %1 from 0 : (i2) -> i1
         %3 = comb.extract %1 from 1 : (i2) -> i1
-        %5 = sv.reg name "_WHEN_WIRE_60" : !hw.inout<i2>
+        %5 = sv.reg name "_WHEN_WIRE_0" : !hw.inout<i2>
         %4 = sv.read_inout %5 : !hw.inout<i2>
         sv.alwayscomb {
             sv.if %S {
@@ -19,14 +19,14 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %7 = comb.extract %I from 1 : (i2) -> i1
         %10 = comb.extract %4 from 0 : (i2) -> i1
         %11 = comb.extract %I from 0 : (i2) -> i1
-        sv.verbatim "WHEN_ASSERT_65: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %10, %11) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_79: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %10, %11) : i1, i1, i1
         %12 = comb.extract %4 from 1 : (i2) -> i1
         %13 = comb.extract %I from 1 : (i2) -> i1
-        sv.verbatim "WHEN_ASSERT_66: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %12, %13) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_80: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %12, %13) : i1, i1, i1
         %15 = hw.constant -1 : i1
         %14 = comb.xor %15, %S : i1
-        sv.verbatim "WHEN_ASSERT_67: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%14, %10, %2) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_68: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%14, %12, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_81: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%14, %10, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_82: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%14, %12, %3) : i1, i1, i1
         hw.output %4 : i2
     }
 }

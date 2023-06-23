@@ -2,9 +2,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     hw.module @test_when_reg_ce_implicit_wire_twice(%I: i8, %x: i1, %y: i1, %CLK: i1) -> (O: i8) {
         %0 = hw.constant 1 : i1
         %1 = hw.constant 0 : i1
-        %5 = sv.reg name "_WHEN_WIRE_92" : !hw.inout<i8>
+        %5 = sv.reg name "_WHEN_WIRE_0" : !hw.inout<i8>
         %3 = sv.read_inout %5 : !hw.inout<i8>
-        %6 = sv.reg name "_WHEN_WIRE_93" : !hw.inout<i1>
+        %6 = sv.reg name "_WHEN_WIRE_1" : !hw.inout<i1>
         %4 = sv.read_inout %6 : !hw.inout<i1>
         sv.alwayscomb {
             sv.bpassign %5, %2 : i8
@@ -17,9 +17,9 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %8 = hw.constant -1 : i8
         %7 = comb.xor %8, %I : i8
         %9 = hw.constant 1 : i1
-        %12 = sv.reg name "_WHEN_WIRE_94" : !hw.inout<i8>
+        %12 = sv.reg name "_WHEN_WIRE_2" : !hw.inout<i8>
         %10 = sv.read_inout %12 : !hw.inout<i8>
-        %13 = sv.reg name "_WHEN_WIRE_95" : !hw.inout<i1>
+        %13 = sv.reg name "_WHEN_WIRE_3" : !hw.inout<i1>
         %11 = sv.read_inout %13 : !hw.inout<i1>
         sv.alwayscomb {
             sv.bpassign %12, %3 : i8
@@ -40,12 +40,24 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %14, %15 : i8
         }
         %2 = sv.read_inout %14 : !hw.inout<i8>
-        sv.verbatim "WHEN_ASSERT_134: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %3, %I) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_161: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %3, %I) : i1, i8, i8
         %16 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_135: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %4, %16) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_136: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %10, %7) : i1, i8, i8
-        %17 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_137: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %11, %17) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_162: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %4, %16) : i1, i1, i1
+        %18 = hw.constant -1 : i1
+        %17 = comb.xor %18, %y : i1
+        sv.verbatim "WHEN_ASSERT_163: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%17, %3, %2) : i1, i8, i8
+        %19 = comb.xor %18, %y : i1
+        %20 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_164: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%19, %4, %20) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_165: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %10, %7) : i1, i8, i8
+        %21 = hw.constant 1 : i1
+        sv.verbatim "WHEN_ASSERT_166: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %11, %21) : i1, i1, i1
+        %22 = comb.or %y, %x : i1
+        %23 = comb.xor %18, %22 : i1
+        sv.verbatim "WHEN_ASSERT_167: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%23, %10, %3) : i1, i8, i8
+        %24 = comb.or %y, %x : i1
+        %25 = comb.xor %18, %24 : i1
+        sv.verbatim "WHEN_ASSERT_168: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%25, %11, %4) : i1, i1, i1
         hw.output %2 : i8
     }
 }
