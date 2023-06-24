@@ -37,14 +37,6 @@ def _get_view_inst_parent(view):
 
 def _make_inline_value(
         inline_value_map: Mapping[str, ValueLike], value: ValueLike) -> str:
-    if (isinstance(value, Array) and not issubclass(value.T, Digital)) or isinstance(value, Tuple):
-        key = ", ".join(
-            _make_inline_value(inline_value_map, t)
-            for t in reversed(value)
-        )
-        return f"{{{key}}}"
-    # if isinstance(value, Tuple):
-    #     raise NotImplementedError(value)
     key = f"__magma_inline_value_{len(inline_value_map)}"
     inline_value_map[key] = value
     return f"{{{key}}}"
