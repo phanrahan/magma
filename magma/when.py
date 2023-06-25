@@ -538,13 +538,14 @@ _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
 
 
 
-def _emit_when_assert(cond, drivee, driver, builder):
+def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
     port = builder._check_existing_derived_ref(
         drivee, builder._output_to_name, builder._output_to_index)
     if port is None:
         port = getattr(builder, builder._output_to_name[drivee])
     if not port.wired():
         return
+    assignment_map[port].append(cond)
 
     from magma.inline_verilog import inline_verilog
     id = next(_WHEN_ASSERT_COUNTER)
@@ -578,8 +579,7 @@ def emit_when_asserts(block, builder, precond=None,
     # for the inline verilog inputs, which will modify the list but those new
     # outputs don't need an assert since they are copies of these ones.
     for _wire in list(block.conditional_wires()):
-        assignment_map[_wire.drivee].append(cond)
-        _emit_when_assert(cond, _wire.drivee, _wire.driver, builder)
+        _emit_when_assert(cond, _wire.drivee, _wire.driver, builder, assignment_map)
 
     for child in block.children():
         emit_when_asserts(child, builder, cond, assignment_map)
@@ -590,12 +590,16 @@ def emit_when_asserts(block, builder, precond=None,
         emit_when_asserts(else_block, builder, else_cond, assignment_map)
 
     if block is block.root:
-        # TODO: Handle case when assigned in every case (always false)
         for wire in list(block.root.default_drivers()):
-            if not assignment_map[wire.drivee]:
+            port = builder._check_existing_derived_ref(
+                wire.drivee, builder._output_to_name, builder._output_to_index)
+            if port is None:
+                port = getattr(builder, builder._output_to_name[wire.drivee])
+            assigned_conds = assignment_map[port]
+            if not assigned_conds:
                 continue
-            cond = ~functools.reduce(operator.or_, assignment_map[wire.drivee])
-            _emit_when_assert(cond, wire.drivee, wire.driver, builder)
+            cond = ~functools.reduce(operator.or_, assigned_conds)
+            _emit_when_assert(cond, wire.drivee, wire.driver, builder, defaultdict(list))
 
 
 def when(cond):
