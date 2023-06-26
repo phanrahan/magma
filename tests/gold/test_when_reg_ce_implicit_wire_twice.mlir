@@ -52,12 +52,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         sv.verbatim "WHEN_ASSERT_165: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %10, %7) : i1, i8, i8
         %21 = hw.constant 1 : i1
         sv.verbatim "WHEN_ASSERT_166: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %11, %21) : i1, i1, i1
-        %22 = comb.or %y, %x : i1
-        %23 = comb.xor %18, %22 : i1
-        sv.verbatim "WHEN_ASSERT_167: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%23, %10, %3) : i1, i8, i8
-        %24 = comb.or %y, %x : i1
-        %25 = comb.xor %18, %24 : i1
-        sv.verbatim "WHEN_ASSERT_168: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%25, %11, %4) : i1, i1, i1
+        %22 = comb.xor %18, %x : i1
+        sv.verbatim "WHEN_ASSERT_167: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%22, %10, %3) : i1, i8, i8
+        %23 = comb.xor %18, %x : i1
+        sv.verbatim "WHEN_ASSERT_168: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%23, %11, %4) : i1, i1, i1
         hw.output %2 : i8
     }
 }

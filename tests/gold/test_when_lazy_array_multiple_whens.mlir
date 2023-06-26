@@ -59,22 +59,14 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         sv.verbatim "WHEN_ASSERT_134: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %19, %13) : i1, i1, i1
         sv.verbatim "WHEN_ASSERT_135: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %20, %15) : i1, i1, i1
         sv.verbatim "WHEN_ASSERT_136: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %21, %17) : i1, i1, i1
-        %28 = comb.or %S, %27 : i1
-        %29 = comb.or %28, %0 : i1
-        %30 = comb.xor %1, %29 : i1
-        sv.verbatim "WHEN_ASSERT_137: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %18, %10) : i1, i1, i1
-        %31 = comb.or %S, %27 : i1
-        %32 = comb.or %31, %0 : i1
-        %33 = comb.xor %1, %32 : i1
-        sv.verbatim "WHEN_ASSERT_138: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %19, %12) : i1, i1, i1
-        %34 = comb.or %S, %27 : i1
-        %35 = comb.or %34, %0 : i1
-        %36 = comb.xor %1, %35 : i1
-        sv.verbatim "WHEN_ASSERT_139: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%36, %20, %14) : i1, i1, i1
-        %37 = comb.or %S, %27 : i1
-        %38 = comb.or %37, %0 : i1
-        %39 = comb.xor %1, %38 : i1
-        sv.verbatim "WHEN_ASSERT_140: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%39, %21, %16) : i1, i1, i1
+        %28 = comb.xor %1, %0 : i1
+        sv.verbatim "WHEN_ASSERT_137: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%28, %18, %10) : i1, i1, i1
+        %29 = comb.xor %1, %0 : i1
+        sv.verbatim "WHEN_ASSERT_138: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%29, %19, %12) : i1, i1, i1
+        %30 = comb.xor %1, %0 : i1
+        sv.verbatim "WHEN_ASSERT_139: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %20, %14) : i1, i1, i1
+        %31 = comb.xor %1, %0 : i1
+        sv.verbatim "WHEN_ASSERT_140: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%31, %21, %16) : i1, i1, i1
         hw.output %26 : i4
     }
 }

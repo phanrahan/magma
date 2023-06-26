@@ -35,9 +35,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %11 = comb.xor %8, %y : i1
         sv.verbatim "WHEN_ASSERT_170: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %1, %0) : i1, i8, i8
         sv.verbatim "WHEN_ASSERT_171: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %5, %3) : i1, i8, i8
-        %12 = comb.or %y, %x : i1
-        %13 = comb.xor %8, %12 : i1
-        sv.verbatim "WHEN_ASSERT_172: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%13, %5, %1) : i1, i8, i8
+        %12 = comb.xor %8, %x : i1
+        sv.verbatim "WHEN_ASSERT_172: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %5, %1) : i1, i8, i8
         hw.output %0 : i8
     }
 }

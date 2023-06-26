@@ -537,6 +537,13 @@ _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
                     " ({drivee} == {driver}));")
 
 
+def _update_assignment_map(cond, port, assignment_map):
+    if not port.has_children() or not port.has_elaborated_children():
+        return assignment_map[port].append(cond)
+    for child in port:
+        _update_assignment_map(cond, child, assignment_map)
+
+
 
 def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
     port = builder._check_existing_derived_ref(
@@ -545,12 +552,25 @@ def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
         port = getattr(builder, builder._output_to_name[drivee])
     if not port.wired():
         return
-    assignment_map[port].append(cond)
+    _update_assignment_map(cond, port, assignment_map)
 
     from magma.inline_verilog import inline_verilog
     id = next(_WHEN_ASSERT_COUNTER)
     inline_verilog(_ASSERT_TEMPLATE, cond=cond, drivee=port, driver=driver,
                    id=id)
+
+
+
+def _collect_assignment_map(port, assignment_map):
+    if not port.has_children() or not port.has_elaborated_children():
+        return assignment_map[port]
+    assigned_conds = None
+    for child in port:
+        result = _collect_assignment_map(child, assignment_map)
+        if result is not None:
+            assert all(x is y for x in zip(assigned_conds, result))
+        assigned_conds = result
+    return assigned_conds
 
 
 def _make_else_cond(block, precond):
@@ -595,7 +615,8 @@ def emit_when_asserts(block, builder, precond=None,
                 wire.drivee, builder._output_to_name, builder._output_to_index)
             if port is None:
                 port = getattr(builder, builder._output_to_name[wire.drivee])
-            assigned_conds = assignment_map[port]
+            assigned_conds = _collect_assignment_map(port, assignment_map)
+            print(assigned_conds, wire)
             if not assigned_conds:
                 continue
             cond = ~functools.reduce(operator.or_, assigned_conds)
