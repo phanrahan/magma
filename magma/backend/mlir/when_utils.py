@@ -1,3 +1,4 @@
+from collections import defaultdict
 import contextlib
 import itertools
 
@@ -87,7 +88,16 @@ class WhenCompiler:
             )
         return value_to_index
 
-    _wire_id = -1
+    _when_wire_id_map = defaultdict(itertools.count)
+
+    def _new_when_wire_output_id(self):
+        """
+        A module visitor may instantiate multi when compilers (for each when),
+        so keep track of unique ids within a module context rather than instance
+        or global context
+        """
+        return next(WhenCompiler._when_wire_id_map[self._module_visitor])
+
     def _make_output_wires(self):
         """Create the mlir values corresponding to each output"""
         wires = [
@@ -96,11 +106,11 @@ class WhenCompiler:
         ]
 
         for result, wire in zip(self._module.results, wires):
+            kwargs = {}
             if config.emit_when_asserts:
-                name = f"_WHEN_WIRE_{self._module_visitor.new_when_wire_id()}"
-                sv.RegOp(results=[wire], name=name)
-            else:
-                sv.RegOp(results=[wire])
+                # Add explicit name so MLIR doesn't merge wires
+                kwargs["name"] = f"_WHEN_WIRE_{self._new_when_wire_output_id()}"
+            sv.RegOp(results=[wire], **kwargs)
             sv.ReadInOutOp(operands=[wire], results=[result])
 
         return wires
