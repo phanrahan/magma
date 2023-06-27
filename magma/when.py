@@ -422,8 +422,6 @@ def _reset_context():
     _WHEN_ASSERT_COUNTER = itertools.count()
 
 
-
-
 reset_context = _reset_context
 
 
