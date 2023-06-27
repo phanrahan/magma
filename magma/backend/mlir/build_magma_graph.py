@@ -19,7 +19,7 @@ from magma.digital import Digital
 from magma.primitives.register import Register
 from magma.primitives.when import iswhen
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef, LazyInstRef
+from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
 from magma.t import Type
 from magma.tuple import Tuple as m_Tuple
 
@@ -174,7 +174,6 @@ def _visit_inputs(
             lambda _: None,
             flatten_all_tuples=flatten_all_tuples,
         )
-
 
 
 def _check_for_when_cycles(graph: Graph):
