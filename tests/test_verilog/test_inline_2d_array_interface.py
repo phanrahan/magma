@@ -11,7 +11,7 @@ def test_inline_2d_array_interface():
                 io = m.IO(arr=m.In(m.Array[depth, m.Bits[width]]))
 
                 m.inline_verilog("""
-monitor #(.WIDTH({width}), .DEPTH({depth})) monitor_inst(.arr({arr}));
+monitor #(.WIDTH({width}), .DEPTH({depth})) monitor_inst(.arr('{arr}));
                     """, width=width, depth=depth, arr=io.arr)
 
             return MonitorWrapper

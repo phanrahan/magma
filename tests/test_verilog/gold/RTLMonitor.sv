@@ -42,10 +42,10 @@ module bar_foo_RTLMonitor (
     input out,
     input [19:0] tuple_arr [0:0]
 );
-wire [7:0] arr_2d;
 wire [3:0] arr_2d_0;
-assign arr_2d = {in2,in1};
+wire [3:0] arr_2d_1;
 assign arr_2d_0 = in1;
+assign arr_2d_1 = in2;
 
 logic temp1, temp2;
 logic temp3;
@@ -54,7 +54,7 @@ assign temp2 = &(in1) & intermediate_tuple__0;
 assign temp3 = temp1 ^ temp2 & arr_2d_0[1];
 assert property (@(posedge CLK) handshake_valid -> out === temp1 && temp2);
 logic [3:0] temp4 [1:0];
-assign temp4 = '{{arr_2d[7],arr_2d[6],arr_2d[5],arr_2d[4]},{arr_2d[3],arr_2d[2],arr_2d[1],arr_2d[0]}};
+assign temp4 = {arr_2d_1, arr_2d_0};
 always @(*) $display("%x", inst_input & {4{mon_temp3}});
 logic temp5;
 assign temp5 = intermediate_ndarr[1][1];
