@@ -901,7 +901,6 @@ class ModuleVisitor:
             for k, v in replacements:
                 k = "{" + k + "}"
                 string = string.replace(k, v)
-
             sv.VerbatimOp(operands=module.operands, string=string)
         return True
 
