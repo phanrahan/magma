@@ -42,6 +42,13 @@ def _make_inline_value(
             _make_inline_value(inline_value_map, t)
             for t in reversed(value)
         )
+        # NOTE(leonardt): previously we used a tick (') prefix, but this is
+        # only needed in verilog for wire assignments.  In the past, this was
+        # fine because inline verilog modules used the ' prefix in the instance
+        # statement which is the same as declaring and assigning a wire.  Now,
+        # we can inline values more generally, so we don't insert the ' and
+        # instead the user can insert it one if it is inlining a value into a
+        # wire assignment or instance port statement.
         return f"{{{key}}}"
     if isinstance(value, Tuple):
         raise NotImplementedError(value)

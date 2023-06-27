@@ -7,7 +7,7 @@ class FinalizeWhens(DefinitionPass):
         with definition.open():
             for builder in definition._context_._builders:
                 if isinstance(builder, WhenBuilder) and not builder._finalized:
-                    builder.emit_when_asserts()
+                    builder.pre_finalize()
             for builder in definition._context_._builders:
                 if isinstance(builder, WhenBuilder) and not builder._finalized:
                     definition._context_._placer.place(builder.finalize())

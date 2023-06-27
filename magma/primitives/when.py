@@ -251,7 +251,14 @@ class WhenBuilder(CircuitBuilder):
     def remove_default_driver(self, drivee: Type):
         del self._default_drivers[drivee]
 
-    def emit_when_asserts(self):
+    def pre_finalize(self):
+        """
+        We run this step before finalize since emitting when asserts may cause
+        tuple elaboration (since verilog assert references may refer to a
+        tuple that will eventually be flattened).  This may cause changes to the
+        builder and any connected builders so we don't want to finalize when
+        builders before this logic is finished across all instances.
+        """
         # Detect latches which would be inferred from the context of the when
         # block.
         latches = find_inferred_latches(self.block)
@@ -266,7 +273,9 @@ class WhenBuilder(CircuitBuilder):
         # the default value).
         _add_default_drivers_to_memory_ports(self, latches)
         _add_default_drivers_to_register_inputs(self, latches)
+
         if config.emit_when_asserts:
+            # Should be done after implicit default driver logic is added
             emit_when_asserts(self.block, self)
 
         if latches:
