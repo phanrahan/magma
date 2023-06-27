@@ -36,6 +36,17 @@ def _enable_type():
     return Enable
 
 
+def _contains_tuple(T):
+    # NOTE(leonardt): Circular dependency.
+    from magma.type_utils import contains_tuple
+    return contains_tuple(T)
+
+
+def _inline_verilog2(*args, **kwargs):
+    from magma.inline_verilog2 import inline_verilog2
+    inline_verilog2(*args, **kwargs)
+
+
 class WhenSyntaxError(SyntaxError):
     pass
 
@@ -540,6 +551,10 @@ _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
 
 
 def _get_builder_port(value, builder):
+    """
+    Get reference to corresponding builder output port.  With the bulk
+    reconstruction logic, this may refer to a child of a builder output.
+    """
     port = builder._check_existing_derived_ref(
         value, builder._output_to_name, builder._output_to_index)
     if port is None:
@@ -548,25 +563,28 @@ def _get_builder_port(value, builder):
 
 
 def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
-    from magma.type_utils import contains_tuple
-    if contains_tuple(type(drivee)):
+    if _contains_tuple(type(drivee)):
+        # Since tuples are elaborated in verilog, we emit an assert for the
+        # leaf values.
+        # TODO(leonardt): update this when we remove flatten_all_tuples
         for x, y in zip(drivee, driver):
             _emit_when_assert(cond, x, y, builder, assignment_map)
         return
+
     port = _get_builder_port(drivee, builder)
     if not port.wired():
-        return
+        return  # port was discarded, do not need to emit assert
+
+    # Track the conditions a value is assigned in for the default driver logic.
     assignment_map[port].append(cond)
 
-    from magma.inline_verilog2 import inline_verilog2
-    id = next(_WHEN_ASSERT_COUNTER)
-    inline_verilog2(_ASSERT_TEMPLATE, cond=cond, drivee=port, driver=driver,
-                    id=id)
+    _inline_verilog2(_ASSERT_TEMPLATE, cond=cond, drivee=port, driver=driver,
+                     id=next(_WHEN_ASSERT_COUNTER))
 
 
 def _make_else_cond(block, precond):
-    if block.condition is None:
-        return precond
+    """
+    """
     else_cond = ~block.condition
     if precond is not None:
         else_cond = precond & else_cond
@@ -590,7 +608,8 @@ def emit_when_asserts(block, builder, precond=None,
     # for the inline verilog inputs, which will modify the list but those new
     # outputs don't need an assert since they are copies of these ones.
     for _wire in list(block.conditional_wires()):
-        _emit_when_assert(cond, _wire.drivee, _wire.driver, builder, assignment_map)
+        _emit_when_assert(cond, _wire.drivee, _wire.driver, builder,
+                          assignment_map)
 
     for child in block.children():
         emit_when_asserts(child, builder, cond, assignment_map)
@@ -608,7 +627,8 @@ def emit_when_asserts(block, builder, precond=None,
             if not assigned_conds:
                 continue
             cond = ~functools.reduce(operator.or_, assigned_conds)
-            _emit_when_assert(cond, wire.drivee, wire.driver, builder, defaultdict(list))
+            _emit_when_assert(cond, wire.drivee, wire.driver, builder,
+                              defaultdict(list))
 
 
 def when(cond):
