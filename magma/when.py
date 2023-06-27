@@ -582,20 +582,8 @@ def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
                      id=next(_WHEN_ASSERT_COUNTER))
 
 
-def _make_else_cond(block, precond):
-    """
-    """
-    else_cond = ~block.condition
-    if precond is not None:
-        else_cond = precond & else_cond
-    return else_cond
-
-
-def emit_when_asserts(block, builder, precond=None,
-                      assignment_map=defaultdict(list)):
-    if not config.emit_when_asserts:
-        return
-
+def _make_cond(block, precond):
+    """Prepends the precond to the block condition if it exists."""
     if precond is not None:
         cond = precond
         if block.condition is not None:
@@ -603,15 +591,48 @@ def emit_when_asserts(block, builder, precond=None,
     else:
         assert block.condition is not None
         cond = block.condition
+    return cond
 
-    # Copy block conditional_wires because we wire the when primitive outputs
-    # for the inline verilog inputs, which will modify the list but those new
-    # outputs don't need an assert since they are copies of these ones.
-    for _wire in list(block.conditional_wires()):
+
+def _make_else_cond(block, precond):
+    """Invert the current condition, if there's a precond, append it."""
+    else_cond = ~block.condition
+    if precond is not None:
+        else_cond = precond & else_cond
+    return else_cond
+
+
+def _emit_default_driver_asserts(block, builder, assignment_map):
+    # TODO: Handle case when assigned in all conditions
+    for wire in list(block.root.default_drivers()):
+        port = _get_builder_port(wire.drivee, builder)
+        assigned_conds = assignment_map[port]
+        if not assigned_conds:
+            continue
+        cond = ~functools.reduce(operator.or_, assigned_conds)
+        _emit_when_assert(cond, wire.drivee, wire.driver, builder,
+                          defaultdict(list))
+
+
+def emit_when_asserts(block, builder, precond=None,
+                      assignment_map=defaultdict(list)):
+    """
+    For each drivee in a conditional wire, track the conditions where it is
+    assigned using assignment_map.  This is used for the default driver logic
+    (emit an assert for the case when none of the relevant conditions are
+    true).
+    """
+    if not config.emit_when_asserts:
+        return
+
+    cond = _make_cond(block, precond)
+
+    for _wire in block.conditional_wires():
         _emit_when_assert(cond, _wire.drivee, _wire.driver, builder,
                           assignment_map)
 
     for child in block.children():
+        # Children inherit this block's cond as a precond.
         emit_when_asserts(child, builder, cond, assignment_map)
 
     else_block = _get_else_block(block)
@@ -620,15 +641,7 @@ def emit_when_asserts(block, builder, precond=None,
         emit_when_asserts(else_block, builder, else_cond, assignment_map)
 
     if block is block.root:
-        # TODO: Handle case when assigned in all conditions
-        for wire in list(block.root.default_drivers()):
-            port = _get_builder_port(wire.drivee, builder)
-            assigned_conds = assignment_map[port]
-            if not assigned_conds:
-                continue
-            cond = ~functools.reduce(operator.or_, assigned_conds)
-            _emit_when_assert(cond, wire.drivee, wire.driver, builder,
-                              defaultdict(list))
+        _emit_default_driver_asserts(block, builder, assignment_map)
 
 
 def when(cond):
