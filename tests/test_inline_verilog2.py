@@ -7,7 +7,7 @@ from magma.inline_verilog2 import InlineVerilogError
 
 def _compile_and_check(top: m.DefineCircuitKind, **opts):
     basename = f"test_{top.name}"
-    m.compile(f"build/{basename}", top, output="mlir-verilog", **opts)
+    m.compile(f"build/{basename}", top, output="mlir", **opts)
     assert m.testing.check_files_equal(
         __file__,
         f"build/{basename}.mlir",
