@@ -603,7 +603,6 @@ def _make_else_cond(block, precond):
 
 
 def _emit_default_driver_asserts(block, builder, assignment_map):
-    # TODO: Handle case when assigned in all conditions
     for wire in list(block.root.default_drivers()):
         port = _get_builder_port(wire.drivee, builder)
         assigned_conds = assignment_map[port]
