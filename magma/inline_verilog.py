@@ -37,14 +37,14 @@ def _get_view_inst_parent(view):
 
 def _make_inline_value(
         inline_value_map: Mapping[str, ValueLike], value: ValueLike) -> str:
-    if (isinstance(value, Array) and not issubclass(value.T, Digital)):
+    if isinstance(value, Array) and not issubclass(value.T, Digital):
         key = ", ".join(
             _make_inline_value(inline_value_map, t)
             for t in reversed(value)
         )
         return f"{{{key}}}"
-    # if isinstance(value, Tuple):
-    #     raise NotImplementedError(value)
+    if isinstance(value, Tuple):
+        raise NotImplementedError(value)
     key = f"__magma_inline_value_{len(inline_value_map)}"
     inline_value_map[key] = value
     return f"{{{key}}}"
@@ -97,9 +97,9 @@ def _inline_verilog(
         # Since each inline value (key) maps to a port, we populate the
         # connect_references dictionary with a map from key to port.
         connect_references = {}
-        for key, value in inline_value_map.items():
+        for key in inline_value_map:
             port = getattr(io, key)
-            port.unused()  # needed so CoreIR knows it's a definition
+            port.unused()  # these are needed so CoreIR knows it's a definition
             connect_references[key] = port
         inline_verilog_strs = [(inline_str, connect_references)]
 
