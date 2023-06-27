@@ -537,16 +537,21 @@ _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
                     " ({drivee} == {driver}));")
 
 
+def _get_builder_port(value, builder):
+    port = builder._check_existing_derived_ref(
+        value, builder._output_to_name, builder._output_to_index)
+    if port is None:
+        port = getattr(builder, builder._output_to_name[value])
+    return port
+
+
 def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
     from magma.tuple import Tuple
     if isinstance(drivee, Tuple):
         for x, y in zip(drivee, driver):
             _emit_when_assert(cond, x, y, builder, assignment_map)
         return
-    port = builder._check_existing_derived_ref(
-        drivee, builder._output_to_name, builder._output_to_index)
-    if port is None:
-        port = getattr(builder, builder._output_to_name[drivee])
+    port = _get_builder_port(drivee, builder)
     if not port.wired():
         return
     assignment_map[port].append(cond)
@@ -596,10 +601,7 @@ def emit_when_asserts(block, builder, precond=None,
     if block is block.root:
         # TODO: Handle case when assigned in all conditions
         for wire in list(block.root.default_drivers()):
-            port = builder._check_existing_derived_ref(
-                wire.drivee, builder._output_to_name, builder._output_to_index)
-            if port is None:
-                port = getattr(builder, builder._output_to_name[wire.drivee])
+            port = _get_builder_port(wire.drivee, builder)
             assigned_conds = assignment_map[port]
             if not assigned_conds:
                 continue
