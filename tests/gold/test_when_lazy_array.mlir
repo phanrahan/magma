@@ -20,15 +20,15 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         sv.assign %8, %6 : i2
         %7 = sv.read_inout %8 : !hw.inout<i2>
         %9 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_83: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %2, %9) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_87: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %2, %9) : i1, i1, i1
         %10 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_84: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %3, %10) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_88: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %3, %10) : i1, i1, i1
         %12 = hw.constant -1 : i1
         %11 = comb.xor %12, %S : i1
         %13 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_85: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %2, %13) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_89: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %2, %13) : i1, i1, i1
         %14 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_86: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %3, %14) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_90: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %3, %14) : i1, i1, i1
         hw.output %7 : i2
     }
 }

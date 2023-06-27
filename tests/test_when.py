@@ -1639,6 +1639,30 @@ def test_when_emit_asserts_value():
     assert check_gold(__file__, "test_when_emit_asserts_value.mlir")
 
 
+def test_when_emit_asserts_tuple_elab():
+    config.emit_when_asserts = True
+
+    T = m.Tuple[m.Bits[8], m.Bit]
+
+    class test_when_emit_asserts_tuple_elab(m.Circuit):
+        io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
+
+        x = m.Register(T)()
+        io.O @= x.O
+        with m.when(io.S):
+            x.I @= io.O.value()
+        with m.elsewhen(io.I[0][1]):
+            x.I @= io.O.value()
+
+
+    m.compile("build/test_when_emit_asserts_tuple_elab",
+              test_when_emit_asserts_tuple_elab,
+              flatten_all_tuples=True,
+              output="mlir")
+    config.emit_when_asserts = False
+    assert check_gold(__file__, "test_when_emit_asserts_tuple_elab.mlir")
+
+
 def test_when_alwcomb_order():
 
     class test_when_alwcomb_order(m.Circuit):

@@ -24,14 +24,14 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %6, %7 : i8
         }
         %1 = sv.read_inout %6 : !hw.inout<i8>
-        sv.verbatim "WHEN_ASSERT_157: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %2, %I) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_158: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %3, %x) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_161: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %2, %I) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_162: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %3, %x) : i1, i1, i1
         %9 = hw.constant -1 : i1
         %8 = comb.xor %9, %y : i1
         %10 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_159: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %3, %10) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_163: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %3, %10) : i1, i1, i1
         %11 = comb.xor %9, %y : i1
-        sv.verbatim "WHEN_ASSERT_160: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %2, %1) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_164: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %2, %1) : i1, i8, i8
         hw.output %1 : i8
     }
 }

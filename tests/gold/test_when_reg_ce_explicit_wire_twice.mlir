@@ -31,12 +31,12 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %9, %10 : i8
         }
         %0 = sv.read_inout %9 : !hw.inout<i8>
-        sv.verbatim "WHEN_ASSERT_169: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %1, %I) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_173: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %1, %I) : i1, i8, i8
         %11 = comb.xor %8, %y : i1
-        sv.verbatim "WHEN_ASSERT_170: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %1, %0) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_171: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %5, %3) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_174: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %1, %0) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_175: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %5, %3) : i1, i8, i8
         %12 = comb.xor %8, %x : i1
-        sv.verbatim "WHEN_ASSERT_172: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %5, %1) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_176: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %5, %1) : i1, i8, i8
         hw.output %0 : i8
     }
 }

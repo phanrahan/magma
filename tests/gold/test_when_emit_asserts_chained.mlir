@@ -22,12 +22,12 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %9, %6 : i1
             }
         }
-        sv.verbatim "WHEN_ASSERT_438: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%1, %4, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_451: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%1, %4, %3) : i1, i1, i1
         %10 = comb.xor %7, %1 : i1
-        sv.verbatim "WHEN_ASSERT_439: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %4, %2) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_440: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %8, %6) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_452: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %4, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_453: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %8, %6) : i1, i1, i1
         %11 = comb.xor %7, %0 : i1
-        sv.verbatim "WHEN_ASSERT_441: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %8, %4) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_454: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %8, %4) : i1, i1, i1
         hw.output %8 : i1
     }
 }

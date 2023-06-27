@@ -9,18 +9,18 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %7 = sv.reg name "_WHEN_WIRE_3" : !hw.inout<i2>
         %3 = sv.read_inout %7 : !hw.inout<i2>
         sv.alwayscomb {
-            sv.bpassign %6, %I_1_1_x : i1
-            sv.bpassign %7, %I_1_1_y : i2
             sv.bpassign %4, %I_1_0_x : i1
             sv.bpassign %5, %I_1_0_y : i2
+            sv.bpassign %6, %I_1_1_x : i1
+            sv.bpassign %7, %I_1_1_y : i2
             sv.if %S {
-                sv.bpassign %6, %I_0_1_x : i1
-                sv.bpassign %7, %I_0_1_y : i2
                 sv.bpassign %4, %I_0_0_x : i1
                 sv.bpassign %5, %I_0_0_y : i2
+                sv.bpassign %6, %I_0_1_x : i1
+                sv.bpassign %7, %I_0_1_y : i2
             }
         }
-        sv.verbatim "WHEN_ASSERT_48: assert property (({{0}}) |-> ({{{{1}}, {{2}}}, {{{3}}, {{4}}}} == {{{{5}}, {{6}}}, {{{7}}, {{8}}}}));" (%S, %3, %2, %1, %0, %I_0_1_y, %I_0_1_x, %I_0_0_y, %I_0_0_x) : i1, i2, i1, i2, i1, i2, i1, i2, i1
+        sv.verbatim "WHEN_ASSERT_49: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %2, %3, %0, %1, %I_0_1_x, %I_0_1_y, %I_0_0_x, %I_0_0_y) : i1, i1, i2, i1, i2, i1, i2, i1, i2
         hw.output %0, %1, %2, %3 : i1, i2, i1, i2
     }
 }
