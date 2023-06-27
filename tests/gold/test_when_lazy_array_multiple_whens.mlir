@@ -46,27 +46,27 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %26 = comb.concat %21, %20, %19, %18 : i1, i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_129: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %14, %15) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_130: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %16, %17) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_131: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %10, %11) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_132: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %12, %13) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %14, %15) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %16, %17) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %10, %11) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %12, %13) : i1, i1, i1
         %27 = comb.xor %1, %S : i1
-        sv.verbatim "WHEN_ASSERT_133: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%27, %14, %11) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_134: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%27, %16, %13) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_135: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%27, %10, %15) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_136: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%27, %12, %17) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_137: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %18, %11) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_138: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %19, %13) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_139: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %20, %15) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_140: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %21, %17) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%27, %14, %11) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%27, %16, %13) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%27, %10, %15) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%27, %12, %17) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_8: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %18, %11) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_9: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %19, %13) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_10: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %20, %15) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_11: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %21, %17) : i1, i1, i1
         %28 = comb.xor %1, %0 : i1
-        sv.verbatim "WHEN_ASSERT_141: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%28, %18, %10) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_12: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%28, %18, %10) : i1, i1, i1
         %29 = comb.xor %1, %0 : i1
-        sv.verbatim "WHEN_ASSERT_142: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%29, %19, %12) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_13: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%29, %19, %12) : i1, i1, i1
         %30 = comb.xor %1, %0 : i1
-        sv.verbatim "WHEN_ASSERT_143: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %20, %14) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_14: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%30, %20, %14) : i1, i1, i1
         %31 = comb.xor %1, %0 : i1
-        sv.verbatim "WHEN_ASSERT_144: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%31, %21, %16) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_15: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%31, %21, %16) : i1, i1, i1
         hw.output %26 : i4
     }
 }

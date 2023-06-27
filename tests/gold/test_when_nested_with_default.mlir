@@ -15,10 +15,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %6 = comb.and %0, %1 : i1
-        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%6, %4, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%6, %4, %3) : i1, i1, i1
         %8 = hw.constant -1 : i1
         %7 = comb.xor %8, %6 : i1
-        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%7, %4, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%7, %4, %2) : i1, i1, i1
         hw.output %4 : i1
     }
 }

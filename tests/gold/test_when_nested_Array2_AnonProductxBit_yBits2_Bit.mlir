@@ -20,7 +20,19 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %7, %I_0_1_y : i2
             }
         }
-        sv.verbatim "WHEN_ASSERT_49: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %2, %3, %0, %1, %I_0_1_x, %I_0_1_y, %I_0_0_x, %I_0_0_y) : i1, i1, i2, i1, i2, i1, i2, i1, i2
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %0, %I_0_0_x) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %1, %I_0_0_y) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %2, %I_0_1_x) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %3, %I_0_1_y) : i1, i2, i2
+        %9 = hw.constant -1 : i1
+        %8 = comb.xor %9, %S : i1
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %0, %I_1_0_x) : i1, i1, i1
+        %10 = comb.xor %9, %S : i1
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %1, %I_1_0_y) : i1, i2, i2
+        %11 = comb.xor %9, %S : i1
+        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %2, %I_1_1_x) : i1, i1, i1
+        %12 = comb.xor %9, %S : i1
+        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %3, %I_1_1_y) : i1, i2, i2
         hw.output %0, %1, %2, %3 : i1, i2, i1, i2
     }
 }

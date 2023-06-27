@@ -140,36 +140,36 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             sv.bpassign %46, %20 : i8
         }
         %26 = sv.read_inout %46 : !hw.inout<i8>
-        sv.verbatim "WHEN_ASSERT_210: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %27, %22) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_211: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %28, %23) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_212: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %29, %24) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_213: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %30, %25) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_214: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %31, %26) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_215: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %1, %6) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_216: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %2, %7) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_217: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %3, %8) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_218: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %4, %9) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_219: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %5, %10) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %27, %22) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %28, %23) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %29, %24) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %30, %25) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %31, %26) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %1, %6) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %2, %7) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %3, %8) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_8: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %4, %9) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_9: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %5, %10) : i1, i8, i8
         %48 = hw.constant -1 : i1
         %47 = comb.xor %48, %0 : i1
-        sv.verbatim "WHEN_ASSERT_220: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %1, %22) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_221: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %2, %23) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_222: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %3, %24) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_223: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %4, %25) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_224: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %5, %26) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_10: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %1, %22) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_11: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %2, %23) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_12: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %3, %24) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_13: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %4, %25) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_14: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %5, %26) : i1, i8, i8
         %49 = comb.and %47, %21 : i1
-        sv.verbatim "WHEN_ASSERT_225: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %27, %I_x) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_226: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %28, %I_y_x_x) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_227: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %29, %I_y_x_y) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_228: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %30, %I_y_y_x) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_229: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %31, %I_y_y_y) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_15: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %27, %I_x) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_16: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %28, %I_y_x_x) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_17: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %29, %I_y_x_y) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_18: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %30, %I_y_y_x) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_19: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %31, %I_y_y_y) : i1, i8, i8
         %50 = comb.xor %48, %21 : i1
         %51 = comb.and %47, %50 : i1
-        sv.verbatim "WHEN_ASSERT_230: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %27, %22) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_231: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %28, %23) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_232: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %29, %24) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_233: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %30, %25) : i1, i8, i8
-        sv.verbatim "WHEN_ASSERT_234: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %31, %26) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_20: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %27, %22) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_21: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %28, %23) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_22: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %29, %24) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_23: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %30, %25) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_24: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%51, %31, %26) : i1, i8, i8
         hw.output %22, %23, %24, %25, %26 : i8, i8, i8, i8, i8
     }
 }

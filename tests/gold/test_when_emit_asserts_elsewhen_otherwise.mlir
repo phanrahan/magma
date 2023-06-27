@@ -19,13 +19,13 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
-        sv.verbatim "WHEN_ASSERT_445: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %6, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %6, %1) : i1, i1, i1
         %8 = comb.xor %4, %0 : i1
         %9 = comb.and %8, %2 : i1
-        sv.verbatim "WHEN_ASSERT_446: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%9, %6, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%9, %6, %3) : i1, i1, i1
         %10 = comb.xor %4, %2 : i1
         %11 = comb.and %8, %10 : i1
-        sv.verbatim "WHEN_ASSERT_447: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %6, %5) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %6, %5) : i1, i1, i1
         hw.output %6 : i1
     }
 }

@@ -11,10 +11,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %3, %0 : i8
             }
         }
-        sv.verbatim "WHEN_ASSERT_201: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %2, %I) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %2, %I) : i1, i8, i8
         %5 = hw.constant -1 : i1
         %4 = comb.xor %5, %x : i1
-        sv.verbatim "WHEN_ASSERT_202: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%4, %2, %0) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%4, %2, %0) : i1, i8, i8
         hw.output %2, %2 : i8, i8
     }
 }

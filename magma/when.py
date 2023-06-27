@@ -418,6 +418,10 @@ get_curr_block = _get_curr_block
 def _reset_context():
     _reset_curr_block()
     _reset_prev_block()
+    global _WHEN_ASSERT_COUNTER
+    _WHEN_ASSERT_COUNTER = itertools.count()
+
+
 
 
 reset_context = _reset_context
@@ -546,8 +550,8 @@ def _get_builder_port(value, builder):
 
 
 def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
-    from magma.tuple import Tuple
-    if isinstance(drivee, Tuple):
+    from magma.type_utils import contains_tuple
+    if contains_tuple(type(drivee)):
         for x, y in zip(drivee, driver):
             _emit_when_assert(cond, x, y, builder, assignment_map)
         return

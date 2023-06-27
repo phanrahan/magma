@@ -10,10 +10,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
             }
         }
         %0 = hw.instance "Register_inst0" @Register(I: %1: i8, CLK: %CLK: i1) -> (O: i8)
-        sv.verbatim "WHEN_ASSERT_177: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %1, %I) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%x, %1, %I) : i1, i8, i8
         %4 = hw.constant -1 : i1
         %3 = comb.xor %4, %x : i1
-        sv.verbatim "WHEN_ASSERT_178: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%3, %1, %0) : i1, i8, i8
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%3, %1, %0) : i1, i8, i8
         hw.output %0 : i8
     }
 }

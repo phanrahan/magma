@@ -23,19 +23,19 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %13 = hw.array_get %0[%6] : !hw.array<4xi2>, i2
         %14 = hw.array_get %I[%8] : !hw.array<4xi2>, i2
         %15 = hw.array_get %I[%6] : !hw.array<4xi2>, i2
-        sv.verbatim "WHEN_ASSERT_327: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %12, %13, %14, %15) : i1, i2, i2, i2, i2
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %12, %13, %14, %15) : i1, i2, i2, i2, i2
         %16 = hw.array_get %0[%2] : !hw.array<4xi2>, i2
         %17 = hw.array_get %I[%2] : !hw.array<4xi2>, i2
-        sv.verbatim "WHEN_ASSERT_328: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %16, %17) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %16, %17) : i1, i2, i2
         %18 = hw.array_get %0[%4] : !hw.array<4xi2>, i2
         %19 = hw.array_get %I[%4] : !hw.array<4xi2>, i2
-        sv.verbatim "WHEN_ASSERT_329: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %18, %19) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %18, %19) : i1, i2, i2
         %21 = hw.constant -1 : i1
         %20 = comb.xor %21, %S : i1
-        sv.verbatim "WHEN_ASSERT_330: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %16, %15) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_331: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %18, %14) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_332: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %13, %17) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_333: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %12, %19) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %16, %15) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %18, %14) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %13, %17) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %12, %19) : i1, i2, i2
         hw.output %0 : !hw.array<4xi2>
     }
 }

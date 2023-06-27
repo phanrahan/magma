@@ -17,14 +17,14 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %5 = hw.array_get %I[%4] : !hw.array<2xi2>, i1
         %8 = hw.array_get %0[%2] : !hw.array<2xi2>, i1
         %9 = hw.array_get %I[%2] : !hw.array<2xi2>, i1
-        sv.verbatim "WHEN_ASSERT_237: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %8, %9) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %8, %9) : i1, i2, i2
         %10 = hw.array_get %0[%4] : !hw.array<2xi2>, i1
         %11 = hw.array_get %I[%4] : !hw.array<2xi2>, i1
-        sv.verbatim "WHEN_ASSERT_238: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %10, %11) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %10, %11) : i1, i2, i2
         %13 = hw.constant -1 : i1
         %12 = comb.xor %13, %S : i1
-        sv.verbatim "WHEN_ASSERT_239: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %8, %11) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_240: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %10, %9) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %8, %11) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %10, %9) : i1, i2, i2
         hw.output %0 : !hw.array<2xi2>
     }
 }
