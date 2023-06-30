@@ -164,8 +164,18 @@ def test_core(test, ImmGen):
 
     tester = f.Tester(DUT, DUT.CLK)
     tester.wait_until_high(DUT.done)
-    tester.compile_and_run("verilator", magma_output="mlir-verilog",
-                           magma_opts={"flatten_all_tuples": True,
-                                       "disallow_local_variables": True,
-                                       "check_circt_opt_version": False},
-                           flags=['-Wno-unused', '-Wno-undriven', '--assert'])
+    tester.compile_and_run(
+        "verilator",
+        magma_output="mlir-verilog",
+        magma_opts={
+            "flatten_all_tuples": True,
+            "disallow_local_variables": True,
+            "check_circt_opt_version": False,
+        },
+        flags=[
+            '-Wno-unused',
+            '-Wno-PINCONNECTEMPTY',
+            '-Wno-undriven',
+            '--assert',
+        ],
+    )
