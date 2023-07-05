@@ -87,7 +87,7 @@ class Committer(collections.abc.Callable):
             return
         msg = self._msg
         if msg is None:
-            msg = "Relase {new_version}"
+            msg = "Release {new_version}"
         msg = msg.format(old_version=old_version, new_version=new_version)
         os.system(f'git add {" ".join(self._modified)}')
         os.system(f'git commit -m "{msg}"')

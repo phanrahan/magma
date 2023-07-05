@@ -1,6 +1,7 @@
 from typing import Any, Callable, List, Mapping, Union
 
 from magma.backend.mlir.mlir import MlirAttribute, MlirValue
+from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
 
 
@@ -39,11 +40,19 @@ def print_types(
 def print_signature(
         value_or_value_list: MlirValueOrMlirValueList,
         printer: PrinterBase,
-        raw_names: bool = False):
+        print_opts: PrintOpts,
+        raw_names: bool = False,
+):
     value_list = _maybe_wrap_value_or_value_list(value_or_value_list)
     get_name = get_name_fn(raw_names)
-    signatures = (f"{get_name(v)}: {v.type.emit()}" for v in value_list)
-    printer.print(", ".join(signatures))
+
+    def _make_signature(value: MlirValue) -> str:
+        signature = f"{get_name(value)}: {value.type.emit()}"
+        if print_opts.print_locations:
+            signature += f" {value.location.emit()}"
+        return signature
+
+    printer.print(", ".join(map(_make_signature, value_list)))
 
 
 def _attr_to_string(value: Any) -> str:

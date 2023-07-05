@@ -1,13 +1,13 @@
 import pytest
+pytest.skip("Kratos failure", allow_module_level=True)
+
 import magma as m
 from magma.testing import check_files_equal
 import hwtypes
 import operator
 import kratos.debug
 import os
-import pytest
 
-pytest.skip("Kratos failure", allow_module_level=True)
 
 
 class SimpleALU(m.Circuit):

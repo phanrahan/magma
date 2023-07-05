@@ -1,12 +1,19 @@
 import dataclasses
 import pathlib
 
-from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
-from magma.backend.mlir.mlir import MlirLocation
-from magma.backend.mlir.mlir import MlirAttribute
-from magma.backend.mlir.mlir import MlirOp, MlirRegion, MlirBlock
-from magma.backend.mlir.mlir import MlirType
+from magma.backend.mlir.mlir import (
+    begin_dialect,
+    end_dialect,
+    MlirAttribute,
+    MlirBlock,
+    MlirDialect,
+    MlirLocation,
+    MlirOp,
+    MlirRegion,
+    MlirType,
+)
 from magma.backend.mlir.mlir_printer_utils import print_attr_dict
+from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.config import config, RuntimeConfig
 
@@ -81,7 +88,7 @@ class ModuleOp(MlirOp):
     def add_operation(self, operation: MlirOp):
         self._block.add_operation(operation)
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print("module")
         if self.attr_dict:
             printer.print(" attributes ")

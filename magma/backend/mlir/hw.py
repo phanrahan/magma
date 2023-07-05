@@ -3,10 +3,22 @@ from typing import Any, ClassVar, List, Mapping, Optional, Tuple
 
 from magma.backend.mlir.common import default_field
 from magma.backend.mlir.mlir import (
-    MlirDialect, MlirOp, MlirValue, MlirType, MlirSymbol, MlirAttribute,
-    begin_dialect, end_dialect)
+    begin_dialect,
+    end_dialect,
+    MlirAttribute,
+    MlirDialect,
+    MlirOp,
+    MlirSymbol,
+    MlirType,
+    MlirValue,
+)
 from magma.backend.mlir.mlir_printer_utils import (
-    print_names, print_types, print_signature, print_attr_dict)
+    print_attr_dict,
+    print_names,
+    print_signature,
+    print_types,
+)
+from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
 
 
@@ -99,16 +111,16 @@ class ModuleOpBase(MlirOp):
     name: MlirSymbol
     parameters: List[ParamDeclAttr] = default_field(list)
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print(f"hw.{self.op_name} {self.name.name}")
         if self.parameters:
             printer.print("<")
             printer.print(", ".join(param.emit() for param in self.parameters))
             printer.print(">")
         printer.print("(")
-        print_signature(self.operands, printer)
+        print_signature(self.operands, printer, print_opts)
         printer.print(") -> (")
-        print_signature(self.results, printer, raw_names=True)
+        print_signature(self.results, printer, print_opts, raw_names=True)
         printer.print(")")
         if self.attr_dict:
             printer.print(" attributes ")
@@ -135,7 +147,7 @@ class ModuleExternOp(ModuleOpBase):
 class OutputOp(MlirOp):
     operands: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print(f"hw.output ")
         print_names(self.operands, printer)
         printer.print(" : ")
@@ -147,7 +159,7 @@ class ConstantOp(MlirOp):
     results: List[MlirValue]
     value: int
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(f" = hw.constant {self.value} : ")
         print_types(self.results, printer)
@@ -162,7 +174,7 @@ class InstanceOp(MlirOp):
     parameters: List[ParamDeclAttr] = default_field(list)
     sym: Optional[MlirSymbol] = None
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         if self.results:
             print_names(self.results, printer)
             printer.print(" = ")
@@ -197,7 +209,7 @@ class ArrayGetOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(" = hw.array_get ")
         print_names(self.operands[0], printer)
@@ -212,7 +224,7 @@ class ArraySliceOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(" = hw.array_slice ")
         print_names(self.operands[0], printer)
@@ -229,7 +241,7 @@ class ArrayCreateOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(" = hw.array_create ")
         print_names(self.operands, printer)
@@ -242,7 +254,7 @@ class ArrayConcatOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(" = hw.array_concat ")
         print_names(self.operands, printer)
@@ -256,7 +268,7 @@ class StructExtractOp(MlirOp):
     results: List[MlirValue]
     field: str
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(" = hw.struct_extract ")
         print_names(self.operands, printer)
@@ -269,7 +281,7 @@ class StructCreateOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
 
-    def print_op(self, printer: PrinterBase):
+    def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         print_names(self.results, printer)
         printer.print(" = hw.struct_create (")
         print_names(self.operands, printer)

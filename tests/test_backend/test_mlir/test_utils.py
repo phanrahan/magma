@@ -181,6 +181,8 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.simple_side_effect_instance,
         examples.simple_inline_verilog,
         examples.complex_inline_verilog,
+        examples.simple_inline_verilog2,
+        examples.complex_inline_verilog2,
         examples.simple_bind,
         examples.complex_bind,
         examples.xmr_bind,

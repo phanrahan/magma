@@ -17,10 +17,52 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: Check CIRCT cache
+      id: cache-circt
+      uses: actions/cache@v3
+      with:
+        key: ${{ runner.os }}-build-cache-circt-${{ hashFiles('circt-hash.txt') }}
+        path: ~/circt/build
+    - if: ${{ steps.cache-circt.outputs.cache-hit != 'true' }}
+      name: Build CIRCT
+      run: |
+        export CIRCT_HASH=$(<circt-hash.txt)
+        pushd ~
+        sudo apt-get update -y
+        sudo apt-get install -y cmake zlib1g-dev ninja-build
+        git clone https://github.com/llvm/circt
+        cd circt
+        git submodule init
+        git checkout $CIRCT_HASH
+        git submodule update
+        cd llvm
+        git fetch --unshallow
+        mkdir build
+        cd build
+        cmake -G Ninja ../llvm \
+          -DLLVM_ENABLE_PROJECTS="mlir" \
+          -DLLVM_TARGETS_TO_BUILD="host" \
+          -DLLVM_ENABLE_ASSERTIONS=ON \
+          -DCMAKE_BUILD_TYPE=RELEASE
+        ninja
+        cd ../..
+        mkdir build
+        cd build
+        cmake -G Ninja .. \
+          -DMLIR_DIR=$PWD/../llvm/build/lib/cmake/mlir \
+          -DLLVM_DIR=$PWD/../llvm/build/lib/cmake/llvm \
+          -DLLVM_ENABLE_ASSERTIONS=ON \
+          -DCMAKE_BUILD_TYPE=RELEASE \
+          -DCIRCT_RELEASE_TAG_ENABLED=ON
+        ninja
+        popd
+
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -33,15 +75,31 @@ jobs:
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
         pip install kratos  # test optional dependency
         python setup.py install
+
     - name: Test with pytest
       run: |
+        export PATH=$HOME/circt/build/bin:$PATH
         py.test --cov magma -v --cov-report term-missing tests
         pycodestyle magma/
+
     - name: Smoke test package
       run: |
         pushd /tmp
         python -c "import magma"
         popd
-    - name: Test with pytest
+
+    - name: Test riscv_mini
+      run: |
+        cd examples/riscv_mini
+        export PATH=$HOME/circt/build/bin:$PATH
+        pip install -e git+https://github.com/phanrahan/mantle.git#egg=mantle
+        pip install -e git+https://github.com/leonardt/mantle2.git#egg=mantle2
+        pip install pytest pytest-pycodestyle
+        pip install -e .
+        # TODO(leonardt): Merge with top-level coverage
+        pytest --pycodestyle tests/ riscv_mini/
+        cd -
+
+    - name: Upload coverage
       run: |
         bash <(curl -s https://codecov.io/bash)

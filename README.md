@@ -50,7 +50,7 @@ that introduce the system. There's also
 [magma_examples](https://github.com/leonardt/magma_examples) and
 [magma_tutorial](https://github.com/leonardt/magma_tutorial) which contain a
 set of basic circuits and tests, providing an example templates for a magma
-projects.  Finally there is [magma_riscv_mini](https://github.com/leonardt/magma_riscv_mini)
+projects.  Finally there is [magma_riscv_mini](./examples/riscv_mini)
 which provides an example of a simple RISCV processor. Please also refer to the
 [documentation](http://magma.readthedocs.io/).
 
