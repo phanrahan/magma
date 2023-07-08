@@ -1,6 +1,5 @@
 from typing import Union
 
-import coreir
 import hwtypes as ht
 
 from magma.array import Array
@@ -23,6 +22,14 @@ from magma.primitives.mux import Mux
 from magma.wire import wire
 
 
+def _make_bit_vector_t(width, init):
+    try:
+        import coreir
+    except ImportError:
+        return None
+    return coreir.type.BitVector[width](init)
+
+
 class _CoreIRRegister(Generator2):
     """
     Internally used generator for CoreIR register primitive
@@ -30,7 +37,7 @@ class _CoreIRRegister(Generator2):
     def __init__(self, width, init=0, has_async_reset=False,
                  has_async_resetn=False):
         self.name = "reg_P"
-        self.coreir_configargs = {"init": coreir.type.BitVector[width](init)}
+        self.coreir_configargs = {"init": _make_bit_vector_t(width, init)}
         T = Bits[width]
         self.io = IO(I=In(T), CLK=In(Clock), O=Out(T))
 
@@ -52,7 +59,7 @@ class _CoreIRRegister(Generator2):
 
         self.stateful = True
         self.primitive = True
-        self.default_kwargs = {"init": coreir.type.BitVector[width](init)}
+        self.default_kwargs = {"init": _make_bit_vector_t(width, init)}
         self.coreir_genargs = {"width": width}
         self.renamed_ports = coreir_port_mapping
 
