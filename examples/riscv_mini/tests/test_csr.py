@@ -111,7 +111,11 @@ def test_csr():
         ctrl = Control.Control(x_len)()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         counter = Counter(n, has_cout=True, reset_type=m.Reset)()
+=======
+        counter = Counter(n, has_cout=True)()
+>>>>>>> 85818f26 (Update test_csr.py)
 =======
         counter = Counter(n, has_cout=True)()
 >>>>>>> 85818f26 (Update test_csr.py)
