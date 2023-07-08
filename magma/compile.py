@@ -2,7 +2,6 @@ from inspect import getouterframes, currentframe
 from pathlib import PurePath
 
 from magma.backend import verilog, blif, firrtl, dot
-from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.backend.mlir.mlir_compiler import MlirCompiler
 from magma.bind import BindPass
 from magma.bind2 import bind_generators
@@ -22,6 +21,12 @@ from magma.uniquification import (
 __all__ = ["compile"]
 
 
+def _make_coreir_compiler(main, basename, opts):
+    # Delayed import for optional dependency.
+    from magma.backend.coreir.coreir_compiler import CoreIRCompiler
+    return CoreIRCompiler(main, basename, opts)
+
+
 def _make_compiler(output, main, basename, opts):
     if output == "verilog":
         return verilog.VerilogCompiler(main, basename)
@@ -32,10 +37,10 @@ def _make_compiler(output, main, basename, opts):
     if output == "dot":
         return dot.DotCompiler(main, basename)
     if output == "coreir":
-        return CoreIRCompiler(main, basename, opts)
+        return _make_coreir_compiler(main, basename, opts)
     if output == "coreir-verilog":
         opts["output_verilog"] = True
-        return CoreIRCompiler(main, basename, opts)
+        return _make_coreir_compiler(main, basename, opts)
     if output == "mlir":
         return MlirCompiler(main, basename, opts)
     if output == "mlir-verilog":
