@@ -1,5 +1,3 @@
-import pytest
-
 import magma as m
 import magma.testing
 from magma.inline_verilog import InlineVerilogError
