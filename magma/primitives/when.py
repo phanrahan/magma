@@ -252,14 +252,9 @@ class WhenBuilder(CircuitBuilder):
 
     def infer_latches(self):
         """
-        We run this step before finalize since emitting when asserts may cause
-        tuple elaboration (since verilog assert references may refer to a
-        tuple that will eventually be flattened).  This may cause changes to the
-        builder and any connected builders so we don't want to finalize when
-        builders before this logic is finished across all instances.
+        Detect latches which would be inferred from the context of the when
+        block.
         """
-        # Detect latches which would be inferred from the context of the when
-        # block.
         latches = find_inferred_latches(self.block)
         # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
@@ -277,7 +272,15 @@ class WhenBuilder(CircuitBuilder):
             raise InferredLatchError(latches)
 
     def emit_when_asserts(self):
-        """Must be done after implicit default driver logic is added."""
+        """
+        We run this step before finalize since emitting when asserts may cause
+        tuple elaboration (since verilog assert references may refer to a
+        tuple that will eventually be flattened).  This may cause changes to the
+        builder and any connected builders so we don't want to finalize when
+        builders before this logic is finished across all instances.
+
+        Must be done after implicit default driver logic is added.
+        """
         emit_when_asserts(self.block, self)
 
     def _finalize(self):
