@@ -546,6 +546,8 @@ def find_inferred_latches(block: _BlockBase) -> Set:
     return latches
 
 
+# Use a global counter so assertion names are unique across the design
+# (not just per module)
 _WHEN_ASSERT_COUNTER = itertools.count()
 _ASSERT_TEMPLATE = ("WHEN_ASSERT_{id}: assert property (({cond}) |->"
                     " ({drivee} == {driver}));")
