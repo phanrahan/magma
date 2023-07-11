@@ -56,6 +56,10 @@ my_pt_0 = my_pt("I", my_pt_0.I, "O", my_pt_0.O)
 wire(_Top.x, my_pt_0.I)
 wire(my_pt_0.O, _Top.y)
 EndCircuit()"""
+    try:
+        import coreir
+    except ImportError:
+        return
     m.compile("build/test_circuit_builder_basic", _Top, output="coreir")
     assert check_files_equal(__file__,
                              "build/test_circuit_builder_basic.json",

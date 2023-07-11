@@ -26,7 +26,7 @@ def _make_bit_vector_t(width, init):
     try:
         import coreir
     except ImportError:
-        return None
+        return ht.BitVector[width](init)
     return coreir.type.BitVector[width](init)
 
 

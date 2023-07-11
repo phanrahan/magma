@@ -5,7 +5,15 @@ import magma.testing
 import fault as f
 
 
+def _skip_if_no_coreir():
+    try:
+        import coreir
+    except ImportError:
+        pytest.skip('Missing coreir')
+
+
 def test_basic():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
@@ -22,6 +30,7 @@ def test_basic():
 
 
 def test_assert():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Valid[m.Bits[4]]), O=m.Out(m.Bits[4])) + m.ClockIO()
@@ -40,6 +49,7 @@ def test_assert():
 
 
 def test_array():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Array[2, m.Bit]), O=m.Out(m.Bit)) + m.ClockIO()
@@ -56,6 +66,7 @@ def test_array():
 
 
 def test_multiple_array():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Array[2, m.Bit]), O=m.Out(m.Bit)) + m.ClockIO()
@@ -73,6 +84,7 @@ def test_multiple_array():
 
 
 def test_nested_type():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         T = m.Product.from_fields("anon", dict(x=m.Bit, y=m.Bit))
@@ -93,6 +105,7 @@ def test_nested_type():
 
 
 def test_anon_driver_driven():
+    _skip_if_no_coreir()
 
     def make_top():
 
@@ -114,6 +127,7 @@ def test_anon_driver_driven():
 
 
 def test_anon_driver_undriven():
+    _skip_if_no_coreir()
 
     def make_top():
 
@@ -132,6 +146,7 @@ def test_anon_driver_undriven():
 
 
 def test_anon_driver_nested_type():
+    _skip_if_no_coreir()
 
     def make_top():
 
@@ -157,6 +172,7 @@ def test_anon_driver_nested_type():
 
 @pytest.mark.skip(reason="nested compile guard context not yet implemented")
 def test_nested_context():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
@@ -176,6 +192,7 @@ def test_nested_context():
 
 
 def test_basic_oldstyle():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)] + m.ClockInterface()
@@ -194,6 +211,7 @@ def test_basic_oldstyle():
 
 
 def test_basic_undefined():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
@@ -211,6 +229,7 @@ def test_basic_undefined():
 
 
 def test_vcc():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
@@ -227,6 +246,7 @@ def test_vcc():
 
 
 def test_drive_outputs():
+    _skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
@@ -237,6 +257,7 @@ def test_drive_outputs():
 
 
 def test_anon_drivee():
+    _skip_if_no_coreir()
 
     def make_top():
         class _Top(m.Circuit):
@@ -253,6 +274,8 @@ def test_anon_drivee():
 
 
 def test_compile_guard_select_basic():
+    _skip_if_no_coreir()
+
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
 
@@ -270,6 +293,7 @@ def test_compile_guard_select_basic():
 
 
 def test_compile_guard_select_complex_type():
+    _skip_if_no_coreir()
     T = m.Product.from_fields("anonymous", dict(x=m.Bit, y=m.Bit))
 
     def make_top():
@@ -284,6 +308,7 @@ def test_compile_guard_select_complex_type():
 
 
 def test_contained_inline_verilog():
+    _skip_if_no_coreir()
 
     class Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))

@@ -97,7 +97,7 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     # goes through MLIR.
     compile_fn = _make_bind_compile_fn(output)
     BindPass(main, compile_fn, opts.get("user_namespace"),
-             opts.get("verilog_prefix")).run()
+             opts.get("verilog_prefix"), output).run()
 
     if opts.get("drive_undriven", False):
         drive_undriven(main)

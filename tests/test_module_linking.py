@@ -6,6 +6,14 @@ import magma as m
 from magma.testing import check_files_equal
 
 
+OUTPUTS = ("mlir", )
+try:
+    import coreir
+    OUTPUTS += ("coreir", )
+except ImportError:
+    pass
+
+
 class _BinOpInterface(m.Circuit):
     io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -67,7 +75,7 @@ def _run_file_check(basename):
 
 
 @_wrap_with_clear_link_info
-@pytest.mark.parametrize("output", ("coreir", "mlir"))
+@pytest.mark.parametrize("output", OUTPUTS)
 def test_only_default(output):
     m.link_default_module(_BinOpInterface, _OrImpl)
     assert m.linking.has_default_linked_module(_BinOpInterface)
@@ -86,7 +94,7 @@ def test_only_default(output):
 
 
 @_wrap_with_clear_link_info
-@pytest.mark.parametrize("output", ("coreir", "mlir"))
+@pytest.mark.parametrize("output", OUTPUTS)
 def test_linked_modules_no_default(output):
     m.link_module(_BinOpInterface, "OR", _OrImpl)
     m.link_module(_BinOpInterface, "AND", _AndImpl)
@@ -111,7 +119,7 @@ def test_linked_modules_no_default(output):
 
 
 @_wrap_with_clear_link_info
-@pytest.mark.parametrize("output", ("coreir", "mlir"))
+@pytest.mark.parametrize("output", OUTPUTS)
 def test_linked_modules_with_default(output):
     m.link_module(_BinOpInterface, "OR", _OrImpl)
     m.link_module(_BinOpInterface, "AND", _AndImpl)
