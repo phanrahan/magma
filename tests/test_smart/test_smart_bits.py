@@ -21,6 +21,11 @@ def _run_repr_test(func):
 def _run_compilation_test(func=None, *, skip_check=False):
     if func is None:
         return partial(_run_compilation_test, skip_check=skip_check)
+    import pytest
+    try:
+        import coreir
+    except ImportError:
+        return
 
     @wraps(func)
     def _wrapper(*args, **kwargs):

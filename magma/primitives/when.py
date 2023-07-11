@@ -5,7 +5,6 @@ from typing import Dict, Optional, Union, Set
 from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.clock import Enable
-from magma.config import config
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
@@ -251,7 +250,7 @@ class WhenBuilder(CircuitBuilder):
     def remove_default_driver(self, drivee: Type):
         del self._default_drivers[drivee]
 
-    def pre_finalize(self):
+    def infer_latches(self):
         """
         We run this step before finalize since emitting when asserts may cause
         tuple elaboration (since verilog assert references may refer to a
@@ -274,12 +273,12 @@ class WhenBuilder(CircuitBuilder):
         _add_default_drivers_to_memory_ports(self, latches)
         _add_default_drivers_to_register_inputs(self, latches)
 
-        if config.emit_when_asserts:
-            # Should be done after implicit default driver logic is added
-            emit_when_asserts(self.block, self)
-
         if latches:
             raise InferredLatchError(latches)
+
+    def emit_when_asserts(self):
+        """Must be done after implicit default driver logic is added."""
+        emit_when_asserts(self.block, self)
 
     def _finalize(self):
         pass
