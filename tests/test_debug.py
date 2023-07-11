@@ -5,7 +5,7 @@ import uinspect
 
 import magma as m
 from magma.debug import get_debug_info, debug_info, magma_helper_function
-from magma.passes.finalize_whens import finalize_whens
+from magma.passes.when import run_when_passes
 from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
 
 
@@ -99,7 +99,7 @@ def test_when():
         with m.otherwise():
             io.O @= 0
 
-    finalize_whens(Top)
+    run_when_passes(Top)
     insert_coreir_wires(Top)
 
     filename, lineno = uinspect.get_location()
