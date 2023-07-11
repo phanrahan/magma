@@ -43,6 +43,7 @@ def _contains_tuple(T):
 
 
 def _inline_verilog2(*args, **kwargs):
+    # NOTE(leonardt): Circular dependency.
     from magma.inline_verilog2 import inline_verilog2
     inline_verilog2(*args, **kwargs)
 
