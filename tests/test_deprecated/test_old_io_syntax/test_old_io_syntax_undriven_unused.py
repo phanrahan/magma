@@ -2,6 +2,11 @@
 Test the ability to ignore undriven inputs (useful for formal verification
 tools that use undriven inputs to mark wires that can take on any value)
 """
+import pytest
+try:
+    import coreir
+except ImportError:
+    pytest.skip("Missing coreir", allow_module_level=True)
 import magma as m
 from magma.testing import check_files_equal
 
