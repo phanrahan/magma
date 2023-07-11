@@ -1,8 +1,4 @@
 import pytest
-try:
-    import coreir
-except ImportError:
-    pytest.skip("Missing coreir", allow_module_level=True)
 
 import magma as m
 from magma.common import wrap_with_context_manager
