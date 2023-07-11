@@ -23,8 +23,9 @@ def pytest_ignore_collect(path, config):
         import coreir
     except ImportError:
         here = Path.cwd().absolute()
-        skip_fd = here / "tests/test_coreir/"
-        skip_fd = here / "tests/test_syntax/"
-        skip_fd = here / "tests/test_coroutine/"
-        if skip_fd == path:
+        if path in (
+            here / "tests/test_coreir/",
+            here / "tests/test_syntax/",
+            here / "tests/test_coroutine/"
+        ):
             return True
