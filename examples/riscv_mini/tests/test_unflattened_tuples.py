@@ -1,3 +1,5 @@
+import os
+
 from riscv_mini.core import Core
 import magma as m
 from magma.config import config as magma_config
@@ -11,3 +13,6 @@ def test_riscv_mini_unflattened_tuples():
               output="mlir-verilog", disallow_local_variables=True)
     assert check_gold(__file__,
                       "test_riscv_mini_unflattened_tuples.v")
+    dirname = os.path.dirname(__file__)
+    path = f"{dirname}/build/test_riscv_mini_unflattened_tuples.v"
+    assert not os.system(f"verilator --lint-only {path}")
