@@ -187,6 +187,12 @@ class TupleKind(TupleMeta, Kind):
 
     __hash__ = TupleMeta.__hash__
 
+    def sorted_field_dict_items(cls):
+        return sorted(cls.field_dict.items(), key=lambda x: x[0])
+
+    def sorted_fields(cls):
+        return sorted(cls.fields, key=lambda x: x[0])
+
 
 class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
@@ -615,12 +621,6 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         s += ",".join(f'{k}={str(v)}' for k, v in cls.field_dict.items())
         s += ")"
         return s
-
-    def sorted_field_dict_items(cls):
-        return sorted(cls.field_dict.items(), key=lambda x: x[0])
-
-    def sorted_fields(cls):
-        return sorted(cls.fields, key=lambda x: x[0])
 
 
 class AnonProduct(Tuple, metaclass=AnonProductKind):
