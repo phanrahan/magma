@@ -76,7 +76,7 @@ def MagmaTupleCreateOp(T: TupleMeta):
     T = T.undirected_t
     name = f"magma_tuple_create_op_{value_or_type_to_string(T)}"
     fields = T.field_dict
-    ports = {f"I{k}": In(t) for k, t in fields.items()}
+    ports = {f"I{k}": In(t) for k, t in sorted(fields.items(), key=lambda x: x[0])}
     ports.update(dict(O=Out(T)))
     return InstanceWrapper(name, ports, {})
 

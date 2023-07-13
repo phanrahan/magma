@@ -1,16 +1,16 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables"} {
-    hw.module @test_when_tuple_as_bits_resolve_False(%I: !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>, %S: i1) -> (O: !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>, X: i34) {
-        %0 = hw.struct_extract %I["x"] : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>
-        %1 = hw.struct_extract %0["x"] : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>
+    hw.module @test_when_tuple_as_bits_resolve_False(%I: !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>, %S: i1) -> (O: !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>, X: i34) {
+        %0 = hw.struct_extract %I["x"] : !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>
+        %1 = hw.struct_extract %0["x"] : !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>
         %3 = hw.constant 0 : i1
         %2 = hw.array_get %1[%3] : !hw.array<2xi8>, i1
         %5 = hw.constant 1 : i1
         %4 = hw.array_get %1[%5] : !hw.array<2xi8>, i1
-        %6 = hw.struct_extract %0["y"] : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>
-        %7 = hw.struct_extract %0["z"] : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>
+        %6 = hw.struct_extract %0["y"] : !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>
+        %7 = hw.struct_extract %0["z"] : !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>
         %9 = hw.array_create %7, %7 : !hw.struct<x: i8, y: i1>
         %8 = hw.array_get %9[%S] : !hw.array<2x!hw.struct<x: i8, y: i1>>, i1
-        %10 = hw.struct_extract %I["y"] : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>
+        %10 = hw.struct_extract %I["y"] : !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>
         %16 = sv.reg : !hw.inout<i8>
         %11 = sv.read_inout %16 : !hw.inout<i8>
         %17 = sv.reg : !hw.inout<i8>
@@ -91,8 +91,8 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %68 = comb.extract %61 from 6 : (i8) -> i1
         %69 = comb.extract %61 from 7 : (i8) -> i1
         %75 = hw.array_create %12, %11 : i8
-        %76 = hw.struct_create (%13, %14, %75) : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>
-        %77 = hw.struct_create (%76, %15) : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>
+        %76 = hw.struct_create (%75, %13, %14) : !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>
+        %77 = hw.struct_create (%76, %15) : !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>
         %78 = hw.struct_extract %14["x"] : !hw.struct<x: i8, y: i1>
         %79 = comb.extract %78 from 0 : (i8) -> i1
         %80 = comb.extract %78 from 1 : (i8) -> i1
@@ -128,6 +128,6 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %110 = comb.extract %15 from 6 : (i8) -> i1
         %111 = comb.extract %15 from 7 : (i8) -> i1
         %112 = comb.concat %111, %110, %109, %108, %107, %106, %105, %104, %103, %102, %101, %100, %99, %98, %97, %96, %95, %94, %93, %92, %91, %90, %89, %88, %87, %86, %85, %84, %83, %82, %81, %80, %79, %13 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
-        hw.output %77, %112 : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>, i34
+        hw.output %77, %112 : !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>, i34
     }
 }
