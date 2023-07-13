@@ -616,6 +616,12 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         s += ")"
         return s
 
+    def sorted_field_dict_items(cls):
+        return sorted(cls.field_dict.items(), key=lambda x: x[0])
+
+    def sorted_fields(cls):
+        return sorted(cls.fields, key=lambda x: x[0])
+
 
 class AnonProduct(Tuple, metaclass=AnonProductKind):
     @classmethod

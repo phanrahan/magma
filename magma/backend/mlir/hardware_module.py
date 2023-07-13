@@ -143,7 +143,7 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
     if issubclass(type, m_Tuple):
         fields = (
             (magma_tuple_key_to_str(k, type), magma_type_to_mlir_type(t))
-            for k, t in sorted(type.field_dict.items(), key=lambda x: x[0])
+            for k, t in type.sorted_field_dict_items()
         )
         return hw.StructType(tuple(fields))
 
@@ -306,7 +306,7 @@ class ModuleVisitor:
             hw.ArrayCreateOp(operands=operands, results=[result])
             return result
         if isinstance(T, TupleMeta):
-            fields = list(sorted(T.field_dict.items(), key=lambda x: x[0]))
+            fields = list(T.sorted_field_dict_items())
             value = value if value is not None else {k: None for k, _ in fields}
             operands = [self.make_constant(t, value[k]) for k, t in fields]
             hw.StructCreateOp(operands=operands, results=[result])
