@@ -116,7 +116,7 @@ class InsertCoreIRWires(DefinitionPass):
             # logic will be run in that context in another stage of the pass
             return
 
-        value.unwire(driver)
+        value.unwire(driver, keep_wired_when_contexts=True)
         with definition.open():
             self._make_wire(driver, value, definition)
             self._insert_wire(driver, definition)

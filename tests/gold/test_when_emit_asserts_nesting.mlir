@@ -8,7 +8,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %4 = comb.icmp eq %S, %5 : i2
         %7 = hw.constant -1 : i1
         %6 = comb.xor %7, %3 : i1
-        %9 = sv.reg name "_WHEN_WIRE_0" : !hw.inout<i1>
+        %9 = sv.reg : !hw.inout<i1>
         %8 = sv.read_inout %9 : !hw.inout<i1>
         sv.alwayscomb {
             sv.bpassign %9, %2 : i1
@@ -22,15 +22,18 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
-        %10 = comb.and %0, %1 : i1
-        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %8, %3) : i1, i1, i1
-        %11 = comb.xor %7, %1 : i1
-        %12 = comb.and %0, %11 : i1
-        %13 = comb.and %12, %4 : i1
-        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%13, %8, %6) : i1, i1, i1
-        %14 = comb.or %10, %13 : i1
-        %15 = comb.xor %7, %14 : i1
-        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%15, %8, %2) : i1, i1, i1
-        hw.output %8 : i1
+        %11 = sv.wire sym @test_when_emit_asserts_nesting._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        sv.assign %11, %8 : i1
+        %10 = sv.read_inout %11 : !hw.inout<i1>
+        %12 = comb.and %0, %1 : i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%12, %10, %3) : i1, i1, i1
+        %13 = comb.xor %7, %1 : i1
+        %14 = comb.and %0, %13 : i1
+        %15 = comb.and %14, %4 : i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%15, %10, %6) : i1, i1, i1
+        %16 = comb.or %12, %15 : i1
+        %17 = comb.xor %7, %16 : i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%17, %10, %2) : i1, i1, i1
+        hw.output %10 : i1
     }
 }

@@ -140,6 +140,7 @@ class WhenBuilder(CircuitBuilder):
         self._set_definition_attr(_ISWHEN_KEY, True)
         self._set_definition_attr("_builder_", self)
         self._is_when_builder_ = True
+        self._when_assert_wires = {}
 
     @property
     def default_drivers(self) -> Dict[Type, Type]:
@@ -289,6 +290,17 @@ class WhenBuilder(CircuitBuilder):
     @property
     def block(self) -> WhenBlock:
         return self._block
+
+    def get_when_assert_wire(self, port):
+        if port not in self._when_assert_wires:
+            name = f"_WHEN_ASSERT_{len(self._when_assert_wires)}"
+            temp = type(port).undirected_t(name=name)
+            for value in tuple(port.driving()):
+                value.unwire(port, keep_wired_when_contexts=True)
+                wire(temp, value)
+            temp @= port
+            self._when_assert_wires[port] = temp
+        return self._when_assert_wires[port]
 
 
 def is_when_builder(builder):

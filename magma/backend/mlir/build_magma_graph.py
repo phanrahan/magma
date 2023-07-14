@@ -1,4 +1,5 @@
 import dataclasses
+import networkx as nx
 from typing import Any, Callable, Tuple
 
 from magma.array import Array
@@ -16,7 +17,8 @@ from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.compile_exception import UnconnectedPortException
 from magma.digital import Digital
-from magma.primitives.register import Register
+from magma.primitives.register import AbstractRegister
+from magma.primitives.memory import Memory
 from magma.primitives.when import iswhen
 from magma.protocol_type import magma_value as get_magma_value
 from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
@@ -176,16 +178,22 @@ def _visit_inputs(
         )
 
 
-def _check_for_when_cycles(graph: Graph):
+def _check_for_when_cycles(graph: Graph, module: ModuleLike):
     """Temporary guard against https://github.com/phanrahan/magma/issues/1248"""
-    for node in graph.nodes():
-        if not iswhen(node):
-            continue
-        for predecessor in graph.predecessors(node):
-            if isinstance(type(node), Register):  # registers break cycles
+    for cycle in nx.recursive_simple_cycles(graph):
+        found_when = False
+        for node in cycle:
+            if iswhen(node):
+                found_when = True
+            if (
+                node is module or
+                isinstance(type(node), (AbstractRegister, Memory))
+            ):
+                # Ignore cycles broken by state or the module interface
+                found_when = False
                 break
-            if predecessor is node:
-                raise MlirWhenCycleError()
+        if found_when:
+            raise MlirWhenCycleError(cycle)
 
 
 def build_magma_graph(
@@ -195,5 +203,5 @@ def build_magma_graph(
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
-    _check_for_when_cycles(ctx.graph)
+    _check_for_when_cycles(ctx.graph, ckt)
     return ctx.graph

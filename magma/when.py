@@ -581,6 +581,8 @@ def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
     # Track the conditions a value is assigned in for the default driver logic.
     assignment_map[port].append(cond)
 
+    port = builder.get_when_assert_wire(port)
+
     _inline_verilog2(_ASSERT_TEMPLATE, cond=cond, drivee=port, driver=driver,
                      id=next(_WHEN_ASSERT_COUNTER))
 

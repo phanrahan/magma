@@ -14,7 +14,6 @@ from magma.common import sort_by_value
 from magma.primitives.when import iswhen
 from magma.ref import ArrayRef, TupleRef, DerivedRef
 from magma.value_utils import make_selector
-from magma.config import config
 
 
 class WhenCompiler:
@@ -96,12 +95,7 @@ class WhenCompiler:
         ]
 
         for result, wire in zip(self._module.results, wires):
-            kwargs = {}
-            if config.emit_when_asserts:
-                # Add explicit name so MLIR doesn't merge wires
-                name = self._module_visitor.ctx.gen_scoped_name("_WHEN_WIRE_")
-                kwargs["name"] = name
-            sv.RegOp(results=[wire], **kwargs)
+            sv.RegOp(results=[wire])
             sv.ReadInOutOp(operands=[wire], results=[result])
 
         return wires
