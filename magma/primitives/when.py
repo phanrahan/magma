@@ -14,7 +14,7 @@ from magma.when import (
     BlockBase as WhenBlock,
     no_when,
     find_inferred_latches,
-    emit_when_asserts
+    emit_when_asserts,
 )
 from magma.value_utils import make_selector
 from magma.wire import wire
