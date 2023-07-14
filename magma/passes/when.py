@@ -1,6 +1,6 @@
 from magma.config import config
-from magma.primitives.when import WhenBuilder
 from magma.passes.passes import DefinitionPass, pass_lambda
+from magma.primitives.when import WhenBuilder
 
 
 class WhenPass(DefinitionPass):
