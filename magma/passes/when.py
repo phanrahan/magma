@@ -8,21 +8,21 @@ class WhenPass(DefinitionPass):
         with definition.open():
             for builder in definition._context_._builders:
                 if isinstance(builder, WhenBuilder):
-                    self.process_when(builder, definition)
+                    self.process_when_builder(builder, definition)
 
 
 class InferLatches(WhenPass):
-    def process_when(self, builder, defn):
+    def process_when_builder(self, builder, defn):
         builder.infer_latches()
 
 
 class EmitWhenAsserts(WhenPass):
-    def process_when(self, builder, defn):
+    def process_when_builder(self, builder, defn):
         builder.emit_when_asserts()
 
 
 class FinalizeWhens(WhenPass):
-    def process_when(self, builder, defn):
+    def process_when_builder(self, builder, defn):
         assert not builder._finalized
         defn._context_._placer.place(builder.finalize())
 
