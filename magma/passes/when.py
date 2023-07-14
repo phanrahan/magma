@@ -27,12 +27,12 @@ class FinalizeWhens(WhenPass):
 
 
 infer_latches = pass_lambda(InferLatches)
-emit_when_asserts = pass_lambda(EmitWhenAsserts)
+do_emit_when_asserts = pass_lambda(EmitWhenAsserts)
 finalize_whens = pass_lambda(FinalizeWhens)
 
 
 def run_when_passes(main, emit_when_asserts: bool = False):
     infer_latches(main)
     if emit_when_asserts:
-        emit_when_asserts(main)
+        do_emit_when_asserts(main)
     finalize_whens(main)

@@ -1349,3 +1349,6 @@ class HardwareModule:
             type = python_type_to_mlir_type(type)
             param = hw.ParamDeclAttr(name, type)
             hw_module.parameters.append(param)
+
+    def gen_scoped_name(self, name: Optional[str] = None, force: bool = False):
+        return self._name_gen(name, force)
