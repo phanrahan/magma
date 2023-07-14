@@ -11,6 +11,7 @@ from magma.backend.mlir.mlir_to_verilog import (
 from magma.circuit import DefineCircuitKind
 from magma.common import slice_opts
 from magma.compiler import Compiler
+from magma.config import config
 from magma.passes.clock import wire_clocks
 from magma.passes.elaborate_tuples import elaborate_tuples
 from magma.passes.when import run_when_passes
@@ -45,7 +46,7 @@ class MlirCompiler(Compiler):
         # could introduce more conditional logic, or they could
         # trigger elaboration on values used in existing coditiona
         # logic (which modifies the when builder).
-        run_when_passes(self.main)
+        run_when_passes(self.main, config.emit_when_asserts)
 
     def _run_passes(self):
         raise_logs_as_exceptions_pass(self.main)

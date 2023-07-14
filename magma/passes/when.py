@@ -1,4 +1,3 @@
-from magma.config import config
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.when import WhenBuilder
 
@@ -32,8 +31,8 @@ emit_when_asserts = pass_lambda(EmitWhenAsserts)
 finalize_whens = pass_lambda(FinalizeWhens)
 
 
-def run_when_passes(main):
+def run_when_passes(main, emit_when_asserts: bool = False):
     infer_latches(main)
-    if config.emit_when_asserts:
+    if emit_when_asserts:
         emit_when_asserts(main)
     finalize_whens(main)
