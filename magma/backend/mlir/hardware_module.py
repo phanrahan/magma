@@ -71,7 +71,6 @@ from magma.primitives.when import iswhen
 from magma.primitives.wire import Wire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import ArrayRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector, TupleSelector, ArraySelector
