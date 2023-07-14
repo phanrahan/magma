@@ -44,7 +44,7 @@ class MlirCompiler(Compiler):
         # passes that modify the circuit.  This is because passes
         # could introduce more conditional logic, or they could
         # trigger elaboration on values used in existing coditiona
-        # logic (which modifies the when builder)
+        # logic (which modifies the when builder).
         run_when_passes(self.main)
 
     def _run_passes(self):
