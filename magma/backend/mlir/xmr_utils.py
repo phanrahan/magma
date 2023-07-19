@@ -91,13 +91,15 @@ def get_xmr_paths(ctx: 'HardwareModule', xmr: PortView) -> List[Tuple[str]]:
     #     leaf to the value referred to, joined with ".", since these are not
     #     flattened.
     root = xmr.port.name.root().value()
+    flatten_all_tuples = ctx.opts.flatten_all_tuples
     tree = magma_value_or_value_wrapper_to_tree(
-        root, flatten_all_tuples=ctx.opts.flatten_all_tuples)
+        root, flatten_all_tuples=flatten_all_tuples)
     assert tree.has_node(root)
 
+    separator = "_" if flatten_all_tuples else "."
     # (1)
     if tree.has_node(xmr.port):  # visited
-        path = _get_path_string(tree, xmr.port, ".")
+        path = _get_path_string(tree, xmr.port, separator)
         # (1a)
         if tree.out_degree(xmr.port) == 0:  # is leaf
             return [(path,)]
@@ -105,11 +107,11 @@ def get_xmr_paths(ctx: 'HardwareModule', xmr: PortView) -> List[Tuple[str]]:
         leaves = _get_leaf_descendants(tree, xmr.port)
         leaves = sorted(leaves, key=lambda n: tree.nodes[n]["index"])
         return [
-            (_get_path_string(tree, leaf, "_"),)
+            (_get_path_string(tree, leaf, separator),)
             for leaf in leaves
         ]
     # (2)
     leaves = list(_get_leaf_descendants(tree, root, include_self=True))
     leaf, *path = _ascend_to_leaf(xmr.port, leaves)
-    path = _get_path_string(tree, leaf, ".") + "".join(path)
+    path = _get_path_string(tree, leaf, separator) + "".join(path)
     return [(path,)]
