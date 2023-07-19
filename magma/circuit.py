@@ -789,6 +789,7 @@ class DefineCircuitKind(CircuitKind):
         """Place a circuit instance in this definition"""
         cls._context_.placer.place(inst)
 
+    @deprecated(msg="Circuit.bind() is deprecated. Use m.bind2() instead")
     def bind(cls, monitor, *args, compile_guard=None):
         cls.bind_modules[monitor] = (args, compile_guard)
 
