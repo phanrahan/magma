@@ -97,7 +97,7 @@ def get_xmr_paths(ctx: 'HardwareModule', xmr: PortView) -> List[Tuple[str]]:
 
     # (1)
     if tree.has_node(xmr.port):  # visited
-        path = _get_path_string(tree, xmr.port, "_")
+        path = _get_path_string(tree, xmr.port, ".")
         # (1a)
         if tree.out_degree(xmr.port) == 0:  # is leaf
             return [(path,)]
@@ -111,5 +111,5 @@ def get_xmr_paths(ctx: 'HardwareModule', xmr: PortView) -> List[Tuple[str]]:
     # (2)
     leaves = list(_get_leaf_descendants(tree, root, include_self=True))
     leaf, *path = _ascend_to_leaf(xmr.port, leaves)
-    path = _get_path_string(tree, leaf, "_") + "".join(path)
+    path = _get_path_string(tree, leaf, ".") + "".join(path)
     return [(path,)]

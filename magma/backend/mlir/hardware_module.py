@@ -864,7 +864,6 @@ class ModuleVisitor:
         else:
             return True
         paths = get_xmr_paths(self._ctx, xmr)
-        assert len(paths) == len(module.operands)
         self._ctx.parent.xmr_paths[xmr] = paths
         return True
 
@@ -875,7 +874,6 @@ class ModuleVisitor:
         assert isinstance(defn, XMRSource)
         xmr = defn.value
         paths = self._ctx.parent.xmr_paths[xmr]
-        assert len(paths) == len(module.results)
         base = defn.value.parent_view.path()
         for result, path in zip(module.results, paths):
             in_out = self.ctx.new_value(hw.InOutType(result.type))
