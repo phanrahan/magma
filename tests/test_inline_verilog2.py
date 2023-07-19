@@ -106,7 +106,7 @@ def test_tuple():
             ready_out=delay.inner_delay.inner_inner_delay.INPUT[1].ready,
         )
 
-    _compile_and_check(_Top)
+    _compile_and_check(_Top, flatten_all_tuples=True)
 
 
 def test_undriven_port_error():
