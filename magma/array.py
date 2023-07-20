@@ -636,6 +636,14 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
                        for _, child in self._enumerate_children())
         return False
 
+    def __int__(self):
+        if not self.const():
+            raise TypeError("Can't call __int__ on a non-constant")
+        if not issubclass(self.T, Digital):
+            raise TypeError("Can only call __int__ on array of bit values")
+        bits = [int(v) for _, v in self._enumerate_children()]
+        return BitVector[len(self)](bits).as_uint()
+
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
             value = self.T._to_magma_()(name=ArrayRef(self, index))
