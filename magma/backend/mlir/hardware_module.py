@@ -1323,7 +1323,8 @@ class HardwareModule:
             operands=inputs,
             results=named_outputs)
         build_magma_graph_opts = BuildMagmaGrahOpts(
-            self._opts.flatten_all_tuples)
+            self._opts.flatten_all_tuples,
+            self._opts.check_for_when_cycles)
         graph = build_magma_graph(
             self._magma_defn_or_decl, build_magma_graph_opts)
         visitor = ModuleVisitor(graph, self)

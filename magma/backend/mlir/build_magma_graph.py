@@ -50,6 +50,7 @@ def _get_inst_or_defn_or_die(ref):
 @dataclasses.dataclass(frozen=True)
 class BuildMagmaGrahOpts:
     flatten_all_tuples: bool = False
+    check_for_when_cycles: bool = True
 
 
 class ModuleContext:
@@ -203,5 +204,6 @@ def build_magma_graph(
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
-    # _check_for_when_cycles(ctx.graph, ckt)
+    if opts.check_for_when_cycles:
+        _check_for_when_cycles(ctx.graph, ckt)
     return ctx.graph
