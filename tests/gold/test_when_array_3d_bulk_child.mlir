@@ -44,32 +44,32 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %29 = sv.read_inout %30 : !hw.inout<i2>
         %31 = hw.array_create %29, %26 : i2
         %32 = hw.array_create %31, %23 : !hw.array<2xi2>
-        %34 = sv.wire sym @test_when_array_3d_bulk_child._WHEN_ASSERT_0_1 name "_WHEN_ASSERT_0_1" : !hw.inout<i2>
-        sv.assign %34, %21 : i2
-        %33 = sv.read_inout %34 : !hw.inout<i2>
-        %36 = sv.wire sym @test_when_array_3d_bulk_child._WHEN_ASSERT_0_0 name "_WHEN_ASSERT_0_0" : !hw.inout<i2>
-        sv.assign %36, %18 : i2
-        %35 = sv.read_inout %36 : !hw.inout<i2>
-        %37 = hw.array_get %I[%2] : !hw.array<2x!hw.array<2xi2>>, i1
-        %38 = hw.array_get %37[%5] : !hw.array<2xi2>, i1
-        %39 = hw.array_get %37[%2] : !hw.array<2xi2>, i1
-        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %33, %35, %38, %39) : i1, i2, i2, i2, i2
-        %41 = sv.wire sym @test_when_array_3d_bulk_child._WHEN_ASSERT_1_1 name "_WHEN_ASSERT_1_1" : !hw.inout<i2>
-        sv.assign %41, %29 : i2
-        %40 = sv.read_inout %41 : !hw.inout<i2>
-        %43 = sv.wire sym @test_when_array_3d_bulk_child._WHEN_ASSERT_1_0 name "_WHEN_ASSERT_1_0" : !hw.inout<i2>
-        sv.assign %43, %26 : i2
-        %42 = sv.read_inout %43 : !hw.inout<i2>
-        %44 = hw.array_get %I[%5] : !hw.array<2x!hw.array<2xi2>>, i1
-        %45 = hw.array_get %44[%5] : !hw.array<2xi2>, i1
-        %46 = hw.array_get %44[%2] : !hw.array<2xi2>, i1
-        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %40, %42, %45, %46) : i1, i2, i2, i2, i2
-        %48 = hw.constant -1 : i1
-        %47 = comb.xor %48, %S : i1
-        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %18, %46) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %21, %45) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %26, %39) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%47, %29, %38) : i1, i2, i2
+        %33 = hw.array_create %21, %18 : i2
+        %35 = sv.wire sym @test_when_array_3d_bulk_child._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<!hw.array<2xi2>>
+        sv.assign %35, %33 : !hw.array<2xi2>
+        %34 = sv.read_inout %35 : !hw.inout<!hw.array<2xi2>>
+        %36 = hw.array_get %34[%5] : !hw.array<2xi2>, i1
+        %37 = hw.array_get %34[%2] : !hw.array<2xi2>, i1
+        %38 = hw.array_get %I[%2] : !hw.array<2x!hw.array<2xi2>>, i1
+        %39 = hw.array_get %38[%5] : !hw.array<2xi2>, i1
+        %40 = hw.array_get %38[%2] : !hw.array<2xi2>, i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %36, %37, %39, %40) : i1, i2, i2, i2, i2
+        %41 = hw.array_create %29, %26 : i2
+        %43 = sv.wire sym @test_when_array_3d_bulk_child._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<!hw.array<2xi2>>
+        sv.assign %43, %41 : !hw.array<2xi2>
+        %42 = sv.read_inout %43 : !hw.inout<!hw.array<2xi2>>
+        %44 = hw.array_get %42[%5] : !hw.array<2xi2>, i1
+        %45 = hw.array_get %42[%2] : !hw.array<2xi2>, i1
+        %46 = hw.array_get %I[%5] : !hw.array<2x!hw.array<2xi2>>, i1
+        %47 = hw.array_get %46[%5] : !hw.array<2xi2>, i1
+        %48 = hw.array_get %46[%2] : !hw.array<2xi2>, i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %44, %45, %47, %48) : i1, i2, i2, i2, i2
+        %50 = hw.constant -1 : i1
+        %49 = comb.xor %50, %S : i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %18, %48) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %21, %47) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %26, %40) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%49, %29, %39) : i1, i2, i2
         hw.output %32 : !hw.array<2x!hw.array<2xi2>>
     }
 }

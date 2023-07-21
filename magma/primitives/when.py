@@ -8,6 +8,7 @@ from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
+from magma.primitives.wire import Wire
 from magma.ref import DerivedRef
 from magma.t import Type, In, Out
 from magma.when import (
@@ -17,7 +18,7 @@ from magma.when import (
     emit_when_asserts,
 )
 from magma.value_utils import make_selector
-from magma.wire import wire
+from magma.wire import wire, unwire
 
 
 _ISWHEN_KEY = "_iswhen_"
@@ -120,6 +121,15 @@ def _add_default_drivers_to_register_inputs(
             continue
         builder.block.add_default_driver(drivee, O)
         latches.remove(drivee)
+
+
+def _rewire_driven_value(value, temp):
+    if isinstance(value, list):
+        for x, z in zip(value, temp):
+            _rewire_driven_value(x, z)
+        return
+    value.unwire(keep_wired_when_contexts=True)
+    value @= temp
 
 
 class WhenBuilder(CircuitBuilder):
@@ -294,12 +304,12 @@ class WhenBuilder(CircuitBuilder):
     def get_when_assert_wire(self, port):
         if port not in self._when_assert_wires:
             name = f"_WHEN_ASSERT_{len(self._when_assert_wires)}"
-            temp = type(port).undirected_t(name=name)
-            for value in tuple(port.driving()):
-                value.unwire(port, keep_wired_when_contexts=True)
-                wire(temp, value)
-            temp @= port
-            self._when_assert_wires[port] = temp
+            temp = Wire(type(port).undirected_t, flatten=False)(name=name)
+            driving = tuple(port.driving())
+            temp.I @= port
+            for value in driving:
+                _rewire_driven_value(value, temp.O)
+            self._when_assert_wires[port] = temp.O
         return self._when_assert_wires[port]
 
 

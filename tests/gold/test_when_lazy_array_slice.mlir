@@ -31,40 +31,40 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %17, %4 : i1
             }
         }
-        %18 = comb.concat %11, %10, %9, %8 : i1, i1, i1, i1
-        %20 = sv.wire sym @test_when_lazy_array_slice.x name "x" : !hw.inout<i4>
-        sv.assign %20, %18 : i4
-        %19 = sv.read_inout %20 : !hw.inout<i4>
-        %22 = sv.wire sym @test_when_lazy_array_slice._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
-        sv.assign %22, %8 : i1
-        %21 = sv.read_inout %22 : !hw.inout<i1>
-        %23 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %21, %23) : i1, i1, i1
-        %25 = sv.wire sym @test_when_lazy_array_slice._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
-        sv.assign %25, %9 : i1
+        %19 = sv.wire sym @test_when_lazy_array_slice._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        sv.assign %19, %8 : i1
+        %18 = sv.read_inout %19 : !hw.inout<i1>
+        %21 = sv.wire sym @test_when_lazy_array_slice._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        sv.assign %21, %9 : i1
+        %20 = sv.read_inout %21 : !hw.inout<i1>
+        %23 = sv.wire sym @test_when_lazy_array_slice._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
+        sv.assign %23, %10 : i1
+        %22 = sv.read_inout %23 : !hw.inout<i1>
+        %25 = sv.wire sym @test_when_lazy_array_slice._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
+        sv.assign %25, %11 : i1
         %24 = sv.read_inout %25 : !hw.inout<i1>
-        %26 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %24, %26) : i1, i1, i1
-        %28 = sv.wire sym @test_when_lazy_array_slice._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
-        sv.assign %28, %10 : i1
-        %27 = sv.read_inout %28 : !hw.inout<i1>
-        %29 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %27, %29) : i1, i1, i1
-        %31 = sv.wire sym @test_when_lazy_array_slice._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
-        sv.assign %31, %11 : i1
-        %30 = sv.read_inout %31 : !hw.inout<i1>
+        %26 = comb.concat %24, %22, %20, %18 : i1, i1, i1, i1
+        %28 = sv.wire sym @test_when_lazy_array_slice.x name "x" : !hw.inout<i4>
+        sv.assign %28, %26 : i4
+        %27 = sv.read_inout %28 : !hw.inout<i4>
+        %29 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %18, %29) : i1, i1, i1
+        %30 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %20, %30) : i1, i1, i1
+        %31 = hw.constant 1 : i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %22, %31) : i1, i1, i1
         %32 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %30, %32) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %24, %32) : i1, i1, i1
         %34 = hw.constant -1 : i1
         %33 = comb.xor %34, %S : i1
         %35 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %21, %35) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %18, %35) : i1, i1, i1
         %36 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %24, %36) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %20, %36) : i1, i1, i1
         %37 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %27, %37) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %22, %37) : i1, i1, i1
         %38 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %30, %38) : i1, i1, i1
-        hw.output %19 : i4
+        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %24, %38) : i1, i1, i1
+        hw.output %27 : i4
     }
 }

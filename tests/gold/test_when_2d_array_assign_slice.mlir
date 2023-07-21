@@ -36,25 +36,27 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         sv.assign %23, %21 : i2
         %22 = sv.read_inout %23 : !hw.inout<i2>
         %24 = hw.array_create %22, %19, %16, %13 : i2
-        %26 = sv.wire sym @test_when_2d_array_assign_slice._WHEN_ASSERT_0_1 name "_WHEN_ASSERT_0_1" : !hw.inout<i2>
-        sv.assign %26, %16 : i2
-        %25 = sv.read_inout %26 : !hw.inout<i2>
-        %28 = sv.wire sym @test_when_2d_array_assign_slice._WHEN_ASSERT_0_0 name "_WHEN_ASSERT_0_0" : !hw.inout<i2>
-        sv.assign %28, %13 : i2
-        %27 = sv.read_inout %28 : !hw.inout<i2>
-        %29 = hw.array_get %I[%8] : !hw.array<4xi2>, i2
-        %30 = hw.array_get %I[%6] : !hw.array<4xi2>, i2
-        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %25, %27, %29, %30) : i1, i2, i2, i2, i2
-        %31 = hw.array_get %I[%2] : !hw.array<4xi2>, i2
-        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %19, %31) : i1, i2, i2
-        %32 = hw.array_get %I[%4] : !hw.array<4xi2>, i2
-        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %22, %32) : i1, i2, i2
-        %34 = hw.constant -1 : i1
-        %33 = comb.xor %34, %S : i1
-        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %19, %30) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %22, %29) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %13, %31) : i1, i2, i2
-        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%33, %16, %32) : i1, i2, i2
+        %25 = hw.array_create %16, %13 : i2
+        %27 = sv.wire sym @test_when_2d_array_assign_slice._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<!hw.array<2xi2>>
+        sv.assign %27, %25 : !hw.array<2xi2>
+        %26 = sv.read_inout %27 : !hw.inout<!hw.array<2xi2>>
+        %29 = hw.constant 1 : i1
+        %28 = hw.array_get %26[%29] : !hw.array<2xi2>, i1
+        %31 = hw.constant 0 : i1
+        %30 = hw.array_get %26[%31] : !hw.array<2xi2>, i1
+        %32 = hw.array_get %I[%8] : !hw.array<4xi2>, i2
+        %33 = hw.array_get %I[%6] : !hw.array<4xi2>, i2
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %28, %30, %32, %33) : i1, i2, i2, i2, i2
+        %34 = hw.array_get %I[%2] : !hw.array<4xi2>, i2
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %19, %34) : i1, i2, i2
+        %35 = hw.array_get %I[%4] : !hw.array<4xi2>, i2
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %22, %35) : i1, i2, i2
+        %37 = hw.constant -1 : i1
+        %36 = comb.xor %37, %S : i1
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%36, %19, %33) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%36, %22, %32) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%36, %13, %34) : i1, i2, i2
+        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%36, %16, %35) : i1, i2, i2
         hw.output %24 : !hw.array<4xi2>
     }
 }
