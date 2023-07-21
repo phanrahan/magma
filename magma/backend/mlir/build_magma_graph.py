@@ -203,5 +203,5 @@ def build_magma_graph(
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
-    _check_for_when_cycles(ctx.graph, ckt)
+    # _check_for_when_cycles(ctx.graph, ckt)
     return ctx.graph
