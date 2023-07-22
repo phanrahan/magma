@@ -305,10 +305,10 @@ class WhenBuilder(CircuitBuilder):
         if port not in self._when_assert_wires:
             name = f"_WHEN_ASSERT_{len(self._when_assert_wires)}"
             temp = Wire(type(port).undirected_t, flatten=False)(name=name)
-            driving = tuple(port.driving())
-            temp.I @= port
-            for value in driving:
+            for value in port.driving():
                 _rewire_driven_value(value, temp.O)
+            assert not port.driving()
+            temp.I @= port
             self._when_assert_wires[port] = temp.O
         return self._when_assert_wires[port]
 
