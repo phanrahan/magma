@@ -18,7 +18,7 @@ from magma.when import (
     emit_when_asserts,
 )
 from magma.value_utils import make_selector
-from magma.wire import wire, unwire
+from magma.wire import wire
 
 
 _ISWHEN_KEY = "_iswhen_"

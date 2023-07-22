@@ -476,6 +476,15 @@ def test_recursive_non_port():
     basename = "test_when_recursive_non_port"
     # TODO(leonardt): Remove this when proper analysis for when cycles is
     # added.
+    # NOTE(leonardt): We disable assert checking for these tests because the
+    # insertion of the wire module prevents seeing the dependency.  In, general
+    # we do not traverse across instances because we do not determine whether
+    # the cycle might be broken by a register inside the hierachy.  This is
+    # essentially the classic combinational loop problem.  For now, rather
+    # than attempt to solve the problem for this analysis, we should eventually
+    # avoid the analysis by appropriately splitting up the when blocks or if
+    # statements to avoid the cycle issue
+    config.emit_when_asserts = False
     with pytest.raises(MlirWhenCycleError):
         m.compile(f"build/{basename}", _Test, output="mlir")
         assert check_gold(__file__, f"{basename}.mlir")
@@ -1664,6 +1673,15 @@ def test_when_emit_asserts_tuple_elab():
 
 
 def test_when_alwcomb_order():
+    # NOTE(leonardt): We disable assert checking for these tests because the
+    # insertion of the wire module prevents seeing the dependency.  In, general
+    # we do not traverse across instances because we do not determine whether
+    # the cycle might be broken by a register inside the hierachy.  This is
+    # essentially the classic combinational loop problem.  For now, rather
+    # than attempt to solve the problem for this analysis, we should eventually
+    # avoid the analysis by appropriately splitting up the when blocks or if
+    # statements to avoid the cycle issue
+    config.emit_when_asserts = False
 
     class test_when_alwcomb_order(m.Circuit):
         io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[1]), O=m.Out(m.Bits[8]))

@@ -2,6 +2,7 @@ import dataclasses
 from typing import Any, Callable, Tuple
 
 from magma.array import Array
+from magma.backend.mlir.errors import MlirWhenCycleError
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.magma_common import (
     ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root,
@@ -15,8 +16,10 @@ from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.compile_exception import UnconnectedPortException
 from magma.digital import Digital
+from magma.primitives.register import Register
+from magma.primitives.when import iswhen
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef, LazyInstRef
+from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
 from magma.t import Type
 from magma.tuple import Tuple as m_Tuple
 
@@ -173,6 +176,18 @@ def _visit_inputs(
         )
 
 
+def _check_for_when_cycles(graph: Graph):
+    """Temporary guard against https://github.com/phanrahan/magma/issues/1248"""
+    for node in graph.nodes():
+        if not iswhen(node):
+            continue
+        for predecessor in graph.predecessors(node):
+            if isinstance(type(node), Register):  # registers break cycles
+                break
+            if predecessor is node:
+                raise MlirWhenCycleError()
+
+
 def build_magma_graph(
         ckt: DefineCircuitKind,
         opts: BuildMagmaGrahOpts = BuildMagmaGrahOpts()) -> Graph:
@@ -180,4 +195,5 @@ def build_magma_graph(
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
+    _check_for_when_cycles(ctx.graph)
     return ctx.graph
