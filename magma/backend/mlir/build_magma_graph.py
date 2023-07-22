@@ -1,9 +1,7 @@
 import dataclasses
-import networkx as nx
 from typing import Any, Callable, Tuple
 
 from magma.array import Array
-from magma.backend.mlir.errors import MlirWhenCycleError
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.magma_common import (
     ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root,
@@ -17,11 +15,8 @@ from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.compile_exception import UnconnectedPortException
 from magma.digital import Digital
-from magma.primitives.register import AbstractRegister
-from magma.primitives.memory import Memory
-from magma.primitives.when import iswhen
 from magma.protocol_type import magma_value as get_magma_value
-from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
+from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef, LazyInstRef
 from magma.t import Type
 from magma.tuple import Tuple as m_Tuple
 
@@ -50,7 +45,6 @@ def _get_inst_or_defn_or_die(ref):
 @dataclasses.dataclass(frozen=True)
 class BuildMagmaGrahOpts:
     flatten_all_tuples: bool = False
-    check_for_when_cycles: bool = True
 
 
 class ModuleContext:
@@ -179,24 +173,6 @@ def _visit_inputs(
         )
 
 
-def _check_for_when_cycles(graph: Graph, module: ModuleLike):
-    """Temporary guard against https://github.com/phanrahan/magma/issues/1248"""
-    for cycle in nx.recursive_simple_cycles(graph):
-        found_when = False
-        for node in cycle:
-            if iswhen(node):
-                found_when = True
-            if (
-                node is module or
-                isinstance(type(node), (AbstractRegister, Memory))
-            ):
-                # Ignore cycles broken by state or the module interface
-                found_when = False
-                break
-        if found_when:
-            raise MlirWhenCycleError(cycle)
-
-
 def build_magma_graph(
         ckt: DefineCircuitKind,
         opts: BuildMagmaGrahOpts = BuildMagmaGrahOpts()) -> Graph:
@@ -204,6 +180,4 @@ def build_magma_graph(
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
-    if opts.check_for_when_cycles:
-        _check_for_when_cycles(ctx.graph, ckt)
     return ctx.graph

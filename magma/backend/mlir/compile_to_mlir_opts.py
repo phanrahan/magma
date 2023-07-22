@@ -20,4 +20,3 @@ class CompileToMlirOpts:
     disallow_local_variables: bool = False
     split_verilog: bool = False
     omit_version_comment: bool = False
-    check_for_when_cycles: bool = True
