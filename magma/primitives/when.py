@@ -307,8 +307,8 @@ class WhenBuilder(CircuitBuilder):
             # NOTE(leonardt): Here we use the `Wire` module instead of the
             # named value logic because insert_coreir_wires can cause
             # elaboration which then causes a bad interaction with the when
-            # finalization logic.  Since whens are currently being finalized,
-            # the builders cannot be modified later
+            # finalization logic. Since whens are currently being finalized,
+            # the builders cannot be modified later.
             temp = Wire(type(port).undirected_t, flatten=False)(name=name)
             for value in port.driving():
                 _rewire_driven_value_or_values(value, temp.O)
