@@ -426,8 +426,8 @@ get_curr_block = _get_curr_block
 def _reset_context():
     _reset_curr_block()
     _reset_prev_block()
-    global _WHEN_ASSERT_COUNTER
-    _WHEN_ASSERT_COUNTER = itertools.count()
+    global _ASSERT_COUNTER
+    _ASSERT_COUNTER = itertools.count()
 
 
 reset_context = _reset_context
@@ -546,7 +546,7 @@ def find_inferred_latches(block: _BlockBase) -> Set:
 # (not just per module).  This is because the downstream verilog tools
 # (e.g. Jasper) treat each assertion as a unique entity (rather than scoped in
 # the hierarchy), so they are expected to be unique like module names.
-_WHEN_ASSERT_COUNTER = itertools.count()
+_ASSERT_COUNTER = itertools.count()
 _ASSERT_TEMPLATE = (
     "WHEN_ASSERT_{id}: assert property (({cond}) |-> ({drivee} == {driver}));"
 )
@@ -583,7 +583,7 @@ def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
     port = builder.get_when_assert_wire(port)
 
     _inline_verilog2(_ASSERT_TEMPLATE, cond=cond, drivee=port, driver=driver,
-                     id=next(_WHEN_ASSERT_COUNTER))
+                     id=next(_ASSERT_COUNTER))
 
 
 def _make_cond(block, precond):
