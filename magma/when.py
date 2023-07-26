@@ -542,8 +542,10 @@ def find_inferred_latches(block: _BlockBase) -> Set:
     return latches
 
 
-# Use a global counter so assertion names are unique across the design
-# (not just per module)
+# We use a global counter so assertion names are unique across the design
+# (not just per module).  This is because the downstream verilog tools
+# (e.g. Jasper) treat each assertion as a unique entity (rather than scoped in
+# the hierarchy), so they are expected to be unique like module names.
 _WHEN_ASSERT_COUNTER = itertools.count()
 _ASSERT_TEMPLATE = (
     "WHEN_ASSERT_{id}: assert property (({cond}) |-> ({drivee} == {driver}));"
