@@ -172,9 +172,9 @@ def compile_guard_select(**kwargs):
     try:
         default = kwargs.pop("default")
     except KeyError:
-        raise ValueError("Expected default argument") from None
-    if not (len(kwargs) > 1):
-        raise ValueError("Expected at least one key besides default")
+        raise KeyError("Expected default argument") from None
+    if not kwargs:  # kwargs is empty
+        raise KeyError("Expected at least one key besides default")
     # We rely on insertion order to make the default the last element for the
     # generated if/elif/else code.
     kwargs["default"] = default
