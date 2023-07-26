@@ -123,10 +123,10 @@ def _add_default_drivers_to_register_inputs(
         latches.remove(drivee)
 
 
-def _rewire_driven_value(value, temp):
+def _rewire_driven_value_or_values(value, temp):
     if isinstance(value, list):
         for x, z in zip(value, temp):
-            _rewire_driven_value(x, z)
+            _rewire_driven_value_or_values(x, z)
         return
     value.unwire(keep_wired_when_contexts=True)
     value @= temp
@@ -311,7 +311,7 @@ class WhenBuilder(CircuitBuilder):
             # the builders cannot be modified later
             temp = Wire(type(port).undirected_t, flatten=False)(name=name)
             for value in port.driving():
-                _rewire_driven_value(value, temp.O)
+                _rewire_driven_value_or_values(value, temp.O)
             assert not port.driving()
             temp.I @= port
             self._when_assert_wires[port] = temp.O
