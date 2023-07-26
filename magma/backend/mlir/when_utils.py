@@ -138,11 +138,11 @@ class WhenCompiler:
                 self.index = tuple()
 
             def __getitem__(self, idx):
-                self.index += (idx, )
+                self.index += (idx,)
                 return self
 
             def __getattr__(self, idx):
-                self.index += (idx, )
+                self.index += (idx,)
                 return self
 
         builder = _IndexBuilder()
