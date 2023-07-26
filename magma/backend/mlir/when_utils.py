@@ -247,8 +247,10 @@ class WhenCompiler:
                 return self._create_struct_from_collection(T, value, result)
             assert isinstance(T, hw.ArrayType)
             assert len(T.dims) == 1, "Expected 1d array"
-            value = [self._create_from_recursive_collection(T.T, value[i])
-                     for i in range(T.dims[0])]
+            value = [
+                self._create_from_recursive_collection(T.T, value[i])
+                for i in range(T.dims[0])
+            ]
         # Filter None elements (indices covered by a previous slice)
         value = [x for x in reversed(value) if x is not None]
         self._module_visitor.make_concat(value, result)
