@@ -226,7 +226,7 @@ class WhenCompiler:
     def _create_struct_from_collection(self, T, value, result):
         value = [
             self._create_from_recursive_collection(v, value[k])
-            for k, v in sorted(T.fields, key=lambda x: x[0])
+            for k, v in T.sorted_fields
         ]
         hw.StructCreateOp(
             operands=value,
