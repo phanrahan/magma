@@ -614,8 +614,9 @@ def _emit_default_driver_asserts(block, builder, assignment_map):
         if not assigned_conds:
             continue
         cond = ~functools.reduce(operator.or_, assigned_conds)
-        _emit_when_assert(cond, wire.drivee, wire.driver, builder,
-                          defaultdict(list))
+        _emit_when_assert(
+            cond, wire.drivee, wire.driver, builder, defaultdict(list)
+        )
 
 
 def emit_when_asserts(block, builder, precond=None,
