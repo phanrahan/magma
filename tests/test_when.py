@@ -313,7 +313,7 @@ def test_multiple_drivers():
     update_gold(__file__, "test_when_multiple_drivers.mlir")
 
 
-@pytest.mark.parametrize('T, bits_to_fault_value, flatten', [
+@pytest.mark.parametrize('T, bits_to_fault_value, flatten_all_tuples', [
     (m.Bits[8], lambda x: x, True),
     (
         m.AnonProduct[{"x": m.Bit, "y": m.Bits[7]}],
@@ -326,11 +326,11 @@ def test_multiple_drivers():
         True
     ),
 ])
-def test_memory(T, bits_to_fault_value, flatten):
+def test_memory(T, bits_to_fault_value, flatten_all_tuples):
     T_str = type_to_sanitized_string(T)
 
     class test_when_memory(m.Circuit):
-        name = f"test_when_memory_{T_str}_{flatten}"
+        name = f"test_when_memory_{T_str}_{flatten_all_tuples}"
         io = m.IO(
             data0=m.In(T), addr0=m.In(m.Bits[5]), en0=m.In(m.Bit),
             data1=m.In(T), addr1=m.In(m.Bits[5]), en1=m.In(m.Bit),
@@ -347,16 +347,20 @@ def test_memory(T, bits_to_fault_value, flatten):
         with m.otherwise():
             io.out @= m.from_bits(T, m.Bits[8](0xFF))
 
-    m.compile(f"build/test_when_memory_{T_str}_{flatten}",
-              test_when_memory, flatten_all_tuples=flatten,
+    m.compile(f"build/test_when_memory_{T_str}_{flatten_all_tuples}",
+              test_when_memory, flatten_all_tuples=flatten_all_tuples,
               output="mlir")
 
-    if not flatten:
+    if not flatten_all_tuples:
         # TODO(leonardt): fault does not support unflattened tuples
-        assert check_gold(__file__, f"test_when_memory_{T_str}_{flatten}.mlir")
+        assert check_gold(
+            __file__, f"test_when_memory_{T_str}_{flatten_all_tuples}.mlir"
+        )
         return
 
-    if check_gold(__file__, f"test_when_memory_{T_str}_{flatten}.mlir"):
+    if check_gold(
+            __file__, f"test_when_memory_{T_str}_{flatten_all_tuples}.mlir"
+    ):
         return
 
     tester = f.SynchronousTester(test_when_memory, clock=test_when_memory.CLK)
@@ -386,13 +390,14 @@ def test_memory(T, bits_to_fault_value, flatten):
 
     tester.expect(test_when_memory.out, bits_to_fault_value(m.Bits[8](0xDE)))
 
-    tester.compile_and_run("verilator", magma_output="mlir-verilog",
-                           directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           magma_opts={"flatten_all_tuples": flatten},
-                           flags=['-Wno-UNUSED'])
+    tester.compile_and_run(
+        "verilator", magma_output="mlir-verilog",
+        directory=os.path.join(os.path.dirname(__file__), "build"),
+        magma_opts={"flatten_all_tuples": flatten_all_tuples},
+        flags=['-Wno-UNUSED']
+    )
 
-    update_gold(__file__, f"test_when_memory_{T_str}_{flatten}.mlir")
+    update_gold(__file__, f"test_when_memory_{T_str}_{flatten_all_tuples}.mlir")
 
 
 @pytest.mark.parametrize(
@@ -404,12 +409,12 @@ def test_memory(T, bits_to_fault_value, flatten):
          [(0b10, 0b1), (0b01, 0b0)])
     ]
 )
-@pytest.mark.parametrize('flatten', [True, False])
-def test_nested(T, x, flatten):
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_nested(T, x, flatten_all_tuples):
     T_str = type_to_sanitized_string(T)
 
     class test_when_nested(m.Circuit):
-        name = f"test_when_nested_{T_str}_{flatten}"
+        name = f"test_when_nested_{T_str}_{flatten_all_tuples}"
         io = m.IO(I=m.In(m.Array[2, T]),
                   S=m.In(m.Bit),
                   O=m.Out(T))
@@ -418,15 +423,23 @@ def test_nested(T, x, flatten):
         with m.when(io.S):
             io.O @= io.I[0]
 
-    m.compile(f"build/test_when_nested_{T_str}_{flatten}", test_when_nested,
-              output="mlir", flatten_all_tuples=flatten)
+    m.compile(
+        f"build/test_when_nested_{T_str}_{flatten_all_tuples}",
+        test_when_nested,
+        output="mlir",
+        flatten_all_tuples=flatten_all_tuples
+    )
 
-    if not flatten:
+    if not flatten_all_tuples:
         # TODO(leonardt): fault does not support unflattened tuples
-        assert check_gold(__file__, f"test_when_nested_{T_str}_{flatten}.mlir")
+        assert check_gold(
+            __file__, f"test_when_nested_{T_str}_{flatten_all_tuples}.mlir"
+        )
         return
 
-    if check_gold(__file__, f"test_when_nested_{T_str}_{flatten}.mlir"):
+    if check_gold(
+        __file__, f"test_when_nested_{T_str}_{flatten_all_tuples}.mlir"
+    ):
         return
 
     tester = f.Tester(test_when_nested)
@@ -438,11 +451,13 @@ def test_nested(T, x, flatten):
     tester.eval()
     tester.expect(test_when_nested.O, x[0])
 
-    tester.compile_and_run("verilator", magma_output="mlir-verilog",
-                           directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           magma_opts={"flatten_all_tuples": flatten})
-    update_gold(__file__, f"test_when_nested_{T_str}_{flatten}.mlir")
+    tester.compile_and_run(
+        "verilator",
+        magma_output="mlir-verilog",
+        directory=os.path.join(os.path.dirname(__file__), "build"),
+        magma_opts={"flatten_all_tuples": flatten_all_tuples}
+    )
+    update_gold(__file__, f"test_when_nested_{T_str}_{flatten_all_tuples}.mlir")
 
 
 def test_non_port():
@@ -1122,8 +1137,8 @@ def test_when_output_resolve2():
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-@pytest.mark.parametrize('flatten', [True, False])
-def test_when_spurious_assign(flatten):
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_spurious_assign(flatten_all_tuples):
 
     class U(m.Product):
         x = m.Bits[8]
@@ -1134,7 +1149,7 @@ def test_when_spurious_assign(flatten):
         y = U
 
     class _Test(m.Circuit):
-        name = f"test_when_spurious_assign_{flatten}"
+        name = f"test_when_spurious_assign_{flatten_all_tuples}"
         io = m.IO(x=m.In(m.Bits[8]),
                   y=m.In(m.Bit),
                   z=m.In(m.Bits[2]),
@@ -1159,7 +1174,7 @@ def test_when_spurious_assign(flatten):
         reg.CE @= io.z[0]
 
     m.compile(f"build/{_Test.name}", _Test,
-              output="mlir", flatten_all_tuples=flatten)
+              output="mlir", flatten_all_tuples=flatten_all_tuples)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
@@ -1180,8 +1195,8 @@ def test_reg_ce_implicit_override():
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-@pytest.mark.parametrize('flatten', [True, False])
-def test_when_tuple_bulk_resolve(caplog, flatten):
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_tuple_bulk_resolve(caplog, flatten_all_tuples):
 
     class V(m.Product):
         x = m.Bits[8]
@@ -1196,7 +1211,7 @@ def test_when_tuple_bulk_resolve(caplog, flatten):
         y = U
 
     class _Test(m.Circuit):
-        name = f"test_when_tuple_bulk_resolve_{flatten}"
+        name = f"test_when_tuple_bulk_resolve_{flatten_all_tuples}"
         io = m.IO(I=m.In(T), S=m.In(m.Bits[2]), O=m.Out(T))
 
         x = m.Register(T)(name="x")
@@ -1215,7 +1230,7 @@ def test_when_tuple_bulk_resolve(caplog, flatten):
 
     assert not caplog.messages
     m.compile(f"build/{_Test.name}", _Test, output="mlir",
-              flatten_all_tuples=flatten)
+              flatten_all_tuples=flatten_all_tuples)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
@@ -1269,14 +1284,14 @@ def test_when_2d_array_assign():
     assert check_gold(__file__, "test_when_2d_array_assign.mlir")
 
 
-@pytest.mark.parametrize('flatten', [True, False])
-def test_when_nested_array_assign(flatten):
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_nested_array_assign(flatten_all_tuples):
     class T(m.Product):
         x = m.Bit
         y = m.Tuple[m.Bit, m.Bits[8]]
 
     class test_when_nested_array_assign(m.Circuit):
-        name = f"test_when_nested_array_assign_{flatten}"
+        name = f"test_when_nested_array_assign_{flatten_all_tuples}"
         io = m.IO(I=m.In(T), S=m.In(m.Bit),
                   O=m.Out(T))
         io.O.x @= io.I.x
@@ -1287,11 +1302,13 @@ def test_when_nested_array_assign(flatten):
         with m.otherwise():
             io.O.y[1] @= io.I.y[1][::-1]
 
-    m.compile(f"build/test_when_nested_array_assign_{flatten}",
+    m.compile(f"build/test_when_nested_array_assign_{flatten_all_tuples}",
               test_when_nested_array_assign, output="mlir",
-              flatten_all_tuples=flatten)
+              flatten_all_tuples=flatten_all_tuples)
 
-    assert check_gold(__file__, f"test_when_nested_array_assign_{flatten}.mlir")
+    assert check_gold(
+        __file__, f"test_when_nested_array_assign_{flatten_all_tuples}.mlir"
+    )
 
 
 def test_when_partial_assign_order():
@@ -1445,8 +1462,8 @@ def test_when_unique():
     assert check_gold(__file__, "test_when_unique.mlir")
 
 
-@pytest.mark.parametrize('flatten', [True, False])
-def test_when_tuple_as_bits_resolve(flatten):
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_tuple_as_bits_resolve(flatten_all_tuples):
 
     class V(m.Product):
         x = m.Bits[8]
@@ -1462,7 +1479,7 @@ def test_when_tuple_as_bits_resolve(flatten):
         y = m.Bits[8]
 
     class test_when_tuple_as_bits_resolve(m.Circuit):
-        name = f"test_when_tuple_as_bits_resolve_{flatten}"
+        name = f"test_when_tuple_as_bits_resolve_{flatten_all_tuples}"
         io = m.IO(I=m.In(U), S=m.In(m.Bit),
                   O=m.Out(U), X=m.Out(m.Bits[U.flat_length()]))
         io.O.y @= io.I.y
@@ -1477,11 +1494,13 @@ def test_when_tuple_as_bits_resolve(flatten):
             io.O @= io.I
         io.X @= m.as_bits(io.O.value())
 
-    m.compile(f"build/test_when_tuple_as_bits_resolve_{flatten}",
+    m.compile(f"build/test_when_tuple_as_bits_resolve_{flatten_all_tuples}",
               test_when_tuple_as_bits_resolve, output="mlir",
-              flatten_all_tuples=flatten, disallow_local_variables=True)
-    assert check_gold(__file__,
-                      f"test_when_tuple_as_bits_resolve_{flatten}.mlir")
+              flatten_all_tuples=flatten_all_tuples,
+              disallow_local_variables=True)
+    assert check_gold(
+        __file__, f"test_when_tuple_as_bits_resolve_{flatten_all_tuples}.mlir"
+    )
 
 
 def test_when_alwcomb_order():
