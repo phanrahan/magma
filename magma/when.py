@@ -569,7 +569,7 @@ def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
     if _contains_tuple(type(drivee)):
         # Since tuples are elaborated in verilog, we emit an assert for the
         # leaf values.
-        # TODO(leonardt): update this when we remove flatten_all_tuples
+        # TODO(leonardt): Update this when we remove flatten_all_tuples.
         for x, y in zip(drivee, driver):
             _emit_when_assert(cond, x, y, builder, assignment_map)
         return
