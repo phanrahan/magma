@@ -593,13 +593,11 @@ def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
 def _make_cond(block, precond):
     """Prepends the precond to the block condition if it exists."""
     if precond is not None:
-        cond = precond
         if block.condition is not None:
-            cond &= block.condition
-    else:
-        assert block.condition is not None
-        cond = block.condition
-    return cond
+            return precond & block.condition
+        return precond
+    assert block.condition is not None
+    return block.condition
 
 
 def _make_else_cond(block, precond):
