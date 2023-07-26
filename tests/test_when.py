@@ -57,7 +57,7 @@ def test_with_default():
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"),
-                           magma_opts={"emit_when_asserts": False})
+                           magma_opts={"emit_when_asserts": True})
     update_gold(__file__, "test_when_with_default.mlir")
 
 
