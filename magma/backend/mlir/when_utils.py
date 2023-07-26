@@ -90,7 +90,7 @@ class WhenCompiler:
         return value_to_index
 
     def _make_output_wires(self):
-        """Create the mlir values corresponding to each output"""
+        """Create the mlir values corresponding to each output."""
         wires = [
             self._module_visitor.ctx.new_value(hw.InOutType(result.type))
             for result in self._module.results
@@ -113,7 +113,8 @@ class WhenCompiler:
 
     def _get_parent(self, val, collection, to_index):
         """Search ancestor tree until we find either not an Array or we find a
-        an array that is in the index map"""
+        an array that is in the index map.
+        """
         for ref in val.name.root_iter(
             stop_if=lambda ref: not isinstance(ref, DerivedRef)
         ):
@@ -127,7 +128,7 @@ class WhenCompiler:
 
     def _check_array_child_wire(self, val, collection, to_index):
         """If val is a child of an array or tuple in the index map, get the
-        parent wire (so we add to a collection of drivers for a bulk assign)
+        parent wire (so we add to a collection of drivers for a bulk assign).
         """
         wire, parent = self._get_parent(val, collection, to_index)
         if wire is None:
@@ -201,7 +202,7 @@ class WhenCompiler:
 
     def _make_recursive_collection(self, T):
         """Create a nested data structure matching T, used to populate the
-        elements of an array or struct create op
+        elements of an array or struct create op.
         """
         if isinstance(T, builtin.IntegerType):
             return [None for _ in range(T.n)]
@@ -212,7 +213,7 @@ class WhenCompiler:
 
     def _populate_recursive_collection(self, T, value):
         """Unpack the contents of value into the corresponding nested structure
-        create in `_make_recursive_collection`
+        create in `_make_recursive_collection`.
         """
         arr = self._make_recursive_collection(T)
         for idx, elem in value.items():
@@ -231,7 +232,7 @@ class WhenCompiler:
         return result
 
     def _create_from_recursive_collection(self, T, value):
-        """Sort drivers by index, use concat or create depending on type"""
+        """Sort drivers by index, use concat or create depending on type."""
         if isinstance(value, MlirValue):
             return value  # found whole value, no need to combine
         if all(x is None for x in value):
@@ -278,10 +279,10 @@ class WhenCompiler:
     def _process_when_block(self, block):
         """
         If no condition, we are in an otherwise case and simply emit the
-        block body (which is inside a previous IfOp)
+        block body (which is inside a previous IfOp).
 
         Otherwise, we emit an IfOp with the true body corresponding to this
-        block, then process the sibilings in the else block
+        block, then process the sibilings in the else block.
         """
         if block.condition is None:
             return self._process_connections(block)
@@ -304,7 +305,7 @@ class WhenCompiler:
         return if_op
 
     def compile(self):
-        """Emit default drivers then process the when block chain"""
+        """Emit default drivers then process the when block chain."""
         with push_block(sv.AlwaysCombOp().body_block):
             self._make_assignments(self._builder.default_drivers.items())
             self._process_when_block(self._builder.block)
