@@ -188,9 +188,11 @@ class TupleKind(TupleMeta, Kind):
     __hash__ = TupleMeta.__hash__
 
     def sorted_field_dict_items(cls):
+        return cls.field_dict.items()
         return sorted(cls.field_dict.items(), key=lambda x: x[0])
 
     def sorted_fields(cls):
+        return cls.fields
         return sorted(cls.fields, key=lambda x: x[0])
 
 
