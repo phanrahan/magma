@@ -157,6 +157,7 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.non_power_of_two_mux_wrapper,
         examples.simple_register_wrapper,
         examples.complex_register_wrapper,
+        examples.register_array_of_bit,
         examples.counter,
         examples.twizzle,
         examples.simple_unused_output,

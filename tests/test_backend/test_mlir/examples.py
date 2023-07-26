@@ -145,6 +145,14 @@ class complex_register_wrapper(m.Circuit):
     io.y @= y
 
 
+class register_array_of_bit(m.Circuit):
+    T = m.Array[4, m.Bit]
+    io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO()
+    init = T(3)
+    reg = m.Register(T, init=init)()
+    io.O @= reg(io.I)
+
+
 class counter(m.Circuit):
     T = m.UInt[16]
     io = m.IO(y=m.Out(T)) + m.ClockIO()
