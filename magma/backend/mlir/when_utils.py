@@ -224,8 +224,10 @@ class WhenCompiler:
         return arr
 
     def _create_struct_from_collection(self, T, value, result):
-        value = [self._create_from_recursive_collection(v, value[k])
-                 for k, v in sorted(T.fields, key=lambda x: x[0])]
+        value = [
+            self._create_from_recursive_collection(v, value[k])
+            for k, v in sorted(T.fields, key=lambda x: x[0])
+        ]
         hw.StructCreateOp(
             operands=value,
             results=[result])
