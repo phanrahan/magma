@@ -628,20 +628,19 @@ def emit_when_asserts(block, builder, precond=None,
     true).
     """
     cond = _make_cond(block, precond)
-
-    for _wire in block.conditional_wires():
-        _emit_when_assert(cond, _wire.drivee, _wire.driver, builder,
-                          assignment_map)
+    for conditional_wire in block.conditional_wires():
+        _emit_when_assert(
+            cond, conditional_wire.drivee, conditional_wire.driver, builder,
+            assignment_map
+        )
 
     for child in block.children():
         # Children inherit this block's cond as a precond.
         emit_when_asserts(child, builder, cond, assignment_map)
-
     else_block = _get_else_block(block)
     if else_block:
         else_cond = _make_else_cond(block, precond)
         emit_when_asserts(else_block, builder, else_cond, assignment_map)
-
     if block is block.root:
         _emit_default_driver_asserts(block, builder, assignment_map)
 
