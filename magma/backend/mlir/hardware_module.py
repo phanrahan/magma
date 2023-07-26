@@ -341,9 +341,9 @@ class ModuleVisitor:
         return operand
 
     @functools.lru_cache()
-    def make_struct_ref(self, struct: MlirValue, i: str) -> MlirValue:
-        operand = self.ctx.new_value(struct.type.get_field(i))
-        hw.StructExtractOp(field=i, operands=[struct], results=[operand])
+    def make_struct_ref(self, struct: MlirValue, key: str) -> MlirValue:
+        operand = self.ctx.new_value(struct.type.get_field(key))
+        hw.StructExtractOp(field=key, operands=[struct], results=[operand])
         return operand
 
     def make_concat(self, operands, result):
