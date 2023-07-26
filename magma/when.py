@@ -603,7 +603,7 @@ def _make_cond(block, precond):
 def _make_else_cond(block, precond):
     """Invert the current condition, if there's a precond, append it."""
     if precond is not None:
-        return precond & block.condition
+        return precond & ~block.condition
     return ~block.condition
 
 
