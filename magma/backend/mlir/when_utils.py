@@ -230,7 +230,8 @@ class WhenCompiler:
         ]
         hw.StructCreateOp(
             operands=value,
-            results=[result])
+            results=[result]
+        )
         return result
 
     def _create_from_recursive_collection(self, T, value):
