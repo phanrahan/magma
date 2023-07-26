@@ -602,10 +602,9 @@ def _make_cond(block, precond):
 
 def _make_else_cond(block, precond):
     """Invert the current condition, if there's a precond, append it."""
-    else_cond = ~block.condition
     if precond is not None:
-        else_cond = precond & else_cond
-    return else_cond
+        return precond & block.condition
+    return ~block.condition
 
 
 def _emit_default_driver_asserts(block, builder, assignment_map):
