@@ -641,7 +641,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
             raise TypeError("Can't call __int__ on a non-constant")
         if not issubclass(self.T, Digital):
             raise TypeError("Can only call __int__ on array of bit values")
-        bits = [int(v) for _, v in self._enumerate_children()]
+        bits = [bool(v) for _, v in self._enumerate_children()]
         return BitVector[len(self)](bits).as_uint()
 
     def _make_t(self, index):
