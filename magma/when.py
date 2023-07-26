@@ -7,12 +7,8 @@ import itertools
 import operator
 from typing import Any, Iterable, Optional, Set, Tuple, Union
 
-from magma.config import config, RuntimeConfig
 from magma.debug import get_debug_info, debug_info as DebugInfo
 from magma.ref import get_ref_inst
-
-
-config.register(emit_when_asserts=RuntimeConfig(False))
 
 
 @functools.lru_cache(None)
@@ -626,9 +622,6 @@ def emit_when_asserts(block, builder, precond=None,
     (emit an assert for the case when none of the relevant conditions are
     true).
     """
-    if not config.emit_when_asserts:
-        return
-
     cond = _make_cond(block, precond)
 
     for _wire in block.conditional_wires():
