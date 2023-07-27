@@ -431,7 +431,7 @@ def test_nested(T, x, flatten_all_tuples):
     )
 
     if not flatten_all_tuples:
-        # TODO(leonardt): fault does not support unflattened tuples
+        # TODO(leonardt): fault does not support unflattened tuples.
         assert check_gold(
             __file__, f"test_when_nested_{T_str}_{flatten_all_tuples}.mlir"
         )
