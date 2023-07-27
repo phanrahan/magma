@@ -123,13 +123,13 @@ def _add_default_drivers_to_register_inputs(
         latches.remove(drivee)
 
 
-def _rewire_driven_value_or_values(value, temp):
-    if isinstance(value, list):
-        for x, z in zip(value, temp):
+def _rewire_driven_value_or_values(value_or_values, temp):
+    if isinstance(value_or_values, list):
+        for x, z in zip(value_or_values, temp):
             _rewire_driven_value_or_values(x, z)
         return
-    value.unwire(keep_wired_when_contexts=True)
-    value @= temp
+    value_or_values.unwire(keep_wired_when_contexts=True)
+    value_or_values @= temp
 
 
 class WhenBuilder(CircuitBuilder):
