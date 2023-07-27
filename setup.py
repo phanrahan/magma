@@ -37,9 +37,7 @@ setup(
         "dataclasses",
         "mako",
         "pyverilog",
-        # Latest requires py3.9
-        # See https://github.com/phanrahan/magma/actions/runs/5685615100/job/15410854641?pr=1293
-        "numpy==1.19.3",
+        "numpy",
         "graphviz",
         "coreir>=2.0.151",
         "hwtypes>=1.4.4",

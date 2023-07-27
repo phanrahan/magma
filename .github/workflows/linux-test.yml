@@ -30,6 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         # BEGIN: Temp fix, see
         # https://github.com/henry0312/pytest-pycodestyle/issues/97
+        conda install numpy  # use conda for numpy to avoid compatability issues
         pip install py
         # END: Temp fix
         python setup.py install
