@@ -3,7 +3,7 @@ import tempfile
 import pytest
 import fault as f
 import magma as m
-from mantle2.counter import Counter
+from magma.mantle.counter import Counter
 
 from riscv_mini.data_path import Datapath, Const
 from riscv_mini.control import Control

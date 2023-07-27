@@ -2,7 +2,7 @@ import pytest
 from hwtypes import BitVector
 import magma as m
 import fault as f
-from mantle2.counter import Counter
+from magma.mantle.counter import Counter
 
 from riscv_mini.core import Core
 from riscv_mini.imm_gen import ImmGenWire, ImmGenMux

@@ -16,9 +16,8 @@ setup(
         "riscv_mini",
     ],
     install_requires=[
-        "magma-lang>=2.1.19",
+        "magma-lang",
         "mantle",
-        "mantle2",
         "fault"
     ],
     license='BSD License',

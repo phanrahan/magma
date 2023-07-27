@@ -1,7 +1,7 @@
 import pytest
 
 import magma as m
-from mantle2.counter import Counter
+from magma.mantle.counter import Counter
 import fault
 from hwtypes import BitVector as BV
 
