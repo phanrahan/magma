@@ -1,9 +1,10 @@
 import os
 
-from riscv_mini.tile import Tile
 import magma as m
 from magma.config import config as magma_config
 from magma.testing.utils import check_gold
+
+from riscv_mini.tile import Tile
 
 
 def test_riscv_mini_unflattened_tuples():
