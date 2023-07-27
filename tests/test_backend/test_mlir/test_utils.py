@@ -54,30 +54,30 @@ def _compile_to_mlir(
     filename = f"{ckt.name}.mlir"
     with open(filename, "w") as mlir_out:
         compile_to_mlir(ckt, mlir_out, opts)
-    mlir_out = open(filename, "rb")
-    return io.TextIOWrapper(mlir_out)
+    return open(filename, "r")
 
 
 def _compile_to_verilog(
         ckt: DefineCircuitKind,
-        mlir_out: io.RawIOBase,
+        mlir_out: io.TextIOBase,
         write_output_files: bool,
         opts: MlirToVerilogOpts
-) -> io.RawIOBase:
+) -> io.TextIOBase:
     if not write_output_files:
-        verilog_out = io.BytesIO()
+        verilog_out = io.TextIOWrapper(io.BytesIO())
         mlir_to_verilog(mlir_out, verilog_out, opts)
         return verilog_out
     filename = f"{ckt.name}.v"
-    with open(filename, "wb") as verilog_out:
+    with open(filename, "w") as verilog_out:
         mlir_to_verilog(mlir_out, verilog_out, opts)
-    return open(filename, "rb")
+    return open(filename, "r")
 
 
 def cmp_streams(
-        s1: io.RawIOBase,
-        s2: io.RawIOBase,
-        bufsize: int = _CMP_BUFSIZE) -> bool:
+        s1: io.TextIOBase,
+        s2: io.TextIOBase,
+        bufsize: int = _CMP_BUFSIZE
+) -> bool:
     while True:
         b1 = s1.read(bufsize)
         b2 = s2.read(bufsize)
@@ -89,20 +89,20 @@ def cmp_streams(
 
 
 def check_streams_equal(
-        s1: io.RawIOBase,
-        s2: io.RawIOBase,
+        s1: io.TextIOBase,
+        s2: io.TextIOBase,
         from_label: str = "",
         to_label: str = "",
-        writer: io.TextIOBase = sys.stderr):
+        writer: io.TextIOBase = sys.stderr
+):
     cmp = cmp_streams(s1, s2)
     if cmp:
         return True
     s1.seek(0)
     s2.seek(0)
-    ts1 = io.TextIOWrapper(s1)
-    ts2 = io.TextIOWrapper(s2)
     diff = difflib.unified_diff(
-        ts1.readlines(), ts2.readlines(), from_label, to_label)
+        s1.readlines(), s2.readlines(), from_label, to_label
+    )
     writer.writelines(diff)
     return False
 
@@ -112,7 +112,8 @@ def run_test_compile_to_mlir(
         check_verilog: Optional[bool] = None,
         write_output_files: Optional[bool] = None,
         gold_name: Optional[str] = None,
-        **kwargs):
+        **kwargs
+):
     golds_dir = f"{os.path.dirname(__file__)}/golds"
     write_output_files = _maybe_get_config(
         write_output_files, "test_mlir_write_output_files"
@@ -122,17 +123,17 @@ def run_test_compile_to_mlir(
     mlir_out = _compile_to_mlir(ckt, write_output_files, opts)
     mlir_out.seek(0)
     gold_name = gold_name if gold_name is not None else ckt.name
-    with open(f"{golds_dir}/{gold_name}.mlir", "rb") as mlir_gold:
-        assert check_streams_equal(mlir_out.buffer, mlir_gold, "out", "gold")
+    with open(f"{golds_dir}/{gold_name}.mlir", "r") as mlir_gold:
+        assert check_streams_equal(mlir_out, mlir_gold, "out", "gold")
     check_verilog = _maybe_get_config(check_verilog, "test_mlir_check_verilog")
     if check_verilog:
         mlir_out.seek(0)
         opts = slice_opts(kwargs, MlirToVerilogOpts, keep=True)
         verilog_out = _compile_to_verilog(
-            ckt, mlir_out.buffer, write_output_files, opts
+            ckt, mlir_out, write_output_files, opts
         )
         verilog_out.seek(0)
-        with open(f"{golds_dir}/{gold_name}.v", "rb") as verilog_gold:
+        with open(f"{golds_dir}/{gold_name}.v", "r") as verilog_gold:
             assert check_streams_equal(verilog_out, verilog_gold, "out", "gold")
         verilog_out.close
     mlir_out.close()

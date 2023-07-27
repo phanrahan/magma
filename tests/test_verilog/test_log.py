@@ -4,7 +4,6 @@ import shutil
 
 import fault
 import magma as m
-from magma.backend.mlir.mlir_to_verilog import circt_opt_binary_exists
 import magma.testing
 
 
@@ -27,14 +26,6 @@ def test_log(capsys):
             m.posedge(io.CLK)
         ).if_(io.CE)
 
-    if not circt_opt_binary_exists():
-        m.compile("build/TestLog", TestLog, output="mlir")
-        assert m.testing.check_files_equal(
-            __file__,
-            f"build/TestLog.mlir",
-            f"gold/TestLog.mlir"
-        )
-        return
     m.compile("build/TestLog", TestLog, output="mlir-verilog")
     assert m.testing.check_files_equal(
         __file__,
@@ -177,14 +168,6 @@ def test_flog():
                 .when(m.posedge(io.CLK))\
                 .if_(io.CE)
 
-    if not circt_opt_binary_exists():
-        m.compile("build/TestFLog", TestFLog, output="mlir")
-        assert m.testing.check_files_equal(
-            __file__,
-            f"build/TestFLog.mlir",
-            f"gold/TestFLog.mlir"
-        )
-        return
     m.compile("build/TestFLog", TestFLog, output="mlir-verilog")
     assert m.testing.check_files_equal(
         __file__,
