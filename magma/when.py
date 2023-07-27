@@ -630,7 +630,10 @@ def emit_when_asserts(block, builder, precond=None,
     cond = _make_cond(block, precond)
     for conditional_wire in block.conditional_wires():
         _emit_when_assert(
-            cond, conditional_wire.drivee, conditional_wire.driver, builder,
+            cond,
+            conditional_wire.drivee,
+            conditional_wire.driver,
+            builder,
             assignment_map
         )
 
