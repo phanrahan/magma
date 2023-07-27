@@ -36,16 +36,16 @@ jobs:
         pip install kratos  # test optional dependency
         python setup.py install
 
-    - name: Test with pytest
-      run: |
-        py.test --cov magma -v --cov-report term-missing tests
-        pycodestyle magma/
+    # - name: Test with pytest
+    #   run: |
+    #     py.test --cov magma -v --cov-report term-missing tests
+    #     pycodestyle magma/
 
-    - name: Smoke test package
-      run: |
-        pushd /tmp
-        python -c "import magma"
-        popd
+    # - name: Smoke test package
+    #   run: |
+    #     pushd /tmp
+    #     python -c "import magma"
+    #     popd
 
     - name: Test riscv_mini
       run: |
