@@ -36,8 +36,8 @@ def test_simple():
     _compile_and_check(_Top)
 
 
-@pytest.mark.parametrize('flatten', [True, False])
-def test_tuple(flatten):
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_tuple(flatten_all_tuples):
 
     class RV(m.Product):
         data = m.In(m.Bits[5])
@@ -109,7 +109,7 @@ def test_tuple(flatten):
             ready_out=delay.inner_delay.inner_inner_delay.INPUT[1].ready,
         )
 
-    _compile_and_check(_Top, flatten_all_tuples=flatten)
+    _compile_and_check(_Top, flatten_all_tuples=flatten_all_tuples)
 
 
 def test_undriven_port_error():
