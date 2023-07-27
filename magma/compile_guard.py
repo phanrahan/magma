@@ -140,22 +140,31 @@ def _is_simple_type(T: Kind) -> bool:
 
 class _CompileGuardSelect(Generator2):
     def __init__(self, T: Kind, keys: Tuple[str]):
-        # NOTE(rsetaluri): We need to add this check because the implementation
+        self.T = T
+        self.keys = keys
+        assert len(self.keys) > 1
+        self.io = IO(
+            **{f"I{i}": In(T) for i in range(len(self.keys))},
+            O=Out(T),
+        )
+        T_str = type_to_sanitized_string(T)
+        self.name = f"CompileGuardSelect_{T_str}_{'_'.join(keys)}"
+        self.primitive = True
+
+    def elaborate(self):
+        # NOTE(rsetaluri): We need to add this check because this implementation
         # of this generator emits verilog directly, and thereby requires that no
         # transformations happen to the port names/types. If the type is not
         # "simple" (i.e. Bit or Bits[N]) then the assumption breaks down and
         # this implementation will not work.
-        if not _is_simple_type(T):
-            raise TypeError(f"Unsupported type: {T}")
-        num_keys = len(keys)
-        assert num_keys > 1
-        self.io = IO(**{f"I{i}": In(T) for i in range(num_keys)}, O=Out(T))
+        if not _is_simple_type(self.T):
+            raise TypeError(f"Unsupported type: {self.T}")
         self.verilog = ""
-        for i, key in enumerate(keys):
+        for i, key in enumerate(self.keys):
             if i == 0:
                 stmt = f"`ifdef {key}"
             elif key == "default":
-                assert i == (num_keys - 1)
+                assert i == (len(self.keys) - 1)
                 stmt = "`else"
             else:
                 stmt = f"`elsif {key}"
@@ -164,8 +173,9 @@ class _CompileGuardSelect(Generator2):
     assign O = I{i};
 """
         self.verilog += "`endif"
-        T_str = type_to_sanitized_string(T)
-        self.name = f"CompileGuardSelect_{T_str}_{'_'.join(keys)}"
+
+
+CompileGuardSelect = _CompileGuardSelect
 
 
 def compile_guard_select(**kwargs):

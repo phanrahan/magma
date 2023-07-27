@@ -2,6 +2,7 @@ import pytest
 
 import magma as m
 import magma.testing
+from magma.passes.elaborate_circuit import elaborate_circuit
 import fault as f
 
 
@@ -309,6 +310,8 @@ def test_compile_guard_select_complex_type():
             io.O @= m.compile_guard_select(
                 COND1=io.I0, COND2=io.I1, default=io.I0
             )
+
+        elaborate_circuit(type(_Top.instances[0]))
 
     with pytest.raises(TypeError):
         make_top()
