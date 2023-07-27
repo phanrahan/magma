@@ -52,7 +52,7 @@ from magma.bitutils import clog2, clog2safe
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
 from magma.common import filter_by_key, assert_false
-from magma.compile_guard import get_compile_guard_data
+from magma.compile_guard import get_compile_guard_data, CompileGuardSelect
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.inline_verilog2 import InlineVerilog2
@@ -881,6 +881,27 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_magma_compile_guard_select(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, CompileGuardSelect)
+        assert len(defn.keys) + 1 == len(module.operands)
+        assert len(module.results) == 1
+        result = module.results[0]
+        mlir_type = magma_type_to_mlir_type(defn.T)
+        reg = self.ctx.new_value(hw.InOutType(mlir_type))
+        sv.RegOp(results=[reg])
+        with contextlib.ExitStack() as stack:
+            for i, key in enumerate(defn.keys):
+                if_def = sv.IfDefOp(key)
+                stack.enter_context(push_block(if_def.then_block))
+                sv.AssignOp(operands=[reg, module.operands[i]])
+                stack.enter_context(push_block(if_def.else_block))
+            sv.AssignOp(operands=[reg, module.operands[-1]])
+        sv.ReadInOutOp(operands=[reg], results=[result])
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_inline_verilog(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -921,6 +942,8 @@ class ModuleVisitor:
             return self.visit_magma_xmr_sink(module)
         if isinstance(defn, XMRSource):
             return self.visit_magma_xmr_source(module)
+        if isinstance(defn, CompileGuardSelect):
+            return self.visit_magma_compile_guard_select(module)
         if getattr(defn, "inline_verilog_strs", []):
             return self.visit_inline_verilog(module)
         if isprimitive(defn):

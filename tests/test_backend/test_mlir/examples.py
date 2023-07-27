@@ -488,12 +488,15 @@ xmr_bind.bind(xmr_bind_asserts, xmr_bind.inst.xmr_bind_grandchild_inst0.y)
 class simple_compile_guard(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
     with m.compile_guard(
-            "COND1", defn_name="COND1_compile_guard", type="defined"):
-        out = m.Register(m.Bit)()(io.I)
+            "COND1", defn_name="COND1_compile_guard", type="defined"
+    ):
+        m.Register(m.Bit)()(io.I)
     with m.compile_guard(
-            "COND2", defn_name="COND2_compile_guard", type="undefined"):
-        out = m.Register(m.Bit)()(io.I)
-    io.O @= io.I
+            "COND2", defn_name="COND2_compile_guard", type="undefined"
+    ):
+        m.Register(m.Bit)()(io.I)
+    out = m.compile_guard_select(COND1=io.I, COND2=~io.I, default=0)
+    io.O @= out
 
 
 m.passes.clock.WireClockPass(simple_compile_guard).run()
