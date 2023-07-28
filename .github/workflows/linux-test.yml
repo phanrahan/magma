@@ -51,7 +51,6 @@ jobs:
     - name: Test riscv_mini
       run: |
         cd examples/riscv_mini
-        export PATH=$HOME/circt/build/bin:$PATH
         # TODO(leonardt): Merge with top-level coverage
         pytest --pycodestyle tests/ riscv_mini/
         cd -
