@@ -1,10 +1,17 @@
 from typing import Optional
 
-import magma as m
+from magma.bit import Bit
+from magma.bits import UInt
+from magma.clock_io import gen_clock_io
+from magma.generator import Generator2
+from magma.interface import IO
 from magma.mantle.util import ispow2
+from magma.primitives.mux import mux
+from magma.primitives.register import Register
+from magma.t import Type, Out
 
 
-class Counter(m.Generator2):
+class Counter(Generator2):
     """Counts to `n` (0 to n - 1) repeatedly
     """
 
@@ -13,17 +20,17 @@ class Counter(m.Generator2):
         n: int,
         has_enable: bool = False,
         has_cout: bool = False,
-        reset_type: Optional[m.Type] = None
+        reset_type: Optional[Type] = None
     ):
         num_bits = max((n - 1).bit_length(), 1)
 
-        self.io = m.IO(O=m.Out(m.UInt[num_bits]))
+        self.io = IO(O=Out(UInt[num_bits]))
         if has_cout:
-            self.io += m.IO(COUT=m.Out(m.Bit))
-        self.io += m.clock_io.gen_clock_io(reset_type, has_enable)
+            self.io += IO(COUT=Out(Bit))
+        self.io += gen_clock_io(reset_type, has_enable)
 
-        reg = m.Register(
-            m.UInt[num_bits], has_enable=has_enable, reset_type=reset_type
+        reg = Register(
+            UInt[num_bits], has_enable=has_enable, reset_type=reset_type
         )()
 
         if has_enable:
@@ -39,5 +46,5 @@ class Counter(m.Generator2):
 
         I = reg.O + 1
         if not ispow2(n):
-            I = m.mux([I, 0], reg.O == (n - 1))
+            I = mux([I, 0], reg.O == (n - 1))
         reg.I @= I
