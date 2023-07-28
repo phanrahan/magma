@@ -2,9 +2,7 @@ import magma as m
 
 
 class Decoder(m.Generator2):
-    """
-    Input `n` bits
-    Output `2**n` bits one-hot encoding the integer value of `n`
+    """Decodes n-bit value into a one hot encoding (2^n bits).
     """
 
     def __init__(self, n: int):
@@ -12,6 +10,6 @@ class Decoder(m.Generator2):
         self.io.O @= m.bits(1, 2**n) << m.zext_to(self.io.I, 2**n)
 
 
-def decode(x: m.Bits):
+def decode(x: m.Bits) -> m.Bits:
     n = len(x)
     return m.Bits[2**n](1) << m.zext_to(x, 2**n)
