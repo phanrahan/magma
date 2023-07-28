@@ -5,12 +5,16 @@ from magma.mantle.util import ispow2
 
 
 class Counter(m.Generator2):
-    """
-    Counts `n` times (0 to n - 1)
+    """Counts to `n` (0 to n - 1) repeatedly
     """
 
-    def __init__(self, n: int, has_enable: bool = False,
-                 has_cout: bool = False, reset_type: Optional[m.Type] = None):
+    def __init__(
+        self,
+        n: int,
+        has_enable: bool = False,
+        has_cout: bool = False,
+        reset_type: Optional[m.Type] = None
+    ):
         num_bits = max((n - 1).bit_length(), 1)
 
         self.io = m.IO(O=m.Out(m.UInt[num_bits]))
@@ -18,8 +22,10 @@ class Counter(m.Generator2):
             self.io += m.IO(COUT=m.Out(m.Bit))
         self.io += m.clock_io.gen_clock_io(reset_type, has_enable)
 
-        reg = m.Register(m.UInt[num_bits], has_enable=has_enable,
-                         reset_type=reset_type)()
+        reg = m.Register(
+            m.UInt[num_bits], has_enable=has_enable, reset_type=reset_type
+        )()
+
         if has_enable:
             reg.CE @= self.io.CE
 
