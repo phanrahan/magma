@@ -26,13 +26,13 @@ class FinalizeWhens(WhenPass):
         defn._context_._placer.place(builder.finalize())
 
 
-infer_latches = pass_lambda(InferLatches)
-do_emit_when_asserts = pass_lambda(EmitWhenAsserts)
-finalize_whens = pass_lambda(FinalizeWhens)
+infer_latch_pass = pass_lambda(InferLatches)
+emit_when_assert_pass = pass_lambda(EmitWhenAsserts)
+finalize_when_pass = pass_lambda(FinalizeWhens)
 
 
 def run_when_passes(main, emit_when_asserts: bool = False):
-    infer_latches(main)
+    infer_latch_pass(main)
     if emit_when_asserts:
-        do_emit_when_asserts(main)
-    finalize_whens(main)
+        emit_when_assert_pass(main)
+    finalize_when_pass(main)
