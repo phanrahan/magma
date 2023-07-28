@@ -557,7 +557,7 @@ def _get_builder_port(value, builder):
     Get reference to corresponding builder output port.  With the bulk
     reconstruction logic, this may refer to a child of a builder output.
     """
-    port = builder._check_existing_derived_ref(
+    port = builder.check_existing_derived_ref(
         value, builder._output_to_name, builder._output_to_index
     )
     if port is None:

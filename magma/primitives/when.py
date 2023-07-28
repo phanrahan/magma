@@ -164,7 +164,7 @@ class WhenBuilder(CircuitBuilder):
     def output_to_index(self) -> Dict[Type, int]:
         return self._output_to_index.copy()
 
-    def _check_existing_derived_ref(self, value, value_to_name, value_to_index):
+    def check_existing_derived_ref(self, value, value_to_name, value_to_index):
         """If value is a child of an array or tuple that has already been added,
         we return the child of the existing value, rather than adding a new
         port, which allows us to maintain bulk assignments in the eventual
@@ -198,8 +198,8 @@ class WhenBuilder(CircuitBuilder):
         port_name = f"{name_prefix}{next(name_counter)}"
         value_to_name[value] = port_name
 
-        port = self._check_existing_derived_ref(value, value_to_name,
-                                                value_to_index)
+        port = self.check_existing_derived_ref(value, value_to_name,
+                                               value_to_index)
         # NOTE(leonardt): when we add support for flatten_all_tuples=False, we
         # should also add similar logic here to avoid flattening assignments
         if port is None:
