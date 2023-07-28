@@ -1,7 +1,7 @@
 """
 Based on
 https://github.com/chipsalliance/chisel3/blob/master/src/main/scala/chisel3/util/Decoupled.scala
-(missing support for `flow` and `pipe` parameters)
+(missing support for `flow` and `pipe` parameters).
 """
 import magma as m
 from magma.mantle.counter import Counter
@@ -11,7 +11,8 @@ class Queue(m.Generator2):
     def __init__(self, entries: int, T: m.Kind):
         assert entries >= 0
         self.io = m.IO(
-            # Flipped since enq/deq is from perspective of the client
+            # NOTE(leonardt): Note that the direction of enq/deq are flipped
+            # since this is a client (consumer)
             enq=m.DeqIO[T],
             deq=m.EnqIO[T]
         ) + m.ClockIO()
