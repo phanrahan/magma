@@ -30,12 +30,11 @@ jobs:
         python -m pip install --upgrade pip
         # BEGIN: Temp fix, see
         # https://github.com/henry0312/pytest-pycodestyle/issues/97
-        conda install numpy  # use conda for numpy to avoid compatability issues
         pip install py
         # END: Temp fix
-        python setup.py install
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
         pip install kratos  # test optional dependency
+        pip install -e .
 
     - name: Test with pytest
       run: |
@@ -44,6 +43,8 @@ jobs:
 
     - name: Smoke test package
       run: |
+        pip uninstall magma-lang
+        python setup.py install
         pushd /tmp
         python -c "import magma"
         popd
