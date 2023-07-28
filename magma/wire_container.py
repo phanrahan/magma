@@ -428,6 +428,9 @@ def aggregate_wireable_method(fn):
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
         if fn.__name__ in ["wire", "unwire"]:
+            # Before we do a `wire` or `unwire`, we should be sure to check
+            # that all parent values are resolved. Otherwise wiring this value
+            # could be inconsistent with an already wired parent value.
             self._check_resolve_parent()
         if self._resolved:
             return fn(self, *args, **kwargs)
