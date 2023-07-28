@@ -558,10 +558,10 @@ def _get_builder_port(value, builder):
     reconstruction logic, this may refer to a child of a builder output.
     """
     port = builder.check_existing_derived_ref(
-        value, builder._output_to_name, builder._output_to_index
+        value, builder.output_to_name, builder.output_to_index
     )
     if port is None:
-        port = getattr(builder, builder._output_to_name[value])
+        port = getattr(builder, builder.output_to_name[value])
     return port
 
 
