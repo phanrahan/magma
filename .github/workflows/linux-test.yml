@@ -32,7 +32,11 @@ jobs:
         # https://github.com/henry0312/pytest-pycodestyle/issues/97
         pip install py
         # END: Temp fix
+        
+        # Use scipy to install numpy (numpy seems to have compatability issues
+        # with this env)
         pip install scipy
+
         python setup.py install
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
         pip install kratos  # test optional dependency
