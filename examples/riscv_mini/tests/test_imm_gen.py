@@ -15,11 +15,11 @@ from .utils import insts, iimm, simm, bimm, uimm, jimm, zimm
 @pytest.mark.parametrize('ImmGen', [ImmGenWire, ImmGenMux])
 def test_imm_gen_wire(ImmGen):
     class DUT(m.Circuit):
-        io = m.IO(done=m.Out(m.Bit)) + m.ClockIO()
+        io = m.IO(done=m.Out(m.Bit)) + m.ClockIO(has_reset=True)
         imm = ImmGen(32)()
         ctrl = Control(32)()
 
-        counter = Counter(len(insts), has_cout=True)()
+        counter = Counter(len(insts), has_cout=True, reset_type=m.Reset)()
         i = m.mux([iimm(i) for i in insts], counter.O)
         s = m.mux([simm(i) for i in insts], counter.O)
         b = m.mux([bimm(i) for i in insts], counter.O)
@@ -60,6 +60,9 @@ def test_imm_gen_wire(ImmGen):
                   counter.O, imm.sel, imm.O, O)
 
     tester = f.Tester(DUT, DUT.CLK)
+    tester.poke(DUT.RESET, 1)
+    tester.step(2)
+    tester.poke(DUT.RESET, 0)
     tester.wait_until_high(DUT.done)
 
     with tempfile.TemporaryDirectory() as tempdir:

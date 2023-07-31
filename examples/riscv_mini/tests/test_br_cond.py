@@ -23,7 +23,7 @@ def test_br_cond(BrCond):
             done=m.Out(m.Bit),
             out=m.Out(m.Bit),
             taken=m.Out(m.Bit)
-        ) + m.ClockIO()
+        ) + m.ClockIO(has_reset=True)
         br_cond = BrCond(x_len)()
         io.taken @= br_cond.taken
 
@@ -40,7 +40,7 @@ def test_br_cond(BrCond):
         ] * 10
 
         n = len(insts)
-        counter = Counter(n, has_cout=True)()
+        counter = Counter(n, has_cout=True, reset_type=m.Reset)()
         control.inst @= m.mux(insts, counter.O)
         io.done @= counter.COUT
 
@@ -72,6 +72,9 @@ def test_br_cond(BrCond):
             io.out @= False
 
     tester = fault.Tester(BrCond_DUT, BrCond_DUT.CLK)
+    tester.poke(BrCond_DUT.RESET, 1)
+    tester.step(2)
+    tester.poke(BrCond_DUT.RESET, 0)
     tester.wait_until_high(tester.circuit.done)
     tester.assert_(tester.circuit.taken == tester.circuit.out)
     tester.compile_and_run("verilator",
@@ -80,4 +83,4 @@ def test_br_cond(BrCond):
                                        "disallow_local_variables": True,
                                        "check_circt_opt_version": False},
                            magma_output="mlir-verilog",
-                           flags=["-Wno-UNUSED", "-Wno-PINCONNECTEMPTY",])
+                           flags=["-Wno-UNUSED", "-Wno-PINCONNECTEMPTY"])
