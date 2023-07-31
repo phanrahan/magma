@@ -310,7 +310,7 @@ def _make_array_from_bv(N, T, arg):
 
 
 def _check_arg(N, T, arg):
-    assert (type(arg) == T or type(arg) == T.flip() or
+    assert (isinstance(arg, T.undirected_t) or
             issubclass(type(type(arg)), type(T)) or
             issubclass(type(T), type(type(arg)))), (type(arg), T)
 
