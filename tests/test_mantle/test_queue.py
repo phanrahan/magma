@@ -1,10 +1,11 @@
 import tempfile
 
 from hwtypes import Bit, BitVector
-import magma as m
-from magma.mantle import Queue
 import fault as f
 import pysv
+
+import magma as m
+from magma.mantle import Queue
 
 
 def test_queue_simple():
