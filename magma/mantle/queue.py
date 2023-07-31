@@ -15,6 +15,15 @@ from magma.t import Kind
 
 
 class Queue(Generator2):
+    """
+    Queue implementation using a magma Memory primitive as a register file.
+    Write (enqueue) and read (dequeue) counters point to the approriate
+    addresses in memory.
+
+    Since enq_ptr == deq_ptr could mean the queue is full or empty, this
+    implementation uses an extra bit to track when the queue is full.
+    """
+
     def __init__(self, entries: int, T: Kind):
         assert entries >= 0
         self.io = IO(
