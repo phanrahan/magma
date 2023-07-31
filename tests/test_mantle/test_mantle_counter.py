@@ -1,8 +1,9 @@
 import tempfile
 
+import fault
+
 import magma as m
 from magma.mantle import Counter
-import fault
 
 
 def test_counter_to():

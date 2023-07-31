@@ -2,9 +2,10 @@ import tempfile
 import pytest
 
 from hwtypes import BitVector
+import fault as f
+
 import magma as m
 from magma.mantle import Decoder, decode
-import fault as f
 
 
 class DecodeFuncWrapper(m.Circuit):
