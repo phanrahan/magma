@@ -12,7 +12,7 @@ from magma.t import Type, Out
 
 
 class Counter(Generator2):
-    """Counts to `n` (0 to n - 1) repeatedly
+    """Counts to `n` (0 to n - 1) repeatedly.
     """
 
     def __init__(

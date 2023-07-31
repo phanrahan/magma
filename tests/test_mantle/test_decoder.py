@@ -1,5 +1,5 @@
-import tempfile
 import pytest
+import tempfile
 
 from hwtypes import BitVector
 import fault as f
