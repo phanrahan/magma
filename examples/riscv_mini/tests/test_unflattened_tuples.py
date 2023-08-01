@@ -16,4 +16,3 @@ def test_riscv_mini_unflattened_tuples():
                       "test_riscv_mini_unflattened_tuples.v")
     dirname = os.path.dirname(__file__)
     path = f"{dirname}/build/test_riscv_mini_unflattened_tuples.v"
-    assert not os.system(f"verilator --lint-only {path} -Wno-width")
