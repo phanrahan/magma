@@ -17,7 +17,7 @@ class InferLatches(WhenPass):
 
 class EmitWhenAsserts(WhenPass):
     def process_when_builder(self, builder, defn):
-        builder.emit_when_asserts()
+        builder.emit_when_assertions()
 
 
 class FinalizeWhens(WhenPass):
@@ -31,8 +31,8 @@ emit_when_assert_pass = pass_lambda(EmitWhenAsserts)
 finalize_when_pass = pass_lambda(FinalizeWhens)
 
 
-def run_when_passes(main, emit_when_asserts: bool = False):
+def run_when_passes(main, emit_when_assertions: bool = False):
     infer_latch_pass(main)
-    if emit_when_asserts:
+    if emit_when_assertions:
         emit_when_assert_pass(main)
     finalize_when_pass(main)

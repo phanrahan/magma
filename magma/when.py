@@ -619,8 +619,8 @@ def _emit_default_driver_asserts(block, builder, assignment_map):
         )
 
 
-def emit_when_asserts(block, builder, precond=None,
-                      assignment_map=defaultdict(list)):
+def emit_when_assertions(block, builder, precond=None,
+                         assignment_map=defaultdict(list)):
     """
     For each drivee in a conditional wire, track the conditions where it is
     assigned using assignment_map.  This is used for the default driver logic
@@ -639,11 +639,11 @@ def emit_when_asserts(block, builder, precond=None,
 
     for child in block.children():
         # Children inherit this block's cond as a precond.
-        emit_when_asserts(child, builder, cond, assignment_map)
+        emit_when_assertions(child, builder, cond, assignment_map)
     else_block = _get_else_block(block)
     if else_block:
         else_cond = _make_else_cond(block, precond)
-        emit_when_asserts(else_block, builder, else_cond, assignment_map)
+        emit_when_assertions(else_block, builder, else_cond, assignment_map)
     if block is block.root:
         _emit_default_driver_asserts(block, builder, assignment_map)
 

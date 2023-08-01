@@ -15,7 +15,7 @@ from magma.when import (
     BlockBase as WhenBlock,
     no_when,
     find_inferred_latches,
-    emit_when_asserts,
+    emit_when_assertions,
 )
 from magma.value_utils import make_selector
 from magma.wire import wire
@@ -286,7 +286,7 @@ class WhenBuilder(CircuitBuilder):
         if latches:
             raise InferredLatchError(latches)
 
-    def emit_when_asserts(self):
+    def emit_when_assertions(self):
         """
         We run this step before finalize since emitting when asserts may cause
         tuple elaboration (since verilog assert references may refer to a
@@ -296,7 +296,7 @@ class WhenBuilder(CircuitBuilder):
 
         Must be done after implicit default driver logic is added.
         """
-        emit_when_asserts(self.block, self)
+        emit_when_assertions(self.block, self)
 
     def _finalize(self):
         pass
