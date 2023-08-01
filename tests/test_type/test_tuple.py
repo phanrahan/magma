@@ -357,3 +357,18 @@ def test_mixed_direction_lazy_resolve(caplog):
         assert io.I.y.value() is u.y
 
     assert not caplog.messages, "Should not raise wiring errors"
+
+
+def test_key_ordering():
+    T0 = m.AnonProduct[{"x": m.Bit, "y": m.Bits[8]}]
+    T1 = m.AnonProduct[{"y": m.Bits[8], "x": m.Bit}]
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(T0), O=m.Out(T1))
+        x = m.Register(m.Bit)()
+        x.I @= io.I.x
+        io.O @= io.I
+
+    assert Foo.io.O.value().x is Foo.io.I.x
+    assert Foo.io.O.value().y is Foo.io.I.y
+    assert Foo.x.I.value() is Foo.io.I.x

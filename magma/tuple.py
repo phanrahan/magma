@@ -337,9 +337,9 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             )
             return
         if self._should_wire_children(o):
-            for self_elem, o_elem in zip(self, o):
-                self_elem = magma_value(self_elem)
-                o_elem = magma_value(o_elem)
+            for key in self.keys():
+                self_elem = magma_value(self[key])
+                o_elem = magma_value(o[key])
                 wire(o_elem, self_elem, debug_info)
         else:
             AggregateWireable.wire(self, o, debug_info)
