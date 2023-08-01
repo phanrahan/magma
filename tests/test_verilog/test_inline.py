@@ -2,7 +2,6 @@ import pytest
 
 import magma as m
 import magma.testing
-from magma.backend.mlir.mlir_to_verilog import circt_opt_binary_exists
 from magma.inline_verilog import InlineVerilogError
 
 
@@ -328,10 +327,6 @@ Foo bar (.x({io.x}, .y{io.y}))
         f"gold/test_inline_verilog_clock_output.v")
 
 
-@pytest.mark.skipif(
-    not circt_opt_binary_exists(),
-    reason="circt-opt binary can not be found",
-)
 def test_wire_insertion_bad_verilog():
     # See #1133 (https://github.com/phanrahan/magma/issues/1133).
 
