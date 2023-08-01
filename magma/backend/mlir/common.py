@@ -37,14 +37,3 @@ class WithId:
 
 def constant(value: Any):
     return lambda: value
-
-
-def try_call(fn: Callable[[], Any], ExceptionType: Optional[Any]):
-    if ExceptionType is None:
-        ExceptionType = BaseException
-    try:
-        ret = fn()
-    except ExceptionType:
-        pass
-    else:
-        return ret

@@ -2,7 +2,6 @@ import os
 
 import fault
 import magma as m
-from magma.backend.mlir.mlir_to_verilog import circt_opt_binary_exists
 import magma.testing
 
 
@@ -16,14 +15,6 @@ def test_display(capsys):
             "%0t: ff.O=%d, ff.I=%d", m.time(), ff.O, io.I
         ).when(m.posedge(io.CLK)).if_(io.CE)
 
-    if not circt_opt_binary_exists():
-        m.compile("build/TestDisplay", TestDisplay, output="mlir")
-        assert m.testing.check_files_equal(
-            __file__,
-            f"build/TestDisplay.mlir",
-            f"gold/TestDisplay.mlir"
-        )
-        return
     m.compile("build/TestDisplay", TestDisplay, output="mlir-verilog")
     assert not os.system(
         "cd tests/test_verilog/build "
@@ -82,14 +73,6 @@ def test_fdisplay():
                 "ff.O=%d, ff.I=%d", ff.O, io.I, file=log_file
             ).when(m.posedge(io.CLK)).if_(io.CE)
 
-    if not circt_opt_binary_exists():
-        m.compile("build/TestFDisplay", TestFDisplay, output="mlir")
-        assert m.testing.check_files_equal(
-            __file__,
-            f"build/TestFDisplay.mlir",
-            f"gold/TestFDisplay.mlir"
-        )
-        return
     m.compile("build/TestFDisplay", TestFDisplay, output="mlir-verilog")
     assert not os.system(
         "cd tests/test_verilog/build "

@@ -64,6 +64,6 @@ class MlirCompiler(Compiler):
             if self.opts.get("split_verilog", False)
             else f"{self.basename}.{self.suffix()}"
         )
-        with open(f"{self.basename}.mlir", "rb") as fi:
-            with open(outfile, "wb") as fo:
+        with open(f"{self.basename}.mlir", "r") as fi:
+            with open(outfile, "w") as fo:
                 mlir_to_verilog(fi, fo, opts=self._mlir_to_verilog_opts)

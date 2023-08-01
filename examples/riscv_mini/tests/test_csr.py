@@ -386,6 +386,6 @@ def test_csr():
                                            "terminate_unused": True,
                                            "check_circt_opt_version": False},
                                magma_output="mlir-verilog",
-                               flags=['-Wno-unused'],
+                               flags=['-Wno-unused', '-Wno-PINCONNECTEMPTY'],
                                directory=tempdir
                                )

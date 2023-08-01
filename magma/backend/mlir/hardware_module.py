@@ -301,6 +301,8 @@ class ModuleVisitor:
             hw.ConstantOp(value=int(value), results=[result])
             return result
         if isinstance(T, ArrayMeta):
+            if isinstance(T.T, DigitalMeta):
+                return self.make_constant(Bits[T.N], value)
             value = value if value is not None else (None for _ in range(T.N))
             operands = [self.make_constant(T.T, v) for v in value]
             hw.ArrayCreateOp(operands=operands, results=[result])
