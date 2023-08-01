@@ -663,3 +663,12 @@ class simple_div(m.Circuit):
     io = m.IO(a=m.In(T), b=m.In(T), y=m.Out(T), z=m.Out(T))
     io.y @= m.uint(io.a) / m.uint(io.b)
     io.z @= m.sint(io.a) / m.sint(io.b)
+
+
+T0 = m.AnonProduct[{"x": m.Bit, "y": m.Bits[8]}]
+T1 = m.AnonProduct[{"y": m.Bits[8], "x": m.Bit}]
+
+
+class tuple_key_ordering(m.Circuit):
+    io = m.IO(I=m.In(T0), O=m.Out(T1))
+    io.O @= io.I
