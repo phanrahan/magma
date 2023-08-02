@@ -2,7 +2,7 @@ import tempfile
 
 import fault as f
 import magma as m
-from mantle2.counter import Counter
+from magma.mantle.counter import Counter
 import pytest
 
 from riscv_mini.control import (Control, IMM_I, IMM_S, IMM_B, IMM_U, IMM_J,

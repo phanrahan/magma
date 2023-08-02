@@ -11,15 +11,21 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %3, %0 : i1
             }
         }
-        %5 = sv.reg name "Register_inst0" : !hw.inout<i1>
-        sv.alwaysff(posedge %CLK) {
-            sv.passign %5, %2 : i1
-        }
-        %6 = hw.constant 0 : i1
-        sv.initial {
-            sv.bpassign %5, %6 : i1
-        }
+        %5 = sv.wire sym @test_register_no_default._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        sv.assign %5, %2 : i1
         %4 = sv.read_inout %5 : !hw.inout<i1>
-        hw.output %4 : i1
+        %7 = sv.reg name "Register_inst0" : !hw.inout<i1>
+        sv.alwaysff(posedge %CLK) {
+            sv.passign %7, %4 : i1
+        }
+        %8 = hw.constant 0 : i1
+        sv.initial {
+            sv.bpassign %7, %8 : i1
+        }
+        %6 = sv.read_inout %7 : !hw.inout<i1>
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%E, %4, %I) : i1, i1, i1
+        %9 = comb.xor %1, %E : i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%9, %4, %0) : i1, i1, i1
+        hw.output %6 : i1
     }
 }

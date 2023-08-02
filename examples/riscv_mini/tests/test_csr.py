@@ -3,7 +3,7 @@ import tempfile
 import fault
 import magma as m
 # m.config.set_debug_mode(True)
-from mantle2.counter import Counter
+from magma.mantle import Counter
 from riscv_mini.csr import CSR
 from riscv_mini.csr_gen import CSRGen, make_Cause
 import riscv_mini.control as Control

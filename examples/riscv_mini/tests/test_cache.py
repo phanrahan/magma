@@ -2,7 +2,7 @@ import itertools
 import random
 from hwtypes import BitVector
 import magma as m
-from mantle2.counter import Counter
+from magma.mantle.counter import Counter
 import fault as f
 
 from riscv_mini.nasti import (make_NastiIO, NastiParameters,
