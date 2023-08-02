@@ -45,7 +45,11 @@ class MlirCompiler(Compiler):
         # could introduce more conditional logic, or they could
         # trigger elaboration on values used in existing coditiona
         # logic (which modifies the when builder).
-        run_when_passes(self.main, self.opts.get("emit_when_assertions", False))
+        run_when_passes(
+            self.main,
+            self.opts.get("flatten_all_tuples", False),
+            self.opts.get("emit_when_assertions", False)
+        )
 
     def _run_passes(self):
         raise_logs_as_exceptions_pass(self.main)

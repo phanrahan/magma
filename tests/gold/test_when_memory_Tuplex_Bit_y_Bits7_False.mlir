@@ -33,22 +33,22 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
     }
     hw.module @test_when_memory_Tuplex_Bit_y_Bits7_False(%data0: !hw.struct<x: i1, y: i7>, %addr0: i5, %en0: i1, %data1: !hw.struct<x: i1, y: i7>, %addr1: i5, %en1: i1, %CLK: i1) -> (out: !hw.struct<x: i1, y: i7>) {
         %0 = hw.constant 1 : i1
-        %3 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i5>
+        %3 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i5>
         sv.assign %3, %1 : i5
         %2 = sv.read_inout %3 : !hw.inout<i5>
         %6 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i5>
         sv.assign %6, %4 : i5
         %5 = sv.read_inout %6 : !hw.inout<i5>
         %8 = hw.struct_extract %7["x"] : !hw.struct<x: i1, y: i7>
-        %10 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        %10 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i1>
         sv.assign %10, %8 : i1
         %9 = sv.read_inout %10 : !hw.inout<i1>
         %11 = hw.struct_extract %7["y"] : !hw.struct<x: i1, y: i7>
-        %13 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i7>
+        %13 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i7>
         sv.assign %13, %11 : i7
         %12 = sv.read_inout %13 : !hw.inout<i7>
         %14 = hw.struct_create (%9, %12) : !hw.struct<x: i1, y: i7>
-        %17 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
+        %17 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
         sv.assign %17, %15 : i1
         %16 = sv.read_inout %17 : !hw.inout<i1>
         %18 = hw.instance "Memory_inst0" @Memory(RADDR: %2: i5, CLK: %CLK: i1, WADDR: %5: i5, WDATA: %14: !hw.struct<x: i1, y: i7>, WE: %16: i1) -> (RDATA: !hw.struct<x: i1, y: i7>)
@@ -106,65 +106,68 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %40 = hw.struct_extract %data1["x"] : !hw.struct<x: i1, y: i7>
         %41 = hw.struct_extract %data1["y"] : !hw.struct<x: i1, y: i7>
         %45 = hw.struct_extract %27["x"] : !hw.struct<x: i1, y: i7>
-        %47 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
+        %47 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i1>
         sv.assign %47, %45 : i1
         %46 = sv.read_inout %47 : !hw.inout<i1>
         %48 = hw.struct_extract %27["y"] : !hw.struct<x: i1, y: i7>
-        %50 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i7>
+        %50 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i7>
         sv.assign %50, %48 : i7
         %49 = sv.read_inout %50 : !hw.inout<i7>
         %51 = hw.struct_create (%46, %49) : !hw.struct<x: i1, y: i7>
         sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %5, %addr0) : i1, i5, i5
-        %52 = hw.struct_extract %data0["x"] : !hw.struct<x: i1, y: i7>
-        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %9, %52) : i1, i1, i1
-        %53 = hw.struct_extract %data0["y"] : !hw.struct<x: i1, y: i7>
-        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %12, %53) : i1, i7, i7
-        %54 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %16, %54) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %2, %addr1) : i1, i5, i5
-        %55 = hw.struct_extract %18["x"] : !hw.struct<x: i1, y: i7>
-        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %46, %55) : i1, i1, i1
-        %56 = hw.struct_extract %18["y"] : !hw.struct<x: i1, y: i7>
-        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %49, %56) : i1, i7, i7
-        %58 = hw.constant -1 : i1
-        %57 = comb.xor %58, %en0 : i1
-        %59 = comb.and %57, %en1 : i1
-        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%59, %5, %addr1) : i1, i5, i5
-        %60 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_8: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%59, %16, %60) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_9: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%59, %2, %addr0) : i1, i5, i5
-        sv.verbatim "WHEN_ASSERT_10: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%59, %46, %55) : i1, i1, i1
-        sv.verbatim "WHEN_ASSERT_11: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%59, %49, %56) : i1, i7, i7
-        %61 = hw.struct_extract %data1["x"] : !hw.struct<x: i1, y: i7>
-        sv.verbatim "WHEN_ASSERT_12: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%59, %9, %61) : i1, i1, i1
-        %62 = hw.struct_extract %data1["y"] : !hw.struct<x: i1, y: i7>
-        sv.verbatim "WHEN_ASSERT_13: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%59, %12, %62) : i1, i7, i7
-        %63 = comb.xor %58, %en1 : i1
-        %64 = comb.and %57, %63 : i1
+        %52 = hw.struct_create (%9, %12) : !hw.struct<x: i1, y: i7>
+        %54 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<!hw.struct<x: i1, y: i7>>
+        sv.assign %54, %52 : !hw.struct<x: i1, y: i7>
+        %53 = sv.read_inout %54 : !hw.inout<!hw.struct<x: i1, y: i7>>
+        %55 = hw.struct_extract %53["y"] : !hw.struct<x: i1, y: i7>
+        %56 = hw.struct_extract %53["x"] : !hw.struct<x: i1, y: i7>
+        %57 = hw.struct_extract %data0["y"] : !hw.struct<x: i1, y: i7>
+        %58 = hw.struct_extract %data0["x"] : !hw.struct<x: i1, y: i7>
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%en0, %55, %56, %57, %58) : i1, i7, i1, i7, i1
+        %59 = hw.constant 1 : i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %16, %59) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %2, %addr1) : i1, i5, i5
+        %60 = hw.struct_extract %18["x"] : !hw.struct<x: i1, y: i7>
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %46, %60) : i1, i1, i1
+        %61 = hw.struct_extract %18["y"] : !hw.struct<x: i1, y: i7>
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %49, %61) : i1, i7, i7
+        %63 = hw.constant -1 : i1
+        %62 = comb.xor %63, %en0 : i1
+        %64 = comb.and %62, %en1 : i1
+        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %5, %addr1) : i1, i5, i5
         %65 = hw.constant 1 : i1
-        sv.verbatim "WHEN_ASSERT_14: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %46, %65) : i1, i1, i1
-        %66 = hw.constant 127 : i7
-        sv.verbatim "WHEN_ASSERT_15: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %49, %66) : i1, i7, i7
-        %67 = comb.or %en0, %59 : i1
-        %68 = comb.xor %58, %67 : i1
-        %69 = hw.constant 0 : i5
-        sv.verbatim "WHEN_ASSERT_16: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%68, %5, %69) : i1, i5, i5
-        %70 = comb.or %en0, %59 : i1
-        %71 = comb.xor %58, %70 : i1
-        %72 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_17: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%71, %16, %72) : i1, i1, i1
-        %73 = comb.or %en0, %59 : i1
-        %74 = comb.xor %58, %73 : i1
-        %75 = hw.constant 0 : i5
-        sv.verbatim "WHEN_ASSERT_18: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%74, %2, %75) : i1, i5, i5
-        %76 = comb.or %en0, %59 : i1
-        %77 = comb.xor %58, %76 : i1
-        %78 = hw.constant 0 : i1
-        sv.verbatim "WHEN_ASSERT_19: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%77, %9, %78) : i1, i1, i1
-        %79 = comb.or %en0, %59 : i1
-        %80 = comb.xor %58, %79 : i1
-        %81 = hw.constant 0 : i7
-        sv.verbatim "WHEN_ASSERT_20: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%80, %12, %81) : i1, i7, i7
+        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %16, %65) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_8: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %2, %addr0) : i1, i5, i5
+        sv.verbatim "WHEN_ASSERT_9: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %46, %60) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_10: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %49, %61) : i1, i7, i7
+        %66 = hw.struct_extract %data1["x"] : !hw.struct<x: i1, y: i7>
+        sv.verbatim "WHEN_ASSERT_11: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %9, %66) : i1, i1, i1
+        %67 = hw.struct_extract %data1["y"] : !hw.struct<x: i1, y: i7>
+        sv.verbatim "WHEN_ASSERT_12: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%64, %12, %67) : i1, i7, i7
+        %68 = comb.xor %63, %en1 : i1
+        %69 = comb.and %62, %68 : i1
+        %70 = hw.constant 1 : i1
+        sv.verbatim "WHEN_ASSERT_13: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%69, %46, %70) : i1, i1, i1
+        %71 = hw.constant 127 : i7
+        sv.verbatim "WHEN_ASSERT_14: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%69, %49, %71) : i1, i7, i7
+        %72 = comb.or %en0, %64 : i1
+        %73 = comb.xor %63, %72 : i1
+        %74 = hw.constant 0 : i5
+        sv.verbatim "WHEN_ASSERT_15: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%73, %5, %74) : i1, i5, i5
+        %75 = comb.or %en0, %64 : i1
+        %76 = comb.xor %63, %75 : i1
+        %77 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_16: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%76, %16, %77) : i1, i1, i1
+        %78 = comb.or %en0, %64 : i1
+        %79 = comb.xor %63, %78 : i1
+        %80 = hw.constant 0 : i5
+        sv.verbatim "WHEN_ASSERT_17: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%79, %2, %80) : i1, i5, i5
+        %81 = comb.xor %63, %64 : i1
+        %82 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_18: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%81, %9, %82) : i1, i1, i1
+        %83 = comb.xor %63, %64 : i1
+        %84 = hw.constant 0 : i7
+        sv.verbatim "WHEN_ASSERT_19: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%83, %12, %84) : i1, i7, i7
         hw.output %51 : !hw.struct<x: i1, y: i7>
     }
 }

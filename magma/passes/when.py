@@ -16,8 +16,12 @@ class InferLatches(WhenPass):
 
 
 class EmitWhenAsserts(WhenPass):
+    def __init__(self, main, flatten_all_tuples):
+        super().__init__(main)
+        self.flatten_all_tuples = flatten_all_tuples
+
     def process_when_builder(self, builder, defn):
-        builder.emit_when_assertions()
+        builder.emit_when_assertions(self.flatten_all_tuples)
 
 
 class FinalizeWhens(WhenPass):
@@ -31,8 +35,12 @@ emit_when_assert_pass = pass_lambda(EmitWhenAsserts)
 finalize_when_pass = pass_lambda(FinalizeWhens)
 
 
-def run_when_passes(main, emit_when_assertions: bool = False):
+def run_when_passes(
+        main,
+        flatten_all_tuples: bool,
+        emit_when_assertions: bool = False
+):
     infer_latch_pass(main)
     if emit_when_assertions:
-        emit_when_assert_pass(main)
+        emit_when_assert_pass(main, flatten_all_tuples)
     finalize_when_pass(main)
