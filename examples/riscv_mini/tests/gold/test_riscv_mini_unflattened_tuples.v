@@ -2368,6 +2368,38 @@ module Datapath(
 
   reg  [2:0]
     Register_inst10;
+  reg                                                                           _GEN;
+  reg                                                                           _GEN_0;
+  reg                                                                           _GEN_1;
+  reg                                                                           _GEN_2;
+  reg                                                                           _GEN_3;
+  reg                                                                           _GEN_4;
+  reg                                                                           _GEN_5;
+  reg                                                                           _GEN_6;
+  reg                                                                           _GEN_7;
+  reg                                                                           _GEN_8;
+  reg                                                                           _GEN_9;
+  reg                                                                           _GEN_10;
+  reg                                                                           _GEN_11;
+  reg                                                                           _GEN_12;
+  reg                                                                           _GEN_13;
+  reg                                                                           _GEN_14;
+  reg                                                                           _GEN_15;
+  reg                                                                           _GEN_16;
+  reg                                                                           _GEN_17;
+  reg                                                                           _GEN_18;
+  reg                                                                           _GEN_19;
+  reg                                                                           _GEN_20;
+  reg                                                                           _GEN_21;
+  reg                                                                           _GEN_22;
+  reg                                                                           _GEN_23;
+  reg                                                                           _GEN_24;
+  reg                                                                           _GEN_25;
+  reg                                                                           _GEN_26;
+  reg                                                                           _GEN_27;
+  reg                                                                           _GEN_28;
+  reg                                                                           _GEN_29;
+  reg                                                                           _GEN_30;
   reg  [31:0]
     Register_inst1;
   reg  [31:0]
@@ -2394,9 +2426,9 @@ module Datapath(
     _RegFile_inst0_rdata2;
   wire
     _BrCondArea_inst0_taken;
-  wire [1:0][3:0]                                                               _GEN =
+  wire [1:0][3:0]                                                               _GEN_31 =
     {4'hF, 4'h0};
-  wire                                                                          _GEN_0 =
+  wire                                                                          _GEN_32 =
     ~icache_resp.valid | ~dcache_resp.valid;
   reg  [1:0]
     Register_inst6;
@@ -2410,7 +2442,7 @@ module Datapath(
     Register_inst12;
   reg  [31:0]
     Register_inst3;
-  wire [1:0][31:0]                                                              _GEN_1 =
+  wire [1:0][31:0]                                                              _GEN_33 =
     {{Register_inst14}, {Register_inst14 + 32'h4}};
   reg
     Register_inst13;
@@ -2424,240 +2456,217 @@ module Datapath(
     =
     Register_inst9 & (|(Register_inst0[24:20]))
     & Register_inst0[24:20] == Register_inst2[11:7] & Register_inst8 == 2'h0;
-  wire [1:0][31:0]                                                              _GEN_2 =
+  wire [1:0][31:0]                                                              _GEN_34 =
     {{Register_inst4}, {_RegFile_inst0_rdata2}};
   wire                                                                          is_nop =
     Register_inst13 | ctrl_inst_kill | _BrCondArea_inst0_taken | _CSRGen_inst0_expt;
-  wire [31:0]                                                                   _GEN_3 =
+  wire [31:0]                                                                   _GEN_35 =
     dcache_resp.data.data >> {27'h0, Register_inst4[1:0], 3'h0};
-  wire [1:0][31:0]                                                              _GEN_4 =
-    {{{{17{_GEN_3[15]}}, _GEN_3[14:0]}}, {dcache_resp.data.data}};
-  wire [1:0][31:0]                                                              _GEN_5 =
-    {{{16'h0, _GEN_3[15:0]}}, {_GEN_4[Register_inst7 == 3'h2]}};
-  wire [1:0][31:0]                                                              _GEN_6 =
-    {{{{25{_GEN_3[7]}}, _GEN_3[6:0]}}, {_GEN_5[Register_inst7 == 3'h4]}};
-  wire [1:0][31:0]                                                              _GEN_7 =
-    {{{24'h0, _GEN_3[7:0]}}, {_GEN_6[Register_inst7 == 3'h3]}};
-  wire [1:0][31:0]                                                              _GEN_8 =
-    {{_GEN_7[Register_inst7 == 3'h5]}, {Register_inst4}};
-  wire [1:0][31:0]                                                              _GEN_9 =
-    {{Register_inst3 + 32'h4}, {_GEN_8[Register_inst8 == 2'h1]}};
-  wire [1:0][31:0]                                                              _GEN_10 =
-    {{_CSRGen_inst0_O}, {_GEN_9[Register_inst8 == 2'h2]}};
+  wire [1:0][31:0]                                                              _GEN_36 =
+    {{{{17{_GEN_35[15]}}, _GEN_35[14:0]}}, {dcache_resp.data.data}};
+  wire [1:0][31:0]                                                              _GEN_37 =
+    {{{16'h0, _GEN_35[15:0]}}, {_GEN_36[Register_inst7 == 3'h2]}};
+  wire [1:0][31:0]                                                              _GEN_38 =
+    {{{{25{_GEN_35[7]}}, _GEN_35[6:0]}}, {_GEN_37[Register_inst7 == 3'h4]}};
+  wire [1:0][31:0]                                                              _GEN_39 =
+    {{{24'h0, _GEN_35[7:0]}}, {_GEN_38[Register_inst7 == 3'h3]}};
+  wire [1:0][31:0]                                                              _GEN_40 =
+    {{_GEN_39[Register_inst7 == 3'h5]}, {Register_inst4}};
+  wire [1:0][31:0]                                                              _GEN_41 =
+    {{Register_inst3 + 32'h4}, {_GEN_40[Register_inst8 == 2'h1]}};
+  wire [1:0][31:0]                                                              _GEN_42 =
+    {{_CSRGen_inst0_O}, {_GEN_41[Register_inst8 == 2'h2]}};
   wire                                                                          rs1_hazard
     =
     Register_inst9 & (|(Register_inst0[19:15]))
     & Register_inst0[19:15] == Register_inst2[11:7] & Register_inst8 == 2'h0;
-  wire [1:0][31:0]                                                              _GEN_11 =
+  wire [1:0][31:0]                                                              _GEN_43 =
     {{Register_inst4}, {_RegFile_inst0_rdata1}};
-  wire [1:0][31:0]                                                              _GEN_12 =
-    {{_GEN_11[rs1_hazard]}, {Register_inst1}};
-  wire [1:0][31:0]                                                              _GEN_13 =
-    {{_GEN_2[rs2_hazard]}, {_ImmGenWire_inst0_O}};
+  wire [1:0][31:0]                                                              _GEN_44 =
+    {{_GEN_43[rs1_hazard]}, {Register_inst1}};
+  wire [1:0][31:0]                                                              _GEN_45 =
+    {{_GEN_34[rs2_hazard]}, {_ImmGenWire_inst0_O}};
   wire                                                                          take_sum =
     ctrl_pc_sel == 2'h1 | _BrCondArea_inst0_taken;
-  wire [1:0][31:0]                                                              _GEN_14 =
-    {{{_ALUArea_inst0_sum_[31:1], 1'h0}}, {_GEN_1[ctrl_pc_sel == 2'h2]}};
-  wire [1:0][31:0]                                                              _GEN_15 =
-    {{_CSRGen_inst0_epc}, {_GEN_14[take_sum]}};
-  wire [1:0][31:0]                                                              _GEN_16 =
-    {{_CSRGen_inst0_evec}, {_GEN_15[&ctrl_pc_sel]}};
-  wire [1:0][31:0]                                                              _GEN_17 =
-    {{Register_inst14}, {_GEN_16[_CSRGen_inst0_expt]}};
+  wire [1:0][31:0]                                                              _GEN_46 =
+    {{{_ALUArea_inst0_sum_[31:1], 1'h0}}, {_GEN_33[ctrl_pc_sel == 2'h2]}};
+  wire [1:0][31:0]                                                              _GEN_47 =
+    {{_CSRGen_inst0_epc}, {_GEN_46[take_sum]}};
+  wire [1:0][31:0]                                                              _GEN_48 =
+    {{_CSRGen_inst0_evec}, {_GEN_47[&ctrl_pc_sel]}};
+  wire [1:0][31:0]                                                              _GEN_49 =
+    {{Register_inst14}, {_GEN_48[_CSRGen_inst0_expt]}};
+  wire [1:0][31:0]                                                              _GEN_50 =
+    {{32'h13}, {icache_resp.data.data}};
+  always_ff @(posedge CLK) begin
+    if (RESET) begin
+      Register_inst2 <= 32'h13;
+      Register_inst0 <= 32'h13;
+      Register_inst14 <= 32'h1FC;
+    end
+    else begin
+      Register_inst2 <=
+        {_GEN,
+         _GEN_0,
+         _GEN_1,
+         _GEN_2,
+         _GEN_3,
+         _GEN_4,
+         _GEN_5,
+         _GEN_6,
+         _GEN_7,
+         _GEN_8,
+         _GEN_9,
+         _GEN_10,
+         _GEN_11,
+         _GEN_12,
+         _GEN_13,
+         _GEN_14,
+         _GEN_15,
+         _GEN_16,
+         _GEN_17,
+         _GEN_18,
+         _GEN_19,
+         _GEN_20,
+         _GEN_21,
+         _GEN_22,
+         _GEN_23,
+         _GEN_24,
+         _GEN_25,
+         _GEN_26,
+         _GEN_27,
+         _GEN_28,
+         _GEN_29,
+         _GEN_30};
+      if (~_GEN_32)
+        Register_inst0 <= _GEN_50[is_nop];
+      Register_inst14 <= _GEN_49[_GEN_32];
+    end
+  end // always_ff @(posedge)
   reg  [31:0]
     Register_inst5;
-  reg  [1:0]                                                                    _GEN_18;
-  reg  [2:0]                                                                    _GEN_19;
-  reg                                                                           _GEN_20;
-  reg  [2:0]                                                                    _GEN_21;
-  reg                                                                           _GEN_22;
-  reg                                                                           _GEN_23;
-  reg  [31:0]                                                                   _GEN_24;
-  reg                                                                           _GEN_25;
-  reg                                                                           _GEN_26;
-  reg                                                                           _GEN_27;
-  reg                                                                           _GEN_28;
-  reg                                                                           _GEN_29;
-  reg                                                                           _GEN_30;
-  reg                                                                           _GEN_31;
-  reg                                                                           _GEN_32;
-  reg                                                                           _GEN_33;
-  reg                                                                           _GEN_34;
-  reg                                                                           _GEN_35;
-  reg                                                                           _GEN_36;
-  reg                                                                           _GEN_37;
-  reg                                                                           _GEN_38;
-  reg                                                                           _GEN_39;
-  reg                                                                           _GEN_40;
-  reg                                                                           _GEN_41;
-  reg                                                                           _GEN_42;
-  reg                                                                           _GEN_43;
-  reg                                                                           _GEN_44;
-  reg                                                                           _GEN_45;
-  reg                                                                           _GEN_46;
-  reg                                                                           _GEN_47;
-  reg                                                                           _GEN_48;
-  reg                                                                           _GEN_49;
-  reg                                                                           _GEN_50;
-  reg                                                                           _GEN_51;
-  reg                                                                           _GEN_52;
+  reg  [1:0]                                                                    _GEN_51;
+  reg  [2:0]                                                                    _GEN_52;
   reg                                                                           _GEN_53;
-  reg                                                                           _GEN_54;
+  reg  [2:0]                                                                    _GEN_54;
   reg                                                                           _GEN_55;
   reg                                                                           _GEN_56;
   reg  [31:0]                                                                   _GEN_57;
   reg  [31:0]                                                                   _GEN_58;
-  reg  [1:0]                                                                    _GEN_59;
-  wire [1:0][31:0]                                                              _GEN_60 =
-    {{_ImmGenWire_inst0_O}, {_GEN_11[rs1_hazard]}};
+  reg  [31:0]                                                                   _GEN_59;
+  reg  [1:0]                                                                    _GEN_60;
+  wire [1:0][31:0]                                                              _GEN_61 =
+    {{_ImmGenWire_inst0_O}, {_GEN_43[rs1_hazard]}};
   always_comb begin
-    _GEN_18 = Register_inst6;
-    _GEN_19 = Register_inst7;
-    _GEN_20 = Register_inst9;
-    _GEN_21 = Register_inst10;
-    _GEN_22 = Register_inst11;
-    _GEN_23 = Register_inst12;
-    _GEN_24 = Register_inst3;
-    _GEN_25 = Register_inst2[0];
-    _GEN_26 = Register_inst2[1];
-    _GEN_27 = Register_inst2[2];
-    _GEN_28 = Register_inst2[3];
-    _GEN_29 = Register_inst2[4];
-    _GEN_30 = Register_inst2[5];
-    _GEN_31 = Register_inst2[6];
-    _GEN_32 = Register_inst2[7];
-    _GEN_33 = Register_inst2[8];
-    _GEN_34 = Register_inst2[9];
-    _GEN_35 = Register_inst2[10];
-    _GEN_36 = Register_inst2[11];
-    _GEN_37 = Register_inst2[12];
-    _GEN_38 = Register_inst2[13];
-    _GEN_39 = Register_inst2[14];
-    _GEN_40 = Register_inst2[15];
-    _GEN_41 = Register_inst2[16];
-    _GEN_42 = Register_inst2[17];
-    _GEN_43 = Register_inst2[18];
-    _GEN_44 = Register_inst2[19];
-    _GEN_45 = Register_inst2[20];
-    _GEN_46 = Register_inst2[21];
-    _GEN_47 = Register_inst2[22];
-    _GEN_48 = Register_inst2[23];
-    _GEN_49 = Register_inst2[24];
-    _GEN_50 = Register_inst2[25];
-    _GEN_51 = Register_inst2[26];
-    _GEN_52 = Register_inst2[27];
-    _GEN_53 = Register_inst2[28];
-    _GEN_54 = Register_inst2[29];
-    _GEN_55 = Register_inst2[30];
-    _GEN_56 = Register_inst2[31];
-    _GEN_57 = Register_inst4;
-    _GEN_58 = Register_inst5;
-    _GEN_59 = Register_inst8;
-    if (RESET | ~_GEN_0 & _CSRGen_inst0_expt) begin
-      _GEN_18 = 2'h0;
-      _GEN_19 = 3'h0;
-      _GEN_20 = 1'h0;
-      _GEN_21 = 3'h0;
-      _GEN_22 = 1'h0;
-      _GEN_23 = 1'h0;
+    _GEN_51 = Register_inst6;
+    _GEN_52 = Register_inst7;
+    _GEN_53 = Register_inst9;
+    _GEN_54 = Register_inst10;
+    _GEN_55 = Register_inst11;
+    _GEN_56 = Register_inst12;
+    _GEN_57 = Register_inst3;
+    _GEN_30 = Register_inst2[0];
+    _GEN_29 = Register_inst2[1];
+    _GEN_28 = Register_inst2[2];
+    _GEN_27 = Register_inst2[3];
+    _GEN_26 = Register_inst2[4];
+    _GEN_25 = Register_inst2[5];
+    _GEN_24 = Register_inst2[6];
+    _GEN_23 = Register_inst2[7];
+    _GEN_22 = Register_inst2[8];
+    _GEN_21 = Register_inst2[9];
+    _GEN_20 = Register_inst2[10];
+    _GEN_19 = Register_inst2[11];
+    _GEN_18 = Register_inst2[12];
+    _GEN_17 = Register_inst2[13];
+    _GEN_16 = Register_inst2[14];
+    _GEN_15 = Register_inst2[15];
+    _GEN_14 = Register_inst2[16];
+    _GEN_13 = Register_inst2[17];
+    _GEN_12 = Register_inst2[18];
+    _GEN_11 = Register_inst2[19];
+    _GEN_10 = Register_inst2[20];
+    _GEN_9 = Register_inst2[21];
+    _GEN_8 = Register_inst2[22];
+    _GEN_7 = Register_inst2[23];
+    _GEN_6 = Register_inst2[24];
+    _GEN_5 = Register_inst2[25];
+    _GEN_4 = Register_inst2[26];
+    _GEN_3 = Register_inst2[27];
+    _GEN_2 = Register_inst2[28];
+    _GEN_1 = Register_inst2[29];
+    _GEN_0 = Register_inst2[30];
+    _GEN = Register_inst2[31];
+    _GEN_58 = Register_inst4;
+    _GEN_59 = Register_inst5;
+    _GEN_60 = Register_inst8;
+    if (RESET | ~_GEN_32 & _CSRGen_inst0_expt) begin
+      _GEN_51 = 2'h0;
+      _GEN_52 = 3'h0;
+      _GEN_53 = 1'h0;
+      _GEN_54 = 3'h0;
+      _GEN_55 = 1'h0;
+      _GEN_56 = 1'h0;
     end
-    else if (~_GEN_0 & ~_CSRGen_inst0_expt) begin
-      _GEN_24 = Register_inst1;
-      _GEN_25 = Register_inst0[0];
-      _GEN_26 = Register_inst0[1];
-      _GEN_27 = Register_inst0[2];
-      _GEN_28 = Register_inst0[3];
-      _GEN_29 = Register_inst0[4];
-      _GEN_30 = Register_inst0[5];
-      _GEN_31 = Register_inst0[6];
-      _GEN_32 = Register_inst0[7];
-      _GEN_33 = Register_inst0[8];
-      _GEN_34 = Register_inst0[9];
-      _GEN_35 = Register_inst0[10];
-      _GEN_36 = Register_inst0[11];
-      _GEN_37 = Register_inst0[12];
-      _GEN_38 = Register_inst0[13];
-      _GEN_39 = Register_inst0[14];
-      _GEN_40 = Register_inst0[15];
-      _GEN_41 = Register_inst0[16];
-      _GEN_42 = Register_inst0[17];
-      _GEN_43 = Register_inst0[18];
-      _GEN_44 = Register_inst0[19];
-      _GEN_45 = Register_inst0[20];
-      _GEN_46 = Register_inst0[21];
-      _GEN_47 = Register_inst0[22];
-      _GEN_48 = Register_inst0[23];
-      _GEN_49 = Register_inst0[24];
-      _GEN_50 = Register_inst0[25];
-      _GEN_51 = Register_inst0[26];
-      _GEN_52 = Register_inst0[27];
-      _GEN_53 = Register_inst0[28];
-      _GEN_54 = Register_inst0[29];
-      _GEN_55 = Register_inst0[30];
-      _GEN_56 = Register_inst0[31];
-      _GEN_57 = _ALUArea_inst0_O;
-      _GEN_58 = _GEN_60[ctrl_imm_sel == 3'h6];
-      _GEN_18 = ctrl_st_type;
-      _GEN_19 = ctrl_ld_type;
-      _GEN_59 = ctrl_wb_sel;
-      _GEN_20 = ctrl_wb_en;
-      _GEN_21 = ctrl_csr_cmd;
-      _GEN_22 = ctrl_illegal;
-      _GEN_23 = ctrl_pc_sel == 2'h1;
+    else if (~_GEN_32 & ~_CSRGen_inst0_expt) begin
+      _GEN_57 = Register_inst1;
+      _GEN_30 = Register_inst0[0];
+      _GEN_29 = Register_inst0[1];
+      _GEN_28 = Register_inst0[2];
+      _GEN_27 = Register_inst0[3];
+      _GEN_26 = Register_inst0[4];
+      _GEN_25 = Register_inst0[5];
+      _GEN_24 = Register_inst0[6];
+      _GEN_23 = Register_inst0[7];
+      _GEN_22 = Register_inst0[8];
+      _GEN_21 = Register_inst0[9];
+      _GEN_20 = Register_inst0[10];
+      _GEN_19 = Register_inst0[11];
+      _GEN_18 = Register_inst0[12];
+      _GEN_17 = Register_inst0[13];
+      _GEN_16 = Register_inst0[14];
+      _GEN_15 = Register_inst0[15];
+      _GEN_14 = Register_inst0[16];
+      _GEN_13 = Register_inst0[17];
+      _GEN_12 = Register_inst0[18];
+      _GEN_11 = Register_inst0[19];
+      _GEN_10 = Register_inst0[20];
+      _GEN_9 = Register_inst0[21];
+      _GEN_8 = Register_inst0[22];
+      _GEN_7 = Register_inst0[23];
+      _GEN_6 = Register_inst0[24];
+      _GEN_5 = Register_inst0[25];
+      _GEN_4 = Register_inst0[26];
+      _GEN_3 = Register_inst0[27];
+      _GEN_2 = Register_inst0[28];
+      _GEN_1 = Register_inst0[29];
+      _GEN_0 = Register_inst0[30];
+      _GEN = Register_inst0[31];
+      _GEN_58 = _ALUArea_inst0_O;
+      _GEN_59 = _GEN_61[ctrl_imm_sel == 3'h6];
+      _GEN_51 = ctrl_st_type;
+      _GEN_52 = ctrl_ld_type;
+      _GEN_60 = ctrl_wb_sel;
+      _GEN_53 = ctrl_wb_en;
+      _GEN_54 = ctrl_csr_cmd;
+      _GEN_55 = ctrl_illegal;
+      _GEN_56 = ctrl_pc_sel == 2'h1;
     end
   end // always_comb
-  wire [1:0][31:0]                                                              _GEN_61 =
-    {{32'h13}, {icache_resp.data.data}};
   always_ff @(posedge CLK) begin
-    Register_inst6 <= _GEN_18;
-    Register_inst7 <= _GEN_19;
-    Register_inst9 <= _GEN_20;
-    Register_inst11 <= _GEN_22;
-    Register_inst12 <= _GEN_23;
-    Register_inst3 <= _GEN_24;
+    Register_inst6 <= _GEN_51;
+    Register_inst7 <= _GEN_52;
+    Register_inst9 <= _GEN_53;
+    Register_inst11 <= _GEN_55;
+    Register_inst12 <= _GEN_56;
+    Register_inst3 <= _GEN_57;
     Register_inst13 <= RESET;
-    Register_inst4 <= _GEN_57;
-    Register_inst2 <=
-      {_GEN_56,
-       _GEN_55,
-       _GEN_54,
-       _GEN_53,
-       _GEN_52,
-       _GEN_51,
-       _GEN_50,
-       _GEN_49,
-       _GEN_48,
-       _GEN_47,
-       _GEN_46,
-       _GEN_45,
-       _GEN_44,
-       _GEN_43,
-       _GEN_42,
-       _GEN_41,
-       _GEN_40,
-       _GEN_39,
-       _GEN_38,
-       _GEN_37,
-       _GEN_36,
-       _GEN_35,
-       _GEN_34,
-       _GEN_33,
-       _GEN_32,
-       _GEN_31,
-       _GEN_30,
-       _GEN_29,
-       _GEN_28,
-       _GEN_27,
-       _GEN_26,
-       _GEN_25};
-    Register_inst8 <= _GEN_59;
-    if (~_GEN_0)
-      Register_inst0 <= _GEN_61[is_nop];
-    Register_inst14 <= _GEN_17[_GEN_0];
-    if (~_GEN_0)
+    Register_inst4 <= _GEN_58;
+    Register_inst8 <= _GEN_60;
+    if (~_GEN_32)
       Register_inst1 <= Register_inst14;
-    Register_inst5 <= _GEN_58;
-    Register_inst10 <= _GEN_21;
+    Register_inst5 <= _GEN_59;
+    Register_inst10 <= _GEN_54;
   end // always_ff @(posedge)
   initial begin
     Register_inst6 = 2'h0;
@@ -2677,31 +2686,31 @@ module Datapath(
     Register_inst10 = 3'h0;
   end // initial
   wire struct packed {logic [31:0] addr; logic [31:0] data; logic [3:0] mask; } _GEN_62 =
-    '{addr: _GEN_17[_GEN_0], data: (32'h0), mask: (4'h0)};
+    '{addr: _GEN_49[_GEN_32], data: (32'h0), mask: (4'h0)};
   wire [1:0][31:0]                                                              _GEN_63 =
     {{Register_inst4}, {_ALUArea_inst0_sum_}};
   wire [1:0][1:0]                                                               _GEN_64 =
     {{Register_inst6}, {ctrl_st_type}};
   wire [1:0][3:0]                                                               _GEN_65 =
-    {{4'h3 << _ALUArea_inst0_sum_[1:0]}, {_GEN[_GEN_64[_GEN_0] == 2'h1]}};
+    {{4'h3 << _ALUArea_inst0_sum_[1:0]}, {_GEN_31[_GEN_64[_GEN_32] == 2'h1]}};
   wire [1:0][3:0]                                                               _GEN_66 =
-    {{4'h1 << _ALUArea_inst0_sum_[1:0]}, {_GEN_65[_GEN_64[_GEN_0] == 2'h2]}};
+    {{4'h1 << _ALUArea_inst0_sum_[1:0]}, {_GEN_65[_GEN_64[_GEN_32] == 2'h2]}};
   wire struct packed {logic [31:0] addr; logic [31:0] data; logic [3:0] mask; } _GEN_67 =
-    '{addr: {_GEN_63[_GEN_0][31:2], 2'h0},
-      data: (_GEN_2[rs2_hazard] << {27'h0, _ALUArea_inst0_sum_[1:0], 3'h0}),
-      mask: _GEN_66[&_GEN_64[_GEN_0]]};
+    '{addr: {_GEN_63[_GEN_32][31:2], 2'h0},
+      data: (_GEN_34[rs2_hazard] << {27'h0, _ALUArea_inst0_sum_[1:0], 3'h0}),
+      mask: _GEN_66[&_GEN_64[_GEN_32]]};
   BrCondArea BrCondArea_inst0 (
-    .rs1     (_GEN_11[rs1_hazard]),
-    .rs2     (_GEN_2[rs2_hazard]),
+    .rs1     (_GEN_43[rs1_hazard]),
+    .rs2     (_GEN_34[rs2_hazard]),
     .br_type (ctrl_br_type),
     .taken   (_BrCondArea_inst0_taken)
   );
   RegFile RegFile_inst0 (
     .raddr1 (Register_inst0[19:15]),
     .raddr2 (Register_inst0[24:20]),
-    .wen    (Register_inst9 & ~_GEN_0 & ~_CSRGen_inst0_expt),
+    .wen    (Register_inst9 & ~_GEN_32 & ~_CSRGen_inst0_expt),
     .waddr  (Register_inst2[11:7]),
-    .wdata  (_GEN_10[&Register_inst8]),
+    .wdata  (_GEN_42[&Register_inst8]),
     .CLK    (CLK),
     .RESET  (RESET),
     .rdata1 (_RegFile_inst0_rdata1),
@@ -2713,14 +2722,14 @@ module Datapath(
     .O    (_ImmGenWire_inst0_O)
   );
   ALUArea ALUArea_inst0 (
-    .A    (_GEN_12[ctrl_A_sel]),
-    .B    (_GEN_13[ctrl_B_sel]),
+    .A    (_GEN_44[ctrl_A_sel]),
+    .B    (_GEN_45[ctrl_B_sel]),
     .op   (ctrl_alu_op),
     .O    (_ALUArea_inst0_O),
     .sum_ (_ALUArea_inst0_sum_)
   );
   CSRGen CSRGen_inst0 (
-    .stall         (_GEN_0),
+    .stall         (_GEN_32),
     .cmd           (Register_inst10),
     .I             (Register_inst5),
     .pc            (Register_inst3),
@@ -2740,10 +2749,10 @@ module Datapath(
     .host_tohost   (host_tohost)
   );
   assign icache_abort = 1'h0;
-  assign icache_req = '{data: _GEN_62, valid: (~_GEN_0)};
+  assign icache_req = '{data: _GEN_62, valid: (~_GEN_32)};
   assign dcache_abort = _CSRGen_inst0_expt;
   assign dcache_req =
-    '{data: _GEN_67, valid: (~_GEN_0 & ((|ctrl_st_type) | (|ctrl_ld_type)))};
+    '{data: _GEN_67, valid: (~_GEN_32 & ((|ctrl_st_type) | (|ctrl_ld_type)))};
   assign ctrl_inst = Register_inst0;
 endmodule
 
@@ -3865,14 +3874,19 @@ endmodule
 module Counter(
   input  CLK,
          CE,
+         RESET,
   output O,
          COUT
 );
 
   reg Register_inst0;
   always_ff @(posedge CLK) begin
-    if (CE)
-      Register_inst0 <= Register_inst0 - 1'h1;
+    if (RESET)
+      Register_inst0 <= 1'h0;
+    else begin
+      if (CE)
+        Register_inst0 <= Register_inst0 - 1'h1;
+    end
   end // always_ff @(posedge)
   initial
     Register_inst0 = 1'h0;
@@ -3891,6 +3905,7 @@ module Cache(
                                                                                                                                                                                                                         nasti_r_valid,
   input  struct packed {logic [63:0] data; logic [4:0] id; logic last; logic [1:0] resp; logic user; }                                                                                                                  nasti_r_data,
   input                                                                                                                                                                                                                 CLK,
+                                                                                                                                                                                                                        RESET,
   output struct packed {struct packed {logic [31:0] data; } data; logic valid; }                                                                                                                                        cpu_resp,
   output                                                                                                                                                                                                                nasti_aw_valid,
   output struct packed {logic [31:0] addr; logic [1:0] burst; logic [3:0] cache; logic [4:0] id; logic [7:0] length; logic lock; logic [2:0] prot; logic [3:0] qos; logic [3:0] region; logic [2:0] size; logic user; } nasti_aw_data,
@@ -4015,6 +4030,12 @@ module Cache(
       end
     end
   end // always_comb
+  always_ff @(posedge CLK) begin
+    if (RESET)
+      Register_inst0 <= 3'h0;
+    else
+      Register_inst0 <= _GEN_10;
+  end // always_ff @(posedge)
   assign _GEN = Register_inst0 == 3'h0;
   wire                                     _GEN_14 =
     _GEN | _GEN_8 & hit | Register_inst7 & Register_inst5 == 4'h0;
@@ -5067,7 +5088,6 @@ module Cache(
     end
     if (_GEN_14)
       Register_inst5 <= cpu_req.data.mask;
-    Register_inst0 <= _GEN_10;
     if (_GEN_4 & nasti_r_valid)
       Register_inst6 <= {{_GEN_533[_Counter_inst0_O]}, {_GEN_534[~_Counter_inst0_O]}};
     if (_GEN_14)
@@ -5182,10 +5202,11 @@ module Cache(
       if (_GEN_14 & Register_inst7) $display("[%0t]: read=%x", $time, _GEN_553);
   end
   Counter Counter_inst0 (
-    .CLK  (CLK),
-    .CE   (_GEN_4 & nasti_r_valid),
-    .O    (_Counter_inst0_O),
-    .COUT (_Counter_inst0_COUT)
+    .CLK   (CLK),
+    .CE    (_GEN_4 & nasti_r_valid),
+    .RESET (RESET),
+    .O     (_Counter_inst0_O),
+    .COUT  (_Counter_inst0_COUT)
   );
   Memory Memory_inst0 (
     .RADDR (cpu_req.data.addr[11:4]),
@@ -5197,10 +5218,11 @@ module Cache(
     .RDATA (_Memory_inst0_RDATA)
   );
   Counter Counter_inst1 (
-    .CLK  (CLK),
-    .CE   (nasti_w_ready & _GEN_1),
-    .O    (_Counter_inst1_O),
-    .COUT (_Counter_inst1_COUT)
+    .CLK   (CLK),
+    .CE    (nasti_w_ready & _GEN_1),
+    .RESET (RESET),
+    .O     (_Counter_inst1_O),
+    .COUT  (_Counter_inst1_COUT)
   );
   ArrayMaskMem ArrayMaskMem_inst0 (
     .RADDR (cpu_req.data.addr[11:4]),
@@ -5529,6 +5551,7 @@ module Tile(
     .nasti_r_valid  (_MemArbiter_inst0_dcache_r_valid),
     .nasti_r_data   (_MemArbiter_inst0_dcache_r_data),
     .CLK            (CLK),
+    .RESET          (RESET),
     .cpu_resp       (_Cache_inst1_cpu_resp),
     .nasti_aw_valid (_Cache_inst1_nasti_aw_valid),
     .nasti_aw_data  (_Cache_inst1_nasti_aw_data),
@@ -5599,6 +5622,7 @@ module Tile(
     .nasti_r_valid  (_MemArbiter_inst0_icache_r_valid),
     .nasti_r_data   (_MemArbiter_inst0_icache_r_data),
     .CLK            (CLK),
+    .RESET          (RESET),
     .cpu_resp       (_Cache_inst0_cpu_resp),
     .nasti_aw_valid (_Cache_inst0_nasti_aw_valid),
     .nasti_aw_data  (_Cache_inst0_nasti_aw_data),
