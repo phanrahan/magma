@@ -13,7 +13,7 @@ from magma.common import slice_opts
 from magma.compiler import Compiler
 from magma.passes.clock import wire_clocks
 from magma.passes.elaborate_tuples import elaborate_tuples
-from magma.passes.finalize_whens import finalize_whens
+from magma.passes.when import run_when_passes
 from magma.passes.raise_logs_as_exceptions import raise_logs_as_exceptions_pass
 
 
@@ -40,12 +40,12 @@ class MlirCompiler(Compiler):
     def run_pre_uniquification_passes(self):
         if self.opts.get("flatten_all_tuples", False):
             elaborate_tuples(self.main)
-        # NOTE(leonardt): finalizing whens must happen after any
+        # NOTE(leonardt): when passes must happen after any
         # passes that modify the circuit.  This is because passes
         # could introduce more conditional logic, or they could
         # trigger elaboration on values used in existing coditiona
-        # logic (which modifies the when builder)
-        finalize_whens(self.main)
+        # logic (which modifies the when builder).
+        run_when_passes(self.main, self.opts.get("emit_when_assertions", False))
 
     def _run_passes(self):
         raise_logs_as_exceptions_pass(self.main)

@@ -14,6 +14,14 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
-        hw.output %4 : i1
+        %7 = sv.wire sym @test_when_nested_with_default._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        sv.assign %7, %4 : i1
+        %6 = sv.read_inout %7 : !hw.inout<i1>
+        %8 = comb.and %0, %1 : i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%8, %6, %3) : i1, i1, i1
+        %10 = hw.constant -1 : i1
+        %9 = comb.xor %10, %8 : i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%9, %6, %2) : i1, i1, i1
+        hw.output %6 : i1
     }
 }

@@ -11,17 +11,24 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %4, %I : i8
             }
         }
-        %6 = sv.reg name "Register_inst0" : !hw.inout<i8>
+        %7 = sv.wire sym @test_when_reg_ce_implicit_override._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i8>
+        sv.assign %7, %2 : i8
+        %6 = sv.read_inout %7 : !hw.inout<i8>
+        %8 = sv.reg name "Register_inst0" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.if %x {
-                sv.passign %6, %2 : i8
+                sv.passign %8, %6 : i8
             }
         }
-        %7 = hw.constant 0 : i8
+        %9 = hw.constant 0 : i8
         sv.initial {
-            sv.bpassign %6, %7 : i8
+            sv.bpassign %8, %9 : i8
         }
-        %1 = sv.read_inout %6 : !hw.inout<i8>
+        %1 = sv.read_inout %8 : !hw.inout<i8>
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%y, %6, %I) : i1, i8, i8
+        %11 = hw.constant -1 : i1
+        %10 = comb.xor %11, %y : i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%10, %6, %1) : i1, i8, i8
         hw.output %1 : i8
     }
 }

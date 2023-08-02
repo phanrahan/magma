@@ -48,7 +48,7 @@ from magma.backend.mlir.xmr_utils import get_xmr_paths
 from magma.bind2 import is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
-from magma.bitutils import clog2
+from magma.bitutils import clog2, clog2safe
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
 from magma.common import filter_by_key, assert_false
@@ -330,7 +330,7 @@ class ModuleVisitor:
             comb.ExtractOp(operands=[arr], results=[operand], lo=start)
             return operand
 
-        num_sel_bits = clog2(arr.type.dims[0])
+        num_sel_bits = clog2safe(arr.type.dims[0])
         start = self.make_constant(Bits[num_sel_bits], start)
 
         if isinstance(i, tuple):

@@ -24,6 +24,23 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
-        hw.output %7 : i1
+        %10 = sv.wire sym @test_when_double_elsewhen._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        sv.assign %10, %7 : i1
+        %9 = sv.read_inout %10 : !hw.inout<i1>
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %9, %1) : i1, i1, i1
+        %12 = hw.constant -1 : i1
+        %11 = comb.xor %12, %0 : i1
+        %13 = comb.and %11, %2 : i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%13, %9, %3) : i1, i1, i1
+        %14 = comb.xor %12, %2 : i1
+        %15 = comb.and %11, %14 : i1
+        %16 = comb.and %15, %4 : i1
+        %17 = hw.constant 1 : i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%16, %9, %17) : i1, i1, i1
+        %18 = comb.xor %12, %4 : i1
+        %19 = comb.and %15, %18 : i1
+        %20 = hw.constant 1 : i1
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%19, %9, %20) : i1, i1, i1
+        hw.output %9 : i1
     }
 }

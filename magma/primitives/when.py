@@ -8,12 +8,14 @@ from magma.clock import Enable
 from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
+from magma.primitives.wire import Wire
 from magma.ref import DerivedRef
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
     no_when,
     find_inferred_latches,
+    emit_when_assertions,
 )
 from magma.value_utils import make_selector
 from magma.wire import wire
@@ -121,6 +123,15 @@ def _add_default_drivers_to_register_inputs(
         latches.remove(drivee)
 
 
+def _rewire_driven_value_or_values(value_or_values, new_value):
+    if isinstance(value_or_values, list):
+        for x, z in zip(value_or_values, new_value):
+            _rewire_driven_value_or_values(x, z)
+        return
+    value_or_values.unwire(keep_wired_when_contexts=True)
+    value_or_values @= new_value
+
+
 class WhenBuilder(CircuitBuilder):
     def __init__(self, block: WhenBlock):
         super().__init__(name=f"When_{id(block)}")
@@ -139,6 +150,7 @@ class WhenBuilder(CircuitBuilder):
         self._set_definition_attr(_ISWHEN_KEY, True)
         self._set_definition_attr("_builder_", self)
         self._is_when_builder_ = True
+        self._when_assert_wires = {}
 
     @property
     def default_drivers(self) -> Dict[Type, Type]:
@@ -152,7 +164,11 @@ class WhenBuilder(CircuitBuilder):
     def output_to_index(self) -> Dict[Type, int]:
         return self._output_to_index.copy()
 
-    def _check_existing_derived_ref(self, value, value_to_name, value_to_index):
+    @property
+    def output_to_name(self):
+        return self._output_to_name
+
+    def check_existing_derived_ref(self, value, value_to_name, value_to_index):
         """If value is a child of an array or tuple that has already been added,
         we return the child of the existing value, rather than adding a new
         port, which allows us to maintain bulk assignments in the eventual
@@ -186,8 +202,8 @@ class WhenBuilder(CircuitBuilder):
         port_name = f"{name_prefix}{next(name_counter)}"
         value_to_name[value] = port_name
 
-        port = self._check_existing_derived_ref(value, value_to_name,
-                                                value_to_index)
+        port = self.check_existing_derived_ref(value, value_to_name,
+                                               value_to_index)
         # NOTE(leonardt): when we add support for flatten_all_tuples=False, we
         # should also add similar logic here to avoid flattening assignments
         if port is None:
@@ -249,9 +265,11 @@ class WhenBuilder(CircuitBuilder):
     def remove_default_driver(self, drivee: Type):
         del self._default_drivers[drivee]
 
-    def _finalize(self):
-        # Detect latches which would be inferred from the context of the when
-        # block.
+    def infer_latches(self):
+        """
+        Detect latches which would be inferred from the context of the when
+        block.
+        """
         latches = find_inferred_latches(self.block)
         # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
@@ -268,9 +286,40 @@ class WhenBuilder(CircuitBuilder):
         if latches:
             raise InferredLatchError(latches)
 
+    def emit_when_assertions(self):
+        """
+        We run this step before finalize since emitting when asserts may cause
+        tuple elaboration (since verilog assert references may refer to a
+        tuple that will eventually be flattened). This may cause changes to the
+        builder and any connected builders so we don't want to finalize when
+        builders before this logic is finished across all instances.
+
+        Must be done after implicit default driver logic is added.
+        """
+        emit_when_assertions(self.block, self)
+
+    def _finalize(self):
+        pass
+
     @property
     def block(self) -> WhenBlock:
         return self._block
+
+    def get_when_assert_wire(self, port):
+        if port not in self._when_assert_wires:
+            name = f"_WHEN_ASSERT_{len(self._when_assert_wires)}"
+            # NOTE(leonardt): Here we use the `Wire` module instead of the
+            # named value logic because insert_coreir_wires can cause
+            # elaboration which then causes a bad interaction with the when
+            # finalization logic. Since whens are currently being finalized,
+            # the builders cannot be modified later.
+            temp = Wire(type(port).undirected_t, flatten=False)(name=name)
+            for value in port.driving():
+                _rewire_driven_value_or_values(value, temp.O)
+            assert not port.driving()
+            temp.I @= port
+            self._when_assert_wires[port] = temp.O
+        return self._when_assert_wires[port]
 
 
 def is_when_builder(builder):

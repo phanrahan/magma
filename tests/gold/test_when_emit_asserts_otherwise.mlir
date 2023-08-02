@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @test_non_port(%I: i2, %S: i1) -> (O: i1) {
+    hw.module @test_when_emit_asserts_otherwise(%I: i2, %S: i1) -> (O: i1) {
         %0 = comb.extract %I from 0 : (i2) -> i1
         %1 = comb.extract %I from 1 : (i2) -> i1
         %3 = sv.reg : !hw.inout<i1>
@@ -11,7 +11,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %3, %1 : i1
             }
         }
-        %5 = sv.wire sym @test_non_port._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        %5 = sv.wire sym @test_when_emit_asserts_otherwise._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
         sv.assign %5, %2 : i1
         %4 = sv.read_inout %5 : !hw.inout<i1>
         sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %4, %0) : i1, i1, i1
