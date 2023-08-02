@@ -10,6 +10,7 @@ from riscv_mini.nasti import (make_NastiIO, NastiParameters,
                               NastiWriteAddressChannel, NastiWriteDataChannel,
                               NastiWriteResponseChannel, NastiReadDataChannel)
 from riscv_mini.cache import Cache, make_CacheResp, make_CacheReq
+from .utils import ResetTester
 
 
 TRACE = False
@@ -593,10 +594,8 @@ def test_cache():
         #     .when(m.posedge(io.CLK))
         io.done @= test_counter.COUT
 
-    tester = f.Tester(DUT, DUT.CLK)
-    tester.poke(DUT.RESET, 1)
-    tester.step(2)
-    tester.poke(DUT.RESET, 0)
+    tester = ResetTester(DUT, DUT.CLK)
+    tester.reset()
     tester.wait_until_high(DUT.done)
     tester.compile_and_run(
         "verilator",

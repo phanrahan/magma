@@ -9,7 +9,7 @@ from riscv_mini.control import (Control, IMM_I, IMM_S, IMM_B, IMM_U, IMM_J,
                                 IMM_Z)
 from riscv_mini.imm_gen import ImmGenWire, ImmGenMux
 
-from .utils import insts, iimm, simm, bimm, uimm, jimm, zimm
+from .utils import insts, iimm, simm, bimm, uimm, jimm, zimm, ResetTester
 
 
 @pytest.mark.parametrize('ImmGen', [ImmGenWire, ImmGenMux])
@@ -59,10 +59,8 @@ def test_imm_gen_wire(ImmGen):
         m.display("Counter: %d, Type: 0x%x, O: %x ?= %x",
                   counter.O, imm.sel, imm.O, O)
 
-    tester = f.Tester(DUT, DUT.CLK)
-    tester.poke(DUT.RESET, 1)
-    tester.step(2)
-    tester.poke(DUT.RESET, 0)
+    tester = ResetTester(DUT, DUT.CLK)
+    tester.reset()
     tester.wait_until_high(DUT.done)
 
     with tempfile.TemporaryDirectory() as tempdir:

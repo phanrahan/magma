@@ -6,7 +6,7 @@ from mantle2.counter import Counter
 
 from riscv_mini.core import Core
 from riscv_mini.imm_gen import ImmGenWire, ImmGenMux
-from .utils import concat
+from .utils import concat, ResetTester
 
 
 class SimpleTests:
@@ -167,10 +167,8 @@ def test_core(test, ImmGen):
             f.assert_immediate((core.host.tohost >> 1) == 0,
                                failure_msg=("* tohost: %d *", core.host.tohost))
 
-    tester = f.Tester(DUT, DUT.CLK)
-    tester.poke(DUT.RESET, 1)
-    tester.step(2)
-    tester.poke(DUT.RESET, 0)
+    tester = ResetTester(DUT, DUT.CLK)
+    tester.reset()
     tester.wait_until_high(DUT.done)
     tester.compile_and_run(
         "verilator",

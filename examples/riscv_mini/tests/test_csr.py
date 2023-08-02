@@ -13,7 +13,7 @@ import riscv_mini.instructions as Instructions
 from hwtypes import BitVector as BV
 
 from .utils import (I, rand_fn3, rand_rs1, rand_rs2, SYS, J, L, rand_rd, JR,
-                    rand_inst, csr as csr_util, rs1, nop)
+                    rand_inst, csr as csr_util, rs1, nop, ResetTester)
 from .opcode import Funct3
 
 
@@ -358,13 +358,8 @@ def test_csr():
             if not reg.I.driven():
                 reg.I @= reg.O
 
-    tester = fault.Tester(CSR_DUT, CSR_DUT.CLK)
-    tester.circuit.RESET = 0
-    tester.step(2)
-    tester.circuit.RESET = 1
-    tester.step(2)
-    tester.circuit.RESET = 0
-    tester.step(2)
+    tester = ResetTester(CSR_DUT, CSR_DUT.CLK)
+    tester.reset()
     loop = tester._while(tester.circuit.done == 0)
     # loop.circuit.failed.expect(0)
     if_ = loop._if(tester.circuit.check)

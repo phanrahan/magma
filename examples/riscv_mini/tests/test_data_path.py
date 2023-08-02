@@ -8,7 +8,7 @@ from mantle2.counter import Counter
 from riscv_mini.data_path import Datapath, Const
 from riscv_mini.control import Control
 from riscv_mini.imm_gen import ImmGenWire, ImmGenMux
-from .utils import tests, test_results, fin, nop
+from .utils import tests, test_results, fin, nop, ResetTester
 
 
 @pytest.mark.parametrize('test', ['bypass', 'exception'])
@@ -113,10 +113,8 @@ def test_datapath(test, ImmGen):
                          data_path.host.tohost)
         )
 
-    tester = f.Tester(DUT, DUT.CLK)
-    tester.poke(DUT.RESET, 1)
-    tester.step(2)
-    tester.poke(DUT.RESET, 0)
+    tester = ResetTester(DUT, DUT.CLK)
+    tester.reset()
     tester.wait_until_high(DUT.done)
     with tempfile.TemporaryDirectory() as tempdir:
         tester.compile_and_run(

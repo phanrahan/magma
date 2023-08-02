@@ -1,4 +1,5 @@
 import random
+import fault as f
 import magma as m
 from hwtypes import BitVector, Bit
 from .opcode import Opcode, Funct3, Funct7
@@ -277,3 +278,10 @@ test_results = {
     "bypass": 10,
     "exception": 4
 }
+
+
+class ResetTester(f.Tester):
+    def reset(self):
+        self.poke(self._circuit.RESET, 1)
+        self.step(2)
+        self.poke(self._circuit.RESET, 0)
