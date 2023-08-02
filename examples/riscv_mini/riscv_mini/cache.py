@@ -105,7 +105,7 @@ class Cache(m.Generator2):
             tag = m.UInt[t_len]
 
         self.io = m.IO(**make_cache_ports(x_len, nasti_params))
-        self.io += m.ClockIO()
+        self.io += m.ClockIO(has_reset=True)
 
         class State(m.Enum):
             IDLE = 0
@@ -116,7 +116,7 @@ class Cache(m.Generator2):
             REFILL_READY = 5
             REFILL = 6
 
-        state = m.Register(init=State.IDLE)()
+        state = m.Register(init=State.IDLE, reset_type=m.Reset)()
 
         # memory
         v = m.Register(m.UInt[n_sets], has_enable=True)()
@@ -139,12 +139,20 @@ class Cache(m.Generator2):
         assert data_beats > 0
         if data_beats > 1:
             read_counter = Counter(
-                data_beats, has_enable=True, has_cout=True)()
+                data_beats,
+                has_enable=True,
+                has_cout=True,
+                reset_type=m.Reset
+            )()
             read_counter.CE @= m.enable(self.io.nasti.r.fired())
             read_count, read_wrap_out = read_counter.O, read_counter.COUT
 
             write_counter = Counter(
-                data_beats, has_enable=True, has_cout=True)()
+                data_beats,
+                has_enable=True,
+                has_cout=True,
+                reset_type=m.Reset
+            )()
             write_count, write_wrap_out = write_counter.O, write_counter.COUT
         else:
             read_count, read_wrap_out = 0, 1
