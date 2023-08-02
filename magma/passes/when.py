@@ -37,7 +37,7 @@ finalize_when_pass = pass_lambda(FinalizeWhens)
 
 def run_when_passes(
         main,
-        flatten_all_tuples: bool,
+        flatten_all_tuples: bool = False,
         emit_when_assertions: bool = False
 ):
     infer_latch_pass(main)
