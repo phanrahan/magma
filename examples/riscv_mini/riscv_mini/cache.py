@@ -1,5 +1,5 @@
 import magma as m
-from mantle2.counter import Counter
+from magma.mantle.counter import Counter
 from riscv_mini.nasti import (make_NastiIO, NastiParameters,
                               NastiReadAddressChannel,
                               NastiWriteAddressChannel, NastiWriteDataChannel)

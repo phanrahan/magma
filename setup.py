@@ -19,6 +19,7 @@ setup(
         "magma.backend",
         "magma.backend.coreir",
         "magma.backend.mlir",
+        "magma.mantle",
         "magma.passes",
         "magma.primitives",
         "magma.smart",

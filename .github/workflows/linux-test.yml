@@ -32,9 +32,9 @@ jobs:
         # https://github.com/henry0312/pytest-pycodestyle/issues/97
         pip install py
         # END: Temp fix
+        pip install .
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
         pip install kratos  # test optional dependency
-        python setup.py install
 
     - name: Test with pytest
       run: |
@@ -50,11 +50,6 @@ jobs:
     - name: Test riscv_mini
       run: |
         cd examples/riscv_mini
-        pip install -e git+https://github.com/phanrahan/mantle.git#egg=mantle
-        pip install -e git+https://github.com/leonardt/mantle2.git#egg=mantle2
-        pip install pytest pytest-pycodestyle
-        pip install -e .
-        (cd ../../ && python -m pip uninstall -y magma-lang && python -m pip install -e .)
         # TODO(leonardt): Merge with top-level coverage
         pytest --pycodestyle tests/ riscv_mini/
         cd -
