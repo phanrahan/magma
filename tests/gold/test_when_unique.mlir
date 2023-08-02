@@ -46,8 +46,56 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %24, %8 : i1
             }
         }
-        %25 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : i1, i1, i1, i1, i1, i1, i1, i1
-        hw.output %25 : i8
+        %26 = sv.wire sym @Gen._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        sv.assign %26, %9 : i1
+        %25 = sv.read_inout %26 : !hw.inout<i1>
+        %28 = sv.wire sym @Gen._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        sv.assign %28, %10 : i1
+        %27 = sv.read_inout %28 : !hw.inout<i1>
+        %30 = sv.wire sym @Gen._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
+        sv.assign %30, %11 : i1
+        %29 = sv.read_inout %30 : !hw.inout<i1>
+        %32 = sv.wire sym @Gen._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
+        sv.assign %32, %12 : i1
+        %31 = sv.read_inout %32 : !hw.inout<i1>
+        %34 = sv.wire sym @Gen._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i1>
+        sv.assign %34, %13 : i1
+        %33 = sv.read_inout %34 : !hw.inout<i1>
+        %36 = sv.wire sym @Gen._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
+        sv.assign %36, %14 : i1
+        %35 = sv.read_inout %36 : !hw.inout<i1>
+        %38 = sv.wire sym @Gen._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i1>
+        sv.assign %38, %15 : i1
+        %37 = sv.read_inout %38 : !hw.inout<i1>
+        %40 = sv.wire sym @Gen._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i1>
+        sv.assign %40, %16 : i1
+        %39 = sv.read_inout %40 : !hw.inout<i1>
+        %41 = comb.concat %39, %37, %35, %33, %31, %29, %27, %25 : i1, i1, i1, i1, i1, i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %25, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %27, %1) : i1, i1, i1
+        %42 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %29, %42) : i1, i1, i1
+        %43 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %31, %43) : i1, i1, i1
+        %44 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_4: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %33, %44) : i1, i1, i1
+        %45 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_5: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %35, %45) : i1, i1, i1
+        %46 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_6: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %37, %46) : i1, i1, i1
+        %47 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_7: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %39, %47) : i1, i1, i1
+        %49 = hw.constant -1 : i1
+        %48 = comb.xor %49, %0 : i1
+        sv.verbatim "WHEN_ASSERT_8: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %25, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_9: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %27, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_10: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %29, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_11: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %31, %4) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_12: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %33, %5) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_13: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %35, %6) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_14: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %37, %7) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_15: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %39, %8) : i1, i1, i1
+        hw.output %41 : i8
     }
     hw.module @Gen_unq1(%a: i8) -> (y: i8) {
         %0 = comb.extract %a from 0 : (i8) -> i1
@@ -96,8 +144,54 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %24, %8 : i1
             }
         }
-        %25 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : i1, i1, i1, i1, i1, i1, i1, i1
-        hw.output %25 : i8
+        %26 = sv.wire sym @Gen_unq1._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        sv.assign %26, %9 : i1
+        %25 = sv.read_inout %26 : !hw.inout<i1>
+        %28 = sv.wire sym @Gen_unq1._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        sv.assign %28, %10 : i1
+        %27 = sv.read_inout %28 : !hw.inout<i1>
+        %30 = sv.wire sym @Gen_unq1._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
+        sv.assign %30, %11 : i1
+        %29 = sv.read_inout %30 : !hw.inout<i1>
+        %32 = sv.wire sym @Gen_unq1._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
+        sv.assign %32, %12 : i1
+        %31 = sv.read_inout %32 : !hw.inout<i1>
+        %34 = sv.wire sym @Gen_unq1._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i1>
+        sv.assign %34, %13 : i1
+        %33 = sv.read_inout %34 : !hw.inout<i1>
+        %36 = sv.wire sym @Gen_unq1._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
+        sv.assign %36, %14 : i1
+        %35 = sv.read_inout %36 : !hw.inout<i1>
+        %38 = sv.wire sym @Gen_unq1._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i1>
+        sv.assign %38, %15 : i1
+        %37 = sv.read_inout %38 : !hw.inout<i1>
+        %40 = sv.wire sym @Gen_unq1._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i1>
+        sv.assign %40, %16 : i1
+        %39 = sv.read_inout %40 : !hw.inout<i1>
+        %41 = comb.concat %39, %37, %35, %33, %31, %29, %27, %25 : i1, i1, i1, i1, i1, i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_16: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %25, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_17: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %27, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_18: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %29, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_19: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %31, %3) : i1, i1, i1
+        %42 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_20: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %33, %42) : i1, i1, i1
+        %43 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_21: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %35, %43) : i1, i1, i1
+        %44 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_22: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %37, %44) : i1, i1, i1
+        %45 = hw.constant 0 : i1
+        sv.verbatim "WHEN_ASSERT_23: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %39, %45) : i1, i1, i1
+        %47 = hw.constant -1 : i1
+        %46 = comb.xor %47, %0 : i1
+        sv.verbatim "WHEN_ASSERT_24: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %25, %0) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_25: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %27, %1) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_26: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %29, %2) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_27: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %31, %3) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_28: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %33, %5) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_29: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %35, %6) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_30: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %37, %7) : i1, i1, i1
+        sv.verbatim "WHEN_ASSERT_31: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %39, %8) : i1, i1, i1
+        hw.output %41 : i8
     }
     hw.module @test_when_unique(%a: i8) -> (y: i8) {
         %0 = hw.instance "Gen_inst0" @Gen(a: %a: i8) -> (y: i8)

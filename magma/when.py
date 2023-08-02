@@ -1,8 +1,10 @@
 import abc
+from collections import defaultdict
 import contextlib
 import dataclasses
 import functools
 import itertools
+import operator
 from typing import Any, Iterable, Optional, Set, Tuple, Union
 
 from magma.debug import get_debug_info, debug_info as DebugInfo
@@ -28,6 +30,18 @@ def _enable_type():
     # NOTE(rsetaluri): Circular dependency.
     from magma.clock import Enable
     return Enable
+
+
+def _contains_tuple(T):
+    # NOTE(leonardt): Circular dependency.
+    from magma.type_utils import contains_tuple
+    return contains_tuple(T)
+
+
+def _inline_verilog2(*args, **kwargs):
+    # NOTE(leonardt): Circular dependency.
+    from magma.inline_verilog2 import inline_verilog2
+    inline_verilog2(*args, **kwargs)
 
 
 class WhenSyntaxError(SyntaxError):
@@ -412,6 +426,8 @@ get_curr_block = _get_curr_block
 def _reset_context():
     _reset_curr_block()
     _reset_prev_block()
+    global _ASSERT_COUNTER
+    _ASSERT_COUNTER = itertools.count()
 
 
 reset_context = _reset_context
@@ -524,6 +540,112 @@ def find_inferred_latches(block: _BlockBase) -> Set:
     ops = tuple(block.default_drivers()) + (block,)
     _, latches = _get_assignees_and_latches(ops)
     return latches
+
+
+# We use a global counter so assertion names are unique across the design
+# (not just per module).  This is because the downstream verilog tools
+# (e.g. Jasper) treat each assertion as a unique entity (rather than scoped in
+# the hierarchy), so they are expected to be unique like module names.
+_ASSERT_COUNTER = itertools.count()
+_ASSERT_TEMPLATE = (
+    "WHEN_ASSERT_{id}: assert property (({cond}) |-> ({drivee} == {driver}));"
+)
+
+
+def _get_builder_port(value, builder):
+    """
+    Get reference to corresponding builder output port.  With the bulk
+    reconstruction logic, this may refer to a child of a builder output.
+    """
+    port = builder.check_existing_derived_ref(
+        value, builder.output_to_name, builder.output_to_index
+    )
+    if port is None:
+        port = getattr(builder, builder.output_to_name[value])
+    return port
+
+
+def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
+    if _contains_tuple(type(drivee)):
+        # Since tuples are elaborated in verilog, we emit an assert for the
+        # leaf values.
+        # TODO(leonardt): Update this when we remove flatten_all_tuples.
+        for x, y in zip(drivee, driver):
+            _emit_when_assert(cond, x, y, builder, assignment_map)
+        return
+
+    port = _get_builder_port(drivee, builder)
+    if not port.wired():
+        return  # port was discarded, do not need to emit assert
+
+    # Track the conditions a value is assigned in for the default driver logic.
+    assignment_map[port].append(cond)
+    port = builder.get_when_assert_wire(port)
+    _inline_verilog2(
+        _ASSERT_TEMPLATE,
+        cond=cond,
+        drivee=port,
+        driver=driver,
+        id=next(_ASSERT_COUNTER)
+    )
+
+
+def _make_cond(block, precond):
+    """Prepends the precond to the block condition if it exists."""
+    if precond is not None:
+        if block.condition is not None:
+            return precond & block.condition
+        return precond
+    assert block.condition is not None
+    return block.condition
+
+
+def _make_else_cond(block, precond):
+    """Invert the current condition, if there's a precond, append it."""
+    if precond is not None:
+        return precond & ~block.condition
+    return ~block.condition
+
+
+def _emit_default_driver_asserts(block, builder, assignment_map):
+    for wire in list(block.root.default_drivers()):
+        port = _get_builder_port(wire.drivee, builder)
+        assigned_conds = assignment_map[port]
+        if not assigned_conds:
+            continue
+        cond = ~functools.reduce(operator.or_, assigned_conds)
+        _emit_when_assert(
+            cond, wire.drivee, wire.driver, builder, defaultdict(list)
+        )
+
+
+def emit_when_assertions(block, builder, precond=None,
+                         assignment_map=defaultdict(list)):
+    """
+    For each drivee in a conditional wire, track the conditions where it is
+    assigned using assignment_map.  This is used for the default driver logic
+    (emit an assert for the case when none of the relevant conditions are
+    true).
+    """
+    cond = _make_cond(block, precond)
+    for conditional_wire in block.conditional_wires():
+        _emit_when_assert(
+            cond,
+            conditional_wire.drivee,
+            conditional_wire.driver,
+            builder,
+            assignment_map
+        )
+
+    for child in block.children():
+        # Children inherit this block's cond as a precond.
+        emit_when_assertions(child, builder, cond, assignment_map)
+    else_block = _get_else_block(block)
+    if else_block:
+        else_cond = _make_else_cond(block, precond)
+        emit_when_assertions(else_block, builder, else_cond, assignment_map)
+    if block is block.root:
+        _emit_default_driver_asserts(block, builder, assignment_map)
 
 
 def when(cond):

@@ -7,7 +7,7 @@ import magma as m
 from magma.common import only
 from magma.config import config
 from magma.debug import debug_info
-from magma.passes.finalize_whens import finalize_whens
+from magma.passes.when import run_when_passes
 from magma.primitives.mux import CoreIRCommonLibMuxN
 from magma.uniquification import uniquification_pass, reset_names
 
@@ -253,7 +253,7 @@ def test_compile_to_mlir_disallow_local_variables(disallow_local_variables: bool
             io.O @= x0
 
     ckt = _Test
-    finalize_whens(ckt)
+    run_when_passes(ckt)
 
     gold_name = ckt.name
     if disallow_local_variables:

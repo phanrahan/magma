@@ -13,18 +13,31 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %8 = sv.read_inout %10 : !hw.inout<i1>
         sv.alwayscomb {
             sv.bpassign %9, %6 : i8
-            sv.bpassign %10, %5 : i1
             sv.if %0 {
                 sv.bpassign %9, %I : i8
-                sv.bpassign %10, %1 : i1
             } else {
                 sv.if %2 {
                     sv.bpassign %9, %3 : i8
-                    sv.bpassign %10, %1 : i1
                 }
             }
         }
-        %6 = hw.instance "Register_inst0" @Register(I: %7: i8, CE: %8: i1, CLK: %CLK: i1) -> (O: i8)
+        %12 = sv.wire sym @test_when_user_reg_enable._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i8>
+        sv.assign %12, %7 : i8
+        %11 = sv.read_inout %12 : !hw.inout<i8>
+        %14 = sv.wire sym @test_when_user_reg_enable._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        sv.assign %14, %8 : i1
+        %13 = sv.read_inout %14 : !hw.inout<i1>
+        %6 = hw.instance "Register_inst0" @Register(I: %11: i8, CE: %13: i1, CLK: %CLK: i1) -> (O: i8)
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %11, %I) : i1, i8, i8
+        %15 = hw.constant 1 : i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %13, %15) : i1, i1, i1
+        %17 = hw.constant -1 : i1
+        %16 = comb.xor %17, %0 : i1
+        %18 = comb.and %16, %2 : i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%18, %11, %3) : i1, i8, i8
+        %19 = comb.or %0, %18 : i1
+        %20 = comb.xor %17, %19 : i1
+        sv.verbatim "WHEN_ASSERT_3: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%20, %11, %6) : i1, i8, i8
         hw.output %6 : i8
     }
 }

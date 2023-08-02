@@ -18,6 +18,17 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
-        hw.output %5 : i1
+        %8 = sv.wire sym @test_when_elsewhen._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        sv.assign %8, %5 : i1
+        %7 = sv.read_inout %8 : !hw.inout<i1>
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%0, %7, %1) : i1, i1, i1
+        %10 = hw.constant -1 : i1
+        %9 = comb.xor %10, %0 : i1
+        %11 = comb.and %9, %2 : i1
+        sv.verbatim "WHEN_ASSERT_1: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%11, %7, %3) : i1, i1, i1
+        %12 = comb.xor %10, %2 : i1
+        %13 = comb.and %9, %12 : i1
+        sv.verbatim "WHEN_ASSERT_2: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%13, %7, %4) : i1, i1, i1
+        hw.output %7 : i1
     }
 }
