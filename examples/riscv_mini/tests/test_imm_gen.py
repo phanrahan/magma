@@ -9,17 +9,17 @@ from riscv_mini.control import (Control, IMM_I, IMM_S, IMM_B, IMM_U, IMM_J,
                                 IMM_Z)
 from riscv_mini.imm_gen import ImmGenWire, ImmGenMux
 
-from .utils import insts, iimm, simm, bimm, uimm, jimm, zimm
+from .utils import insts, iimm, simm, bimm, uimm, jimm, zimm, ResetTester
 
 
 @pytest.mark.parametrize('ImmGen', [ImmGenWire, ImmGenMux])
 def test_imm_gen_wire(ImmGen):
     class DUT(m.Circuit):
-        io = m.IO(done=m.Out(m.Bit)) + m.ClockIO()
+        io = m.IO(done=m.Out(m.Bit)) + m.ClockIO(has_reset=True)
         imm = ImmGen(32)()
         ctrl = Control(32)()
 
-        counter = Counter(len(insts), has_cout=True)()
+        counter = Counter(len(insts), has_cout=True, reset_type=m.Reset)()
         i = m.mux([iimm(i) for i in insts], counter.O)
         s = m.mux([simm(i) for i in insts], counter.O)
         b = m.mux([bimm(i) for i in insts], counter.O)
@@ -59,7 +59,8 @@ def test_imm_gen_wire(ImmGen):
         m.display("Counter: %d, Type: 0x%x, O: %x ?= %x",
                   counter.O, imm.sel, imm.O, O)
 
-    tester = f.Tester(DUT, DUT.CLK)
+    tester = ResetTester(DUT, DUT.CLK)
+    tester.reset()
     tester.wait_until_high(DUT.done)
 
     with tempfile.TemporaryDirectory() as tempdir:

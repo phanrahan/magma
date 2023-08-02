@@ -8,7 +8,7 @@ from magma.mantle.counter import Counter
 from riscv_mini.data_path import Datapath, Const
 from riscv_mini.control import Control
 from riscv_mini.imm_gen import ImmGenWire, ImmGenMux
-from .utils import tests, test_results, fin, nop
+from .utils import tests, test_results, fin, nop, ResetTester
 
 
 @pytest.mark.parametrize('test', ['bypass', 'exception'])
@@ -28,7 +28,12 @@ def test_datapath(test, ImmGen):
         INIT, RUN = False, True
         state = m.Register(init=INIT)()
         n = len(insts)
-        counter = Counter(n, has_enable=True, has_cout=True)()
+        counter = Counter(
+            n,
+            has_enable=True,
+            has_cout=True,
+            reset_type=m.Reset
+        )()
         counter.CE @= m.enable(state.O == INIT)
         cntr, done = counter.O, counter.COUT
         timeout = m.Register(m.Bits[x_len])()
@@ -108,7 +113,8 @@ def test_datapath(test, ImmGen):
                          data_path.host.tohost)
         )
 
-    tester = f.Tester(DUT, DUT.CLK)
+    tester = ResetTester(DUT, DUT.CLK)
+    tester.reset()
     tester.wait_until_high(DUT.done)
     with tempfile.TemporaryDirectory() as tempdir:
         tester.compile_and_run(

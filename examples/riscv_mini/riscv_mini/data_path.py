@@ -46,11 +46,15 @@ class Datapath(m.Generator2):
         br_cond = BrCondArea(x_len)()
 
         # Fetch / Execute Registers
-        fe_inst = m.Register(init=Instructions.NOP, has_enable=True)()
+        fe_inst = m.Register(
+            init=Instructions.NOP,
+            has_enable=True,
+            reset_type=m.Reset
+        )()
         fe_pc = m.Register(m.UInt[x_len], has_enable=True)()
 
         # Execute / Write Back Registers
-        ew_inst = m.Register(init=Instructions.NOP)()
+        ew_inst = m.Register(init=Instructions.NOP, reset_type=m.Reset)()
         ew_pc = m.Register(m.UInt[x_len])()
         ew_alu = m.Register(m.UInt[x_len])()
         csr_in = m.Register(m.UInt[x_len])()
@@ -67,8 +71,10 @@ class Datapath(m.Generator2):
         # Fetch
         started = m.Register(m.Bit)()(m.bit(self.io.RESET))
         stall = ~self.io.icache.resp.valid | ~self.io.dcache.resp.valid
-        pc = m.Register(init=UIntVector[x_len](Const.PC_START) -
-                        UIntVector[x_len](4))()
+        pc = m.Register(
+            init=UIntVector[x_len](Const.PC_START) - UIntVector[x_len](4),
+            reset_type=m.Reset
+        )()
         take_sum = m.Bit(name="take_sum")
         take_sum @= (self.io.ctrl.pc_sel == PC_ALU) | br_cond.taken
         npc = m.mux([

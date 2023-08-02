@@ -10,6 +10,7 @@ from riscv_mini.nasti import (make_NastiIO, NastiParameters,
                               NastiWriteAddressChannel, NastiWriteDataChannel,
                               NastiWriteResponseChannel, NastiReadDataChannel)
 from riscv_mini.cache import Cache, make_CacheResp, make_CacheReq
+from .utils import ResetTester
 
 
 TRACE = False
@@ -23,12 +24,26 @@ class Queue(m.Generator2):
             enq=m.DeqIO[T],
             deq=m.EnqIO[T],
             count=m.Out(m.UInt[m.bitutils.clog2(entries + 1)])
-        ) + m.ClockIO()
+        ) + m.ClockIO(has_reset=True)
 
         ram = m.Memory(entries, T)()
-        enq_ptr = Counter(entries, has_enable=True, has_cout=False)()
-        deq_ptr = Counter(entries, has_enable=True, has_cout=False)()
-        maybe_full = m.Register(init=False, has_enable=True)()
+        enq_ptr = Counter(
+            entries,
+            has_enable=True,
+            has_cout=False,
+            reset_type=m.Reset
+        )()
+        deq_ptr = Counter(
+            entries,
+            has_enable=True,
+            has_cout=False,
+            reset_type=m.Reset
+        )()
+        maybe_full = m.Register(
+            init=False,
+            reset_type=m.Reset,
+            has_enable=True
+        )()
 
         ptr_match = enq_ptr.O == deq_ptr.O
         empty = ptr_match & ~maybe_full.O
@@ -92,7 +107,7 @@ class GoldCache(m.Generator2):
             req=m.Consumer(m.Decoupled[make_CacheReq(x_len)]),
             resp=m.Producer(m.Decoupled[make_CacheResp(x_len)]),
             nasti=make_NastiIO(nasti_params)
-        ) + m.ClockIO()
+        ) + m.ClockIO(has_reset=True)
         size = m.bitutils.clog2(nasti_params.x_data_bits)
         b_bits = b_bytes << 3
         b_len = m.bitutils.clog2(b_bytes)
@@ -127,13 +142,23 @@ class GoldCache(m.Generator2):
             WRITE_ACK = 2
             READ = 3
 
-        state = m.Register(init=State.IDLE)()
+        state = m.Register(init=State.IDLE, reset_type=m.Reset)()
 
-        write_counter = Counter(data_beats, has_enable=True, has_cout=True)()
+        write_counter = Counter(
+            data_beats,
+            has_enable=True,
+            has_cout=True,
+            reset_type=m.Reset
+        )()
         write_counter.CE @= m.enable(state.O == State.WRITE)
         w_cnt, w_done = write_counter.O, write_counter.COUT
 
-        read_counter = Counter(data_beats, has_enable=True, has_cout=True)()
+        read_counter = Counter(
+            data_beats,
+            has_enable=True,
+            has_cout=True,
+            reset_type=m.Reset
+        )()
         read_counter.CE @= m.enable((state.O == State.READ) &
                                     self.io.nasti.r.valid)
         r_cnt, r_done = read_counter.O, read_counter.COUT
@@ -254,7 +279,7 @@ class GoldCache(m.Generator2):
 
 def test_cache():
     class DUT(m.Circuit):
-        io = m.IO(done=m.Out(m.Bit)) + m.ClockIO()
+        io = m.IO(done=m.Out(m.Bit)) + m.ClockIO(has_reset=True)
         x_len = 32
         n_sets = 256
         b_bytes = 4 * (x_len >> 3)
@@ -296,12 +321,22 @@ def test_cache():
             WRITE_ACK = 2
             READ = 3
 
-        mem_state = m.Register(init=MemState.IDLE)()
+        mem_state = m.Register(init=MemState.IDLE, reset_type=m.Reset)()
 
-        write_counter = Counter(data_beats, has_enable=True, has_cout=True)()
+        write_counter = Counter(
+            data_beats,
+            has_enable=True,
+            has_cout=True,
+            reset_type=m.Reset
+        )()
         write_counter.CE @= m.enable((mem_state.O == MemState.WRITE) &
                                      dut_mem.w.valid & gold_mem.w.valid)
-        read_counter = Counter(data_beats, has_enable=True, has_cout=True)()
+        read_counter = Counter(
+            data_beats,
+            has_enable=True,
+            has_cout=True,
+            reset_type=m.Reset
+        )()
         read_counter.CE @= m.enable((mem_state.O == MemState.READ) &
                                     dut_mem.r.ready & gold_mem.r.ready)
 
@@ -474,14 +509,24 @@ def test_cache():
             WAIT = 2
             DONE = 3
 
-        state = m.Register(init=TestState.INIT)()
+        state = m.Register(init=TestState.INIT, reset_type=m.Reset)()
         timeout = m.Register(m.UInt[32])()
         init_m = len(init_addr)
-        init_counter = Counter(init_m, has_enable=True, has_cout=True)()
+        init_counter = Counter(
+            init_m,
+            has_enable=True,
+            has_cout=True,
+            reset_type=m.Reset
+        )()
         init_counter.CE @= m.enable(state.O == TestState.INIT)
 
         test_m = len(test_vec)
-        test_counter = Counter(test_m, has_enable=True, has_cout=True)()
+        test_counter = Counter(
+            test_m,
+            has_enable=True,
+            has_cout=True,
+            reset_type=m.Reset
+        )()
         test_counter.CE @= m.enable(state.O == TestState.DONE)
         curr_vec = m.mux(test_vec, test_counter.O)
         mask = (curr_vec >> (b_len + s_len + t_len + b_bits))[:x_len // 8]
@@ -549,7 +594,8 @@ def test_cache():
         #     .when(m.posedge(io.CLK))
         io.done @= test_counter.COUT
 
-    tester = f.Tester(DUT, DUT.CLK)
+    tester = ResetTester(DUT, DUT.CLK)
+    tester.reset()
     tester.wait_until_high(DUT.done)
     tester.compile_and_run(
         "verilator",

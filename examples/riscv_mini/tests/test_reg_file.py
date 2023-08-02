@@ -1,12 +1,14 @@
 import fault
 
 from riscv_mini.reg_file import RegFile
+from .utils import ResetTester
 
 
 def test_reg_file_basic():
     DATAWIDTH = 16
     RegFile16 = RegFile(DATAWIDTH)
-    t = fault.Tester(RegFile16, RegFile16.CLK)
+    t = ResetTester(RegFile16, RegFile16.CLK)
+    t.reset()
     for i in range(0, 32):
         t.circuit.waddr = i
         t.circuit.wen = 1

@@ -6,7 +6,7 @@ from magma.mantle.counter import Counter
 
 from riscv_mini.core import Core
 from riscv_mini.imm_gen import ImmGenWire, ImmGenMux
-from .utils import concat
+from .utils import concat, ResetTester
 
 
 class SimpleTests:
@@ -88,7 +88,12 @@ def test_core(test, ImmGen):
             cycle = m.Register(m.UInt[32])()
 
             n = len(_hex)
-            counter = Counter(n, has_enable=True, has_cout=True)()
+            counter = Counter(
+                n,
+                has_enable=True,
+                has_cout=True,
+                reset_type=m.Reset
+            )()
             counter.CE @= m.enable(state.O == INIT)
             cntr, done = counter.O, counter.COUT
 
@@ -162,7 +167,8 @@ def test_core(test, ImmGen):
             f.assert_immediate((core.host.tohost >> 1) == 0,
                                failure_msg=("* tohost: %d *", core.host.tohost))
 
-    tester = f.Tester(DUT, DUT.CLK)
+    tester = ResetTester(DUT, DUT.CLK)
+    tester.reset()
     tester.wait_until_high(DUT.done)
     tester.compile_and_run(
         "verilator",
