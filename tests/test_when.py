@@ -1739,14 +1739,6 @@ def test_when_emit_asserts_tuple_elab():
 
 
 def test_when_alwcomb_order():
-    # NOTE(leonardt): We disable assert checking for these tests because the
-    # insertion of the wire module prevents seeing the dependency.  In, general
-    # we do not traverse across instances because we do not determine whether
-    # the cycle might be broken by a register inside the hierachy.  This is
-    # essentially the classic combinational loop problem.  For now, rather
-    # than attempt to solve the problem for this analysis, we should eventually
-    # avoid the analysis by appropriately splitting up the when blocks or if
-    # statements to avoid the cycle issue
 
     class test_when_alwcomb_order(m.Circuit):
         io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[1]), O=m.Out(m.Bits[8]))
@@ -1759,12 +1751,13 @@ def test_when_alwcomb_order():
             x @= ~io.I
             io.O @= ~x
 
-    with pytest.raises(MlirWhenCycleError):
-        m.compile(
-            "build/test_when_alwcomb_order",
-            test_when_alwcomb_order,
-            output="mlir"
-        )
+    m.compile(
+        "build/test_when_alwcomb_order",
+        test_when_alwcomb_order,
+        output="mlir"
+    )
+
+    assert check_gold(__file__, "test_when_alwcomb_order.mlir")
 
 
 # TODO: In this case, we'll generate elaborated assignments, but it should
