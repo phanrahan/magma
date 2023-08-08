@@ -1,4 +1,5 @@
 import contextlib
+import dataclasses
 import itertools
 from typing import Dict, Optional, Tuple, Union
 
@@ -16,6 +17,12 @@ from magma.type_utils import type_to_sanitized_string
 
 
 _logger = root_logger().getChild("compile_guard")
+
+
+@dataclasses.dataclass(frozen=True)
+class CompileGuardInfo:
+    condition_str: str
+    type: str
 
 
 class _Grouper(GrouperBase):
@@ -73,10 +80,15 @@ class _CompileGuardBuilder(CircuitBuilder):
         self._system_types_added = set()
         if type not in {"defined", "undefined"}:
             raise ValueError(f"Unexpected compile guard type: {type}")
-        metadata = {"condition_str": cond, "type": type}
-        self._set_inst_attr("coreir_metadata", {"compile_guard": metadata})
-        self._set_definition_attr("_compile_guard_", metadata)
+        self._info = CompileGuardInfo(cond, type)
+        info_as_dict = dataclasses.asdict(self._info)
+        self._set_inst_attr("coreir_metadata", {"compile_guard": info_as_dict})
+        self._set_definition_attr("_compile_guard_", info_as_dict)
         self._num_ports = itertools.count()
+
+    @property
+    def info(self) -> CompileGuardInfo:
+        return self._info
 
     def add_port(self, T: Kind, name: Optional[str] = None) -> Type:
         if name is None:
