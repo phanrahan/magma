@@ -7,6 +7,8 @@ import pathlib
 from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
 
+import hwtypes as ht
+
 from magma.array import Array, ArrayMeta
 from magma.backend.mlir.build_magma_graph import (
     BuildMagmaGrahOpts, build_magma_graph
@@ -151,17 +153,19 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
 @wrap_with_not_implemented_error
 @functools.lru_cache()
 def python_type_to_mlir_type(type_: type) -> MlirType:
-    # NOTE(rsetaluri): We only support integer attribtue types right now. All
-    # integer parameter types are assumed to be int32's.
+    # NOTE(rsetaluri): All integer parameter types are assumed to be int32's.
     if type_ is int:
         return builtin.IntegerType(32)
+    if issubclass(type_, ht.BitVector):
+        return builtin.IntegerType(len(type_))
 
 
 @wrap_with_not_implemented_error
 def python_value_to_mlir_attribtue(value: Any) -> MlirAttribute:
-    # NOTE(rsetaluri): We only support integer attribute types right now.
     if isinstance(value, int):
         return builtin.IntegerAttr(value)
+    if isinstance(value, ht.BitVector):
+        return builtin.IntegerAttr(int(value))
 
 
 def get_module_interface(
@@ -1343,9 +1347,8 @@ class HardwareModule:
 
     def _add_module_parameters(self, hw_module: hw.ModuleOpBase):
         defn_or_decl = self._magma_defn_or_decl
-        try:
-            param_types = defn_or_decl.coreir_config_param_types
-        except AttributeError:
+        param_types = defn_or_decl.get_param_types()
+        if param_types is None:
             return
         for name, type in param_types.items():
             type = python_type_to_mlir_type(type)
