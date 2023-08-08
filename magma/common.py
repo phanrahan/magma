@@ -20,12 +20,12 @@ class Stack:
     def pop(self):
         return self._stack.pop()
 
-    def peek(self):
-        return self._stack[-1]
+    def peek(self, offset: int = 0):
+        return self._stack[-1 - offset]
 
-    def peek_default(self, default: Any) -> Any:
+    def peek_default(self, default: Any, offset: int = 0) -> Any:
         try:
-            return self._stack[-1]
+            return self._stack[-1 - offset]
         except IndexError:
             return default
 

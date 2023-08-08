@@ -1,11 +1,12 @@
 import contextlib
 import dataclasses
 import itertools
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Iterable, Optional, Tuple, Union
 
 from magma.bits import BitsMeta
 from magma.clock import ClockTypes
 from magma.circuit import CircuitKind, AnonymousCircuitType, CircuitBuilder
+from magma.common import Stack
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.interface import IO
@@ -17,6 +18,32 @@ from magma.type_utils import type_to_sanitized_string
 
 
 _logger = root_logger().getChild("compile_guard")
+
+_compile_guard_builder_stack = Stack()
+
+
+def _get_compile_guard_builder_stack() -> Stack:
+    global _compile_guard_builder_stack
+    return _compile_guard_builder_stack
+
+
+@contextlib.contextmanager
+def _push_compile_guard_builder_stack(builder: '_CompileGuardBuilder'):
+    _get_compile_guard_builder_stack().push(builder)
+    yield
+    _get_compile_guard_builder_stack().pop()
+
+
+def get_active_compile_guard_info() -> Iterable['CompileGuardInfo']:
+    stack = _get_compile_guard_builder_stack()
+    offset = 0
+    while True:
+        try:
+            builder = stack.peek(offset=offset)
+        except IndexError:
+            break
+        yield builder.info
+        offset += 1
 
 
 @dataclasses.dataclass(frozen=True)
@@ -140,8 +167,9 @@ def compile_guard(
         type: str = "defined",
 ):
     builder = _make_builder(cond, defn_name, inst_name, type)
-    with builder.open() as f:
-        yield f
+    with _push_compile_guard_builder_stack(builder):
+        with builder.open() as f:
+            yield f
     grouper = _Grouper(builder.instances(), builder)
     grouper.run()
 
