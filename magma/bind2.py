@@ -105,11 +105,13 @@ def bind2(
                 "Expected no arguments for binding generators. "
                 "Implement bind_arguments() instead."
             )
-        return _bind_generator_impl(dut, bind_module)
+        _bind_generator_impl(dut, bind_module)
+        return
     are_modules = (
         isinstance(dut, DefineCircuitKind) and
         isinstance(dut, CircuitKind)
     )
     if are_modules:
-        return _bind_impl(dut, bind_module, args, compile_guard)
+        _bind_impl(dut, bind_module, args, compile_guard)
+        return
     raise TypeError(dut, bind_module)
