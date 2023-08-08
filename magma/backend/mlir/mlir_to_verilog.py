@@ -33,6 +33,6 @@ def mlir_to_verilog(
         )
         pm.run(module.operation)
     if opts.split_verilog:
-        circt.export_split_verilog(module, "")
+        circt.export_split_verilog(module, ".")
     else:
         circt.export_verilog(module, ostream)
