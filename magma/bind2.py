@@ -76,14 +76,13 @@ def _bind_impl(
         dut: DefineCircuitKind,
         bind_module: CircuitKind,
         args: List[ArgumentType],
-        compile_guard: str,
 ):
     arguments = list(dut.interface.ports.values()) + args
     with dut.open():
         inst = bind_module()
         for param, arg in zip(inst.interface.ports.values(), arguments):
             wire_value_or_port_view(param, arg)
-        info = {"args": args, "compile_guard": compile_guard}
+        info = {"args": args}
         set_bound_instance_info(inst, info)
         set_is_bound_module(bind_module, True)
 
@@ -92,7 +91,6 @@ def bind2(
         dut: DutType,
         bind_module: BindModuleType,
         *args,
-        compile_guard: Optional[str] = None,
 ):
     args = list(args)
     are_generators = (
@@ -112,6 +110,6 @@ def bind2(
         isinstance(dut, CircuitKind)
     )
     if are_modules:
-        _bind_impl(dut, bind_module, args, compile_guard)
+        _bind_impl(dut, bind_module, args)
         return
     raise TypeError(dut, bind_module)
