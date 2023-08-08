@@ -110,15 +110,7 @@ def test_csr():
         csr = CSRGen(x_len)()
         ctrl = Control.Control(x_len)()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
         counter = Counter(n, has_cout=True, reset_type=m.Reset)()
-=======
-        counter = Counter(n, has_cout=True)()
->>>>>>> 85818f26 (Update test_csr.py)
-=======
-        counter = Counter(n, has_cout=True)()
->>>>>>> 85818f26 (Update test_csr.py)
         inst = m.mux(insts, counter.O)
         ctrl.inst @= inst
         csr.inst @= inst
