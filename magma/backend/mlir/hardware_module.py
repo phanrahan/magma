@@ -257,11 +257,7 @@ def resolve_xmr(ctx: 'HardwareModule', xmr: PortView):
     assert isinstance(xmr, PortView)
     mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
     in_out = ctx.new_value(hw.InOutType(mlir_type))
-    # NOTE(leonardt): the final value of the path sould use a sanitized name,
-    # otherwise we may get integer tuple keys in the path
-    path = list(xmr.path())[:-1]
-    path.append(magma_value_or_type_to_string(xmr.port.name.name))
-    sv.XMROp(is_rooted=False, path=path, results=[in_out])
+    sv.XMROp(is_rooted=False, path=list(xmr.path()), results=[in_out])
     value = ctx.new_value(mlir_type)
     sv.ReadInOutOp(operands=[in_out], results=[value])
     return value
