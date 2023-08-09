@@ -1,7 +1,8 @@
 from typing import List, Tuple
 
 from magma.backend.mlir.magma_common import (
-    value_or_value_wrapper_to_tree as magma_value_or_value_wrapper_to_tree
+    value_or_value_wrapper_to_tree as magma_value_or_value_wrapper_to_tree,
+    tuple_key_to_str
 )
 from magma.ref import TupleRef, ArrayRef
 from magma.view import PortView
@@ -54,7 +55,8 @@ def _ascend_to_leaf(value, leaves):
     ref = value.name
     if isinstance(ref, TupleRef):
         path = _ascend_to_leaf(ref.tuple, leaves)
-        return path + [f".{ref.index}"]
+        key = tuple_key_to_str(ref.index, type(ref.tuple))
+        return path + [f".{key}"]
     if isinstance(ref, ArrayRef):
         path = _ascend_to_leaf(ref.array, leaves)
         return path + [f"[{ref.index}]"]
