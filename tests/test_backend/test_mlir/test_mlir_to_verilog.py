@@ -1,5 +1,7 @@
 import io
+import pathlib
 import pytest
+import tempfile
 import textwrap
 from typing import Optional
 
@@ -165,14 +167,15 @@ def test_split_verilog():
         }}
         """
     )
-    output_file = "tests/test_backend/test_mlir/build/test_mlir_to_verilog_split_verilog.sv"
-    ir = ir.format(output_file=f"#hw.output_file<\"{output_file}\">")
-    _, ostream = _run_test(ir, split_verilog=True)
-    ostream.seek(0)
-    assert not ostream.readline()  # output expected to be empty
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_file = f"{tempdir}/outfile.sv"
+        ir = ir.format(output_file=f"#hw.output_file<\"{output_file}\">")
+        _, ostream = _run_test(ir, split_verilog=True)
+        ostream.seek(0)
+        assert not ostream.readline()  # output expected to be empty
 
-    # Now read ostream from the expcted output file.
-    ostream = open(output_file)
-    ostream.readline()  # skip header
-    assert ostream.readline().rstrip() == "module M();"
-    assert ostream.readline().rstrip() == "endmodule"
+        # Now read ostream from the expcted output file.
+        ostream = open(output_file)
+        ostream.readline()  # skip header
+        assert ostream.readline().rstrip() == "module M();"
+        assert ostream.readline().rstrip() == "endmodule"
