@@ -1,5 +1,6 @@
 import io
 import pytest
+import textwrap
 from typing import Optional
 
 import circt
@@ -43,7 +44,7 @@ def test_bad_input():
 
 @pytest.mark.parametrize("style", ("plain", "wrapInAtSquareBracket", "none"))
 def test_location_info_style(style):
-    ir = (
+    ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle={style}"}} {{
           hw.module @M() -> () {{}}
@@ -57,16 +58,16 @@ def test_location_info_style(style):
     line = ostream.readline().rstrip()
     expected = "module M();"
     if style == "plain":
-        expected += "	// -:3:11"
+        expected += "	// -:3:3"
     elif style == "wrapInAtSquareBracket":
-        expected += "	// @[-:3:11]"
+        expected += "	// @[-:3:3]"
     assert line == expected
 
 
 @pytest.mark.parametrize("explicit_bitcast", (False, True))
 def test_explicit_bitcast(explicit_bitcast):
     explicit_bitcast_attr = ",explicitBitcast" if explicit_bitcast else ""
-    ir = (
+    ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle=none{explicit_bitcast_attr}"}} {{
             hw.module @M(%a: i8, %b: i8) -> (y: i8) {{
@@ -98,7 +99,7 @@ def test_disallow_expression_inlining_in_ports(disallow_expression_inlining_in_p
         else ""
     )
 
-    ir = (
+    ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle=none{disallow_expression_inlining_in_ports_attr}"}} {{
           hw.module.extern @Foo(%I: i1) -> (O: i1)
@@ -137,7 +138,7 @@ def test_omit_version_comment(omit_version_comment):
         else ""
     )
 
-    ir = (
+    ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle=none{omit_version_comment_attr}"}} {{
           hw.module @M() -> () {{}}
@@ -157,7 +158,7 @@ def test_omit_version_comment(omit_version_comment):
 
 
 def test_split_verilog():
-    ir = (
+    ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle=none"}} {{
           hw.module @M() -> () attributes {{output_file = {output_file}}} {{}}
