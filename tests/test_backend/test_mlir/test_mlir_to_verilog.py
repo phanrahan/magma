@@ -175,7 +175,7 @@ def test_split_verilog():
         assert not ostream.readline()  # output expected to be empty
 
         # Now read ostream from the expcted output file.
-        ostream = open(output_file)
-        ostream.readline()  # skip header
-        assert ostream.readline().rstrip() == "module M();"
-        assert ostream.readline().rstrip() == "endmodule"
+        with open(output_file, "r") as ostream:
+            ostream.readline()  # skip header
+            assert ostream.readline().rstrip() == "module M();"
+            assert ostream.readline().rstrip() == "endmodule"
