@@ -15,18 +15,15 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "WARNING").upper())
 def _field_to_argument_params(field: dataclasses.Field) -> Dict:
     if field.default_factory is not dataclasses.MISSING:
         raise TypeError(field)
-    params = {
-        "required": field.default is dataclasses.MISSING,
-    }
+    params = {}
+    params["required"] = field.default is dataclasses.MISSING
     if field.type is bool and not params["required"] and not field.default:
-        params.update({"action": "store_true"})
+        params["action"] = "store_true"
         return params
     if not params["required"]:
-        params.update({"default": field.default})
-    params.update({
-        "action": "store",
-        "type": field.type,
-    })
+        params["default"] = field.default
+    params["action"] = "store"
+    params["type"] = field.type
     return params
 
 
@@ -61,12 +58,11 @@ def main(prog_args = None) -> int:
 
     args = parser.parse_args(prog_args)
     opts = slice_opts(vars(args), MlirToVerilogOpts)
-    
+
     logging.debug(f"Running with opts: {opts}")
     if opts.split_verilog and args.outfile is not sys.stdout:
         logging.warning(
-            f"outfile ({args.outfile.name}) likely ignored with split_verilog "
-            f"enabled"
+            f"outfile ({args.outfile.name}) ignored with split_verilog enabled"
         )
 
     with open(args.infile, "r") as f_in:
