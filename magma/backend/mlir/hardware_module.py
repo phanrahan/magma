@@ -158,14 +158,18 @@ def python_type_to_mlir_type(type_: type) -> MlirType:
         return builtin.IntegerType(32)
     if issubclass(type_, ht.BitVector):
         return builtin.IntegerType(len(type_))
+    if type_ is str:
+        return hw.StringType()
 
 
 @wrap_with_not_implemented_error
-def python_value_to_mlir_attribtue(value: Any) -> MlirAttribute:
+def python_value_to_mlir_attribute(value: Any) -> MlirAttribute:
     if isinstance(value, int):
         return builtin.IntegerAttr(value)
     if isinstance(value, ht.BitVector):
         return builtin.IntegerAttr(int(value))
+    if isinstance(value, str):
+        return builtin.StringAttr(str(value))
 
 
 def get_module_interface(
@@ -223,7 +227,7 @@ def get_register_data_and_init(
 
 def make_hw_param_decl(name: str, value: Any):
     type_ = python_type_to_mlir_type(type(value))
-    value = python_value_to_mlir_attribtue(value)
+    value = python_value_to_mlir_attribute(value)
     return hw.ParamDeclAttr(name, type_, value)
 
 
