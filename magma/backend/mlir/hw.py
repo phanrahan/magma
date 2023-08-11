@@ -54,6 +54,12 @@ class InOutType(MlirType):
 
 
 @dataclasses.dataclass(frozen=True)
+class StringType(MlirType):
+    def emit(self) -> str:
+        return f"!hw.string"
+
+
+@dataclasses.dataclass(frozen=True)
 class InnerRefAttr(MlirAttribute):
     module: MlirSymbol
     name: MlirSymbol

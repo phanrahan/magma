@@ -428,6 +428,16 @@ class CircuitKind(type):
         with definition_context_manager(cls._context_):
             m_inline_verilog(inline_str, **kwargs)
 
+    def get_param_types(self):
+        try:
+            return self.param_types
+        except AttributeError:
+            try:
+                # try old API
+                return self.coreir_config_param_types
+            except AttributeError:
+                return None
+
 
 class AnonymousCircuitType(object, metaclass=CircuitKind):
     """Abstract base class for circuits"""
