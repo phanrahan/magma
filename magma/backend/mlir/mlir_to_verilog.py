@@ -1,5 +1,6 @@
 import dataclasses
 import io
+from typing import Optional
 
 import circt
 import circt.passmanager
@@ -10,6 +11,7 @@ from magma.backend.mlir.errors import MlirCompilerError
 @dataclasses.dataclass
 class MlirToVerilogOpts:
     split_verilog: bool = False
+    split_verilog_directory: Optional[str] = None
 
 
 def mlir_to_verilog(
@@ -33,6 +35,7 @@ def mlir_to_verilog(
         )
         pm.run(module.operation)
     if opts.split_verilog:
-        circt.export_split_verilog(module, ".")
+        directory = opts.split_verilog_directory or "."
+        circt.export_split_verilog(module, directory)
     else:
         circt.export_verilog(module, ostream)

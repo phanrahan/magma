@@ -178,16 +178,19 @@ def test_split_verilog(specify_output_file):
         else:
             attribute_string = ""
         ir = ir.format(attribute_string=attribute_string)
-        _, ostream = _run_test(ir, split_verilog=True)
+        opts = {"split_verilog": True}
+        if not specify_output_file:
+            opts["split_verilog_directory"] = tempdir
+        _, ostream = _run_test(ir, **opts)
         ostream.seek(0)
         # We expect the output to be empty due to split verilog.
         assert not ostream.readline()
 
         # Now read ostream from the expcted output file. If the output file is
-        # not specificed explicitly, then it goes into <pwd>/<module name>.sv
-        # (in this case, M.sv).
+        # not specificed explicitly, then it goes into <split verilog
+        # directory>/<module name>.sv (in this case, <tempdir>/M.sv).
         if not specify_output_file:
-            output_file = "M.sv"
+            output_file = f"{tempdir}/M.sv"
         with open(output_file, "r") as ostream:
             ostream.readline()  # skip header
             assert ostream.readline().rstrip() == "module M();"
