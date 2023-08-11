@@ -140,7 +140,7 @@ def _is_simple_type(T: Kind) -> bool:
 
 class _CompileGuardSelect(Generator2):
     def __init__(self, T: Kind, keys: Tuple[str]):
-        assert keys  # not empty
+        assert keys, "Expected at least one key"
         self.T = T
         self.keys = keys
         self.io = IO(
