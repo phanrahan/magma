@@ -29,6 +29,8 @@ def _set_module_attrs(mlir_module: builtin.ModuleOp, opts: CompileToMlirOpts):
         lowering_options.append("disallowLocalVariables")
     if opts.omit_version_comment:
         lowering_options.append("omitVersionComment")
+    if opts.disallow_packed_struct_assignments:
+        lowering_options.append("disallowPackedStructAssignments")
     if lowering_options:
         mlir_module.attr_dict["circt.loweringOptions"] = builtin.StringAttr(
             f"{','.join(lowering_options)}"
