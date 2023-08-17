@@ -1832,7 +1832,16 @@ def test_when_alwcomb_order():
         output=_OUTPUT_TYPE
     )
 
-    assert check_gold(__file__, "test_when_alwcomb_order.mlir")
+    # We check verilog here because the alwcomb order was "legal" MLIR.
+    assert check_gold(__file__, "test_when_alwcomb_order.v")
+    verilator_path = os.path.join(
+        os.path.dirname(__file__),
+        "build",
+        "test_when_alwcomb_order.v"
+    )
+    assert not os.system(
+        f"verilator --lint-only {verilator_path}"
+    )
 
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
