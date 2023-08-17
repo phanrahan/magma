@@ -527,19 +527,8 @@ def test_recursive_non_port():
         io.O0 @= x
 
     basename = "test_when_recursive_non_port"
-    # TODO(leonardt): Remove this when proper analysis for when cycles is
-    # added.
-    # NOTE(leonardt): We disable assert checking for these tests because the
-    # insertion of the wire module prevents seeing the dependency.  In, general
-    # we do not traverse across instances because we do not determine whether
-    # the cycle might be broken by a register inside the hierachy.  This is
-    # essentially the classic combinational loop problem.  For now, rather
-    # than attempt to solve the problem for this analysis, we should eventually
-    # avoid the analysis by appropriately splitting up the when blocks or if
-    # statements to avoid the cycle issue
-    with pytest.raises(MlirWhenCycleError):
-        m.compile(f"build/{basename}", _Test, output=_OUTPUT_TYPE)
-        assert check_gold(__file__, f"{basename}.mlir")
+    m.compile(f"build/{basename}", _Test, output=_OUTPUT_TYPE)
+    assert check_gold(__file__, f"{basename}.mlir")
 
 
 def test_internal_instantiation():

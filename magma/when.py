@@ -701,9 +701,13 @@ def _find_values_to_split(builder):
     """Detect output values that feed into inputs"""
     to_split = []
     for x in builder.output_to_name.values():
-        x = getattr(builder, x)
+        x = getattr(builder, x, None)
+        if x is None:
+            continue
         for y in builder._input_to_name.values():
-            y = getattr(builder, y)
+            y = getattr(builder, y, None)
+            if y is None:
+                continue
             if y.trace() is x:
                 to_split.append(x)
                 break
