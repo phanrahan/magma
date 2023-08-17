@@ -25,7 +25,7 @@ import examples
 
 config._register(
     test_mlir_check_verilog=EnvConfig(
-        "TEST_MLIR_CHECK_VERILOG", False, bool))
+        "TEST_MLIR_CHECK_VERILOG", True, bool))
 config._register(
     test_mlir_write_output_files=EnvConfig(
         "TEST_MLIR_WRITE_OUTPUT_FILES", False, bool))
