@@ -1833,7 +1833,8 @@ def test_when_alwcomb_order():
     )
 
     # We check verilog here because the alwcomb order was "legal" MLIR.
-    assert check_gold(__file__, "test_when_alwcomb_order.v")
+    if check_gold(__file__, "test_when_alwcomb_order.v"):
+        return
     verilator_path = os.path.join(
         os.path.dirname(__file__),
         "build",
@@ -1842,6 +1843,44 @@ def test_when_alwcomb_order():
     assert not os.system(
         f"verilator --lint-only {verilator_path}"
     )
+    update_gold(__file__, "test_when_alwcomb_order.v")
+
+
+def test_when_alwcomb_order_complex():
+    class test_when_alwcomb_order(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[2]), O=m.Out(m.Bits[8]))
+        x = m.Bits[8]()
+
+        io.O @= x
+        with m.when(io.S[0]):
+            x @= io.I
+            with m.when(io.S[1]):
+                x @= ~io.I
+        with m.elsewhen(io.S[0] ^ io.S[1]):
+            x @= ~io.I
+        with m.otherwise():
+            x @= ~io.I
+            io.O @= ~x
+
+    m.compile(
+        "build/test_when_alwcomb_order_complex",
+        test_when_alwcomb_order,
+        output="mlir-verilog"
+    )
+
+    # We check verilog here because the alwcomb order was "legal" MLIR.
+    if check_gold(__file__, "test_when_alwcomb_order_complex.v"):
+        return
+    verilator_path = os.path.join(
+        os.path.dirname(__file__),
+        "build",
+        "test_when_alwcomb_order_complex.v"
+    )
+    assert not os.system(
+        f"verilator --lint-only {verilator_path}"
+    )
+    update_gold(__file__, "test_when_alwcomb_order_complex.v")
+
 
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
