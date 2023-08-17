@@ -1856,8 +1856,9 @@ def test_when_alwcomb_order_complex():
             x @= io.I
             with m.when(io.S[1]):
                 x @= ~io.I
+                io.O @= x & 0xDE
         with m.elsewhen(io.S[0] ^ io.S[1]):
-            x @= ~io.I
+            x @= io.I ^ io.I
         with m.otherwise():
             x @= ~io.I
             io.O @= ~x

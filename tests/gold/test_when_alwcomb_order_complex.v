@@ -13,7 +13,7 @@ module test_when_alwcomb_order(
         _GEN = ~I;
     end
     else if (^S)
-      _GEN = ~I;
+      _GEN = 8'h0;
     else
       _GEN = ~I;
   end // always_comb
@@ -21,6 +21,8 @@ module test_when_alwcomb_order(
   always_comb begin
     _GEN_0 = _GEN;
     if (S[0]) begin
+      if (S[1])
+        _GEN_0 = _GEN & 8'hDE;
     end
     else if (^S) begin
     end
