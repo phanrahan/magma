@@ -720,7 +720,8 @@ def _emit_new_when_assign(value, driver_map, curr_block):
         new_block = otherwise()
     with new_block:
         if curr_block in driver_map:
-            value @= driver_map[curr_block]
+            for driver in driver_map[curr_block]:
+                value @= driver
         for child in curr_block.children():
             _emit_new_when_assign(value, driver_map, child)
     for _elsewhen in curr_block.elsewhen_blocks():
@@ -737,8 +738,7 @@ def split_when_cycles(builder, defn):
         contexts = driving[0]._wired_when_contexts[:]
         for ctx in contexts:
             wires = ctx.get_conditional_wires_for_drivee(driving[0])
-            assert len(wires) == 1
-            driver_map[ctx] = wires[0].driver
+            driver_map[ctx] = (wire.driver for wire in wires)
         for drivee in driving:
             drivee.unwire()
             _emit_new_when_assign(drivee, driver_map, contexts[0].root)
