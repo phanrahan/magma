@@ -695,3 +695,50 @@ def otherwise():
     if prev_block is None:
         raise OtherwiseWithoutPrecedingWhenError()
     return prev_block.new_otherwise_block()
+
+
+def _find_values_to_split(builder):
+    """Detect output values that feed into inputs"""
+    to_split = []
+    for x in builder.output_to_name.values():
+        x = getattr(builder, x)
+        for y in builder._input_to_name.values():
+            y = getattr(builder, y)
+            if y.trace() is x:
+                to_split.append(x)
+                break
+    return to_split
+
+
+def _emit_new_when_assign(value, driver_map, curr_block):
+    """Reconstruct when logic in new set of blocks"""
+    if isinstance(curr_block, _WhenBlock):
+        new_block = when(curr_block._info.condition)
+    elif isinstance(curr_block, _ElseWhenBlock):
+        new_block = elsewhen(curr_block._info.condition)
+    elif isinstance(curr_block, _OtherwiseBlock):
+        new_block = otherwise()
+    with new_block:
+        if curr_block in driver_map:
+            value @= driver_map[curr_block]
+        for child in curr_block.children():
+            _emit_new_when_assign(value, driver_map, child)
+    for _elsewhen in curr_block.elsewhen_blocks():
+        _emit_new_when_assign(value, driver_map, _elsewhen)
+    if curr_block.otherwise_block:
+        _emit_new_when_assign(value, driver_map, curr_block.otherwise_block)
+
+
+def split_when_cycles(builder, defn):
+    to_split = _find_values_to_split(builder)
+    for value in to_split:
+        driving = value.driving()
+        driver_map = {}
+        contexts = driving[0]._wired_when_contexts[:]
+        for ctx in contexts:
+            wires = ctx.get_conditional_wires_for_drivee(driving[0])
+            assert len(wires) == 1
+            driver_map[ctx] = wires[0].driver
+        for drivee in driving:
+            drivee.unwire()
+            _emit_new_when_assign(drivee, driver_map, contexts[0].root)
