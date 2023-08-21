@@ -1910,6 +1910,43 @@ def test_when_alwcomb_order_nested():
     update_gold(__file__, "test_when_alwcomb_order_nested.v")
 
 
+def test_when_alwcomb_order_nested_2():
+    class T(m.Product):
+        x = m.Bit
+        y = m.Bits[8]
+
+    class test_when_alwcomb_order(m.Circuit):
+        io = m.IO(I=m.In(m.Array[3, T]), S=m.In(m.Bit), O=m.Out(T))
+        x = T()
+
+        io.O @= io.I[0]
+        with m.when(io.S):
+            x @= io.I[1]
+        with m.otherwise():
+            io.O.x @= x.x
+            io.O.y @= x.y
+            x @= io.I[2]
+
+    m.compile(
+        "build/test_when_alwcomb_order_nested_2",
+        test_when_alwcomb_order,
+        output="mlir-verilog"
+    )
+
+    # We check verilog here because the alwcomb order was "legal" MLIR.
+    if check_gold(__file__, "test_when_alwcomb_order_nested_2.v"):
+        return
+    verilator_path = os.path.join(
+        os.path.dirname(__file__),
+        "build",
+        "test_when_alwcomb_order_nested_2.v"
+    )
+    assert not os.system(
+        f"verilator --lint-only {verilator_path}"
+    )
+    update_gold(__file__, "test_when_alwcomb_order_nested_2.v")
+
+
 # TODO: In this case, we'll generate elaborated assignments, but it should
 # be possible for us to pack these into a concat/create assignment
 # def test_when_2d_array_assign():

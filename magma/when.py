@@ -748,6 +748,7 @@ def _build_driver_map(drivee):
 
 def split_when_cycles(builder, defn):
     to_split = _find_values_to_split(builder)
+    print(to_split)
     for value in to_split:
         driving = value.driving()
         driver_map = _build_driver_map(driving[0])
