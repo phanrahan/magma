@@ -709,9 +709,9 @@ def _find_values_to_split(builder):
     inputs = _get_builder_ports(builder, builder.input_to_name.values())
     for value in inputs:
         source = value.trace()
-        # TODO(leonardt): handle nesting
-        if any(source is output for output in outputs):
-            to_split.append(source)
+        for elem in source.root_iter():
+            if any(elem is output for output in outputs):
+                to_split.append(source)
     return to_split
 
 
