@@ -712,7 +712,6 @@ def _find_values_to_split(builder):
         # TODO(leonardt): handle nesting
         if any(source is output for output in outputs):
             to_split.append(source)
-            break
     return to_split
 
 
