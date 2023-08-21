@@ -1818,7 +1818,7 @@ def test_when_alwcomb_order():
     m.compile(
         "build/test_when_alwcomb_order",
         test_when_alwcomb_order,
-        output=_OUTPUT_TYPE
+        output="mlir-verilog"
     )
 
     # We check verilog here because the alwcomb order was "legal" MLIR.
