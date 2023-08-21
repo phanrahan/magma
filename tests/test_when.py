@@ -1883,10 +1883,10 @@ def test_when_alwcomb_order_nested():
 
         io.O @= io.I
         with m.when(io.S):
+            io.O @= x
             x.x @= io.I.x
             x.y @= io.I.y
         with m.otherwise():
-            io.O @= x
             x.x @= ~io.I.x
             x.y @= ~io.I.y
 

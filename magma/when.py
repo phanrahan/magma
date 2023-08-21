@@ -702,16 +702,24 @@ def _get_builder_ports(builder, names):
     return [getattr(builder, name) for name in names if hasattr(builder, name)]
 
 
+def _check_to_split(value, outputs, to_split):
+    if value.has_children() and value.has_elaborated_children():
+        for _, child in value.enumerate_children():
+            _check_to_split(child, outputs, to_split)
+        return
+    source = value.trace()
+    for elem in source.root_iter():
+        if any(elem is output for output in outputs):
+            to_split.append(source)
+
+
 def _find_values_to_split(builder):
     """Detect output values that feed into inputs."""
     to_split = []
     outputs = _get_builder_ports(builder, builder.output_to_name.values())
     inputs = _get_builder_ports(builder, builder.input_to_name.values())
     for value in inputs:
-        source = value.trace()
-        for elem in source.root_iter():
-            if any(elem is output for output in outputs):
-                to_split.append(source)
+        _check_to_split(value, outputs, to_split)
     return to_split
 
 
