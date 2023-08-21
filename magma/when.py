@@ -703,14 +703,14 @@ def _get_builder_ports(builder, names):
 
 
 def _check_to_split(value, outputs, to_split):
-    if value.has_children() and value.has_elaborated_children():
-        for _, child in value.enumerate_children():
-            _check_to_split(child, outputs, to_split)
-        return
     source = value.trace()
     for elem in source.root_iter():
         if any(elem is output for output in outputs):
             to_split.append(source)
+            return
+    if value.has_children() and value.has_elaborated_children():
+        for _, child in value.enumerate_children():
+            _check_to_split(child, outputs, to_split)
 
 
 def _find_values_to_split(builder):
