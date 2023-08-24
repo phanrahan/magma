@@ -5,7 +5,7 @@ import magma.testing
 
 
 def _parameterize_by_backend(fn):
-    return pytest.mark.parametrize("backend", ("coreir-verilog", "mlir"))(fn)
+    return pytest.mark.parametrize("backend", ("coreir-verilog", "mlir-verilog"))(fn)
 
 
 def _run_test(dut, bound_module, basename, backend):
@@ -34,7 +34,7 @@ def test_basic(backend):
         io.O @= io.I
 
     class TopBasicAsserts(m.Circuit):
-        name = f"TopBasicAsserts_{backend}"
+        name = f"TopBasicAsserts_{backend.replace('-', '')}"
         io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit), other=m.In(m.Bit))
         io.I.unused()
         io.O.unused()
@@ -62,7 +62,7 @@ def test_xmr(backend):
         io.O @= middle(io.I)
 
     class TopXMRAsserts(m.Circuit):
-        name = f"TopXMRAsserts_{backend}"
+        name = f"TopXMRAsserts_{backend.replace('-', '')}"
         io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit), other=m.In(m.Bit))
         io.I.unused()
         io.O.unused()

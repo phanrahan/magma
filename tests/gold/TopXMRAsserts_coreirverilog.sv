@@ -4,7 +4,7 @@ module corebit_term (
 
 endmodule
 
-module TopXMRAsserts_coreir-verilog (
+module TopXMRAsserts_coreirverilog (
     input I,
     input O,
     input other
@@ -21,7 +21,7 @@ corebit_term corebit_term_inst2 (
 endmodule
 
 
-bind Top TopXMRAsserts_coreir-verilog TopXMRAsserts_coreir-verilog_inst (
+bind Top TopXMRAsserts_coreirverilog TopXMRAsserts_coreirverilog_inst (
     .I(I),
     .O(O),
     .other(middle._magma_bind_wire_0)
