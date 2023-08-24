@@ -1,8 +1,3 @@
-import pytest
-try:
-    import coreir
-except ImportError:
-    pytest.skip("Missing coreir", allow_module_level=True)
 from magma import *
 from magma.testing import check_files_equal
 

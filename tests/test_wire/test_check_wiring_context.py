@@ -1,10 +1,6 @@
 import pytest
 import magma as m
 from magma.compile_exception import MagmaCompileException
-try:
-    import coreir
-except ImportError:
-    pytest.skip("Missing coreir", allow_module_level=True)
 
 
 def test_missing_generator_paren(caplog):

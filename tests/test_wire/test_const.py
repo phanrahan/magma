@@ -1,10 +1,6 @@
 from magma import *
 from magma.testing import check_files_equal
 import pytest
-try:
-    import coreir
-except ImportError:
-    pytest.skip("Missing coreir", allow_module_level=True)
 
 
 def test_const0():

@@ -72,6 +72,11 @@ EndCircuit()"""
     assert p.repr_str == expected
 
 
+def test_compilation_coreir():
+    with pytest.raises(NotImplementedError) as e:
+        m.compile("", _Top, output="coreir")
+
+
 def test_compilation_mlir():
     basename = f"test_inline_verilog_expression_compilation_mlir"
     m.compile(f"build/{basename}", _Top, output="mlir")

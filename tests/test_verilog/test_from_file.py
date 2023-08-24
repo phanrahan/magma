@@ -1,11 +1,7 @@
-import pytest
-try:
-    import coreir
-except ImportError:
-    pytest.skip("Missing coreir", allow_module_level=True)
 import magma as m
 import magma.testing
 import os
+import pytest
 import pyverilog
 from magma.frontend.verilog_utils import int_const_str_to_int
 from magma.frontend.verilog_importer import MultipleModuleDeclarationError

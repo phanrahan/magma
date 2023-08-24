@@ -1,23 +1,15 @@
 import magma as m
 from magma import *
 from magma.clock import *
+from magma.backend.coreir.coreir_backend import CoreIRBackend
 from magma.bitutils import *
-try:
-    import coreir
-    from coreir.context import *
-    from magma.simulator.coreir_simulator import CoreIRSimulator
-    from magma.backend.coreir.coreir_backend import CoreIRBackend
-    COREIR_IMPORTED = True
-except ImportError:
-    COREIR_IMPORTED = False
+from coreir.context import *
+from magma.simulator.coreir_simulator import CoreIRSimulator
 from magma.simulator.python_simulator import PythonSimulator
+import coreir
 from magma.scope import Scope
-import pytest
-
 
 def simulator_nested(simple):
-    if not COREIR_IMPORTED:
-        pytest.skip("Missing coreir")
     width = 8
     testValInt = 80
     testValBits = int2seq(testValInt)

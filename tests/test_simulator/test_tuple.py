@@ -1,10 +1,3 @@
-import pytest
-
-try:
-    import coreir
-except ImportError:
-    pytest.skip("Missing coreir", allow_module_level=True)
-
 from magma import *
 from magma.clock import *
 from magma.backend.coreir.coreir_backend import CoreIRBackend

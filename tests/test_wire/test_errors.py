@@ -179,15 +179,8 @@ def test_const_array_error(caplog):
     magma.config.set_debug_mode(False)
 
 
-import pytest
-
-
 @wrap_with_context_manager(logging_level("DEBUG"))
 def test_hanging_anon_error(caplog):
-    try:
-        import coreir
-    except ImportError:
-        pytest.skip("Missing coreir", allow_module_level=True)
     with magma_debug_section():
         class _Foo(m.Circuit):
             T = m.Bits[8]
@@ -211,10 +204,6 @@ def test_hanging_anon_error(caplog):
 
 
 def test_wire_tuple_to_clock():
-    try:
-        import coreir
-    except ImportError:
-        pytest.skip("Missing coreir", allow_module_level=True)
     class T(m.Product):
         a = m.In(m.Clock)
         b = m.In(m.Clock)
@@ -226,6 +215,7 @@ def test_wire_tuple_to_clock():
         io.x @= 1
 
     # Imported here to avoid changing line numbers for above tests
+    import pytest
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
     assert str(e.value) == "Found circuit with errors: Foo"

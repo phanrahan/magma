@@ -1,9 +1,3 @@
-import pytest
-try:
-    import coreir
-except ImportError:
-    pytest.skip("Missing coreir", allow_module_level=True)
-
 import magma as m
 from magma.passes.elaborate_circuit import elaborate_all_pass
 from magma.simulator import PythonSimulator

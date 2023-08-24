@@ -36,10 +36,5 @@ def test_rewire_error(caplog, _setup_and_teardown):
         io.O @= 0
         io.O @= 1
 
-    try:
-        import coreir
-    except ImportError:
-        pytest.skip("Missing coreir", allow_module_level=True)
-
     with pytest.raises(m.compile_exception.MagmaCompileException):
         m.compile("build/Foo", Foo)

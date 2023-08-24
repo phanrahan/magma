@@ -47,11 +47,6 @@ def test_properties():
 
 
 def test_compilation():
-    try:
-        import coreir
-    except ImportError:
-        import pytest
-        pytest.skip("Missing coreir")
 
     class _Top(m.Circuit):
         io = m.IO(x=m.In(m.Bit), y=m.In(m.Bit), z=m.Out(m.Bit))
