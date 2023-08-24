@@ -26,6 +26,7 @@ jobs:
         pip install py
         # END: Temp fix
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
+        pip install coreir  # test optional dependency
         pip install kratos  # test optional dependency
         python setup.py install
     - name: Test with pytest
