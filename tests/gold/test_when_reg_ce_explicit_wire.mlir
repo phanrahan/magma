@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_reg_ce_explicit_wire(%I: i8, %x: i1, %y: i1, %CLK: i1) -> (O: i8) {
         %0 = hw.constant 0 : i1
         %4 = sv.reg : !hw.inout<i8>

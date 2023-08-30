@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_inline_verilog2_passthrough_wire(%I: !hw.struct<x: i1, y: i4>) -> (O: !hw.struct<x: i1, y: i4>) {
         %0 = hw.struct_extract %I["y"] : !hw.struct<x: i1, y: i4>
         %1 = comb.extract %0 from 0 : (i4) -> i1

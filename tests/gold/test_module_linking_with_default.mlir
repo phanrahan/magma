@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @_OrImpl(%I0: i1, %I1: i1) -> (O: i1) {
         %0 = comb.or %I0, %I1 : i1
         hw.output %0 : i1

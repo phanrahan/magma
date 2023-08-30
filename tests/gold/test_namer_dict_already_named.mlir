@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module.extern @Foo(%I: i8) -> (O: i8)
     hw.module @test_namer_dict_already_named(%I: i8) -> (O: i8) {
         %1 = sv.wire sym @test_namer_dict_already_named.y name "y" : !hw.inout<i8>

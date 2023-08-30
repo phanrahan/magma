@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @TestDisplay(%I: i1, %CLK: i1, %CE: i1) -> (O: i1) {
         %1 = sv.reg name "ff" : !hw.inout<i1>
         sv.alwaysff(posedge %CLK) {

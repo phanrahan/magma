@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_emit_asserts_tuple(%I_0_0: i8, %I_0_1: i1, %I_1_0: i8, %I_1_1: i1, %S: i1) -> (O_0: i8, O_1: i1) {
         %2 = sv.reg : !hw.inout<i8>
         %0 = sv.read_inout %2 : !hw.inout<i8>

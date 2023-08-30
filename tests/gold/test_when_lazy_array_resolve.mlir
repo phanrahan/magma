@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_lazy_array_resolve(%I: i2, %S: i1) -> (O: i2) {
         %0 = hw.constant 1 : i2
         %1 = comb.shru %I, %0 : i2
