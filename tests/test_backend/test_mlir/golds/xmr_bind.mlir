@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @xmr_bind_grandchild(%a: i16) -> (y: i16) {
         hw.output %a : i16
     }

@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @simple_duplicate_symbols(%I: i1) -> (O: i2) {
         %1 = sv.wire sym @simple_duplicate_symbols.x name "x" : !hw.inout<i1>
         sv.assign %1, %I : i1

@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Register(%I: i8, %CLK: i1) -> (O: i8) {
         %1 = sv.reg name "reg_P8_inst0" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {

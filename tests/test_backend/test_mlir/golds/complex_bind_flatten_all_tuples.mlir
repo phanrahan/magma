@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @complex_bind_asserts(%I_I: i1, %O: i1, %CLK: i1, %I0: i1) -> () {
         sv.verbatim "assert property (@(posedge CLK) {{1}} |-> ##1 {{0}});assert property ({{1}} |-> {{2}};" (%O, %I_I, %I0) : i1, i1, i1
     }

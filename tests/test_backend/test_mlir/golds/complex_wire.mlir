@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (O0: i8, O1: i1, O2: !hw.array<4xi8>) {
         %1 = sv.wire sym @complex_wire.tmp0 name "tmp0" : !hw.inout<i8>
         sv.assign %1, %I0 : i8

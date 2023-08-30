@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @multiport_memory(%raddr_0: i2, %raddr_1: i2, %waddr_0: i2, %wdata_0: i5, %we_0: i1, %waddr_1: i2, %wdata_1: i5, %we_1: i1, %clk: i1) -> (rdata_0: i5, rdata_1: i5) {
         %2 = sv.reg name "MultiportMemory_inst0" : !hw.inout<!hw.array<4xi5>>
         %3 = sv.array_index_inout %2[%raddr_0] : !hw.inout<!hw.array<4xi5>>, i2
