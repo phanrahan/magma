@@ -320,7 +320,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             )
             return
 
-        if self.keys() != o.keys():
+        if list(self.keys()) != list(o.keys()):
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}, "
                           f"keys={list(self.keys())}) to "
