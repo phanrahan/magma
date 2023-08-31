@@ -5,8 +5,9 @@ import dataclasses
 from functools import wraps, partial, reduce
 import hashlib
 import operator
-from typing import Any, Callable, Dict, Iterable
+from typing import Any, Callable, Dict, Iterable, Optional
 import warnings
+import weakref
 
 
 class Stack:
@@ -370,3 +371,9 @@ def hash_expr(expr: str) -> str:
     hasher = hashlib.shake_128()
     hasher.update(expr.encode())
     return hasher.hexdigest(8)
+
+
+def maybe_dereference(ref: Optional[weakref.ReferenceType]) -> Optional:
+    if ref is None:
+        return None
+    return ref()
