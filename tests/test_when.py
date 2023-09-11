@@ -1803,6 +1803,22 @@ def test_when_emit_asserts_tuple_elab():
     assert check_gold(__file__, "test_when_emit_asserts_tuple_elab.mlir")
 
 
+def _check_or_update(circ):
+    # We check verilog here because the alwcomb order was "legal" MLIR.
+    m.compile(f"build/{circ.name}", circ, output="mlir-verilog")
+
+    _file = f"{circ.name}.v"
+    if check_gold(__file__, _file):
+        return
+    verilator_path = os.path.join(
+        os.path.dirname(__file__),
+        "build",
+        _file
+    )
+    assert not os.system(f"verilator --lint-only {verilator_path}")
+    update_gold(__file__, _file)
+
+
 def test_when_alwcomb_order():
     class test_when_alwcomb_order(m.Circuit):
         io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[1]), O=m.Out(m.Bits[8]))
@@ -1815,26 +1831,11 @@ def test_when_alwcomb_order():
             x @= ~io.I
             io.O @= ~x
 
-    m.compile(
-        "build/test_when_alwcomb_order",
-        test_when_alwcomb_order,
-        output="mlir-verilog"
-    )
-
-    # We check verilog here because the alwcomb order was "legal" MLIR.
-    if check_gold(__file__, "test_when_alwcomb_order.v"):
-        return
-    verilator_path = os.path.join(
-        os.path.dirname(__file__),
-        "build",
-        "test_when_alwcomb_order.v"
-    )
-    assert not os.system(f"verilator --lint-only {verilator_path}")
-    update_gold(__file__, "test_when_alwcomb_order.v")
+    _check_or_update(test_when_alwcomb_order)
 
 
 def test_when_alwcomb_order_complex():
-    class test_when_alwcomb_order(m.Circuit):
+    class test_when_alwcomb_order_complex(m.Circuit):
         io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[2]), O=m.Out(m.Bits[8]))
         x = m.Bits[8]()
 
@@ -1850,22 +1851,7 @@ def test_when_alwcomb_order_complex():
             io.O @= ~x
             x @= ~io.I
 
-    m.compile(
-        "build/test_when_alwcomb_order_complex",
-        test_when_alwcomb_order,
-        output="mlir-verilog"
-    )
-
-    # We check verilog here because the alwcomb order was "legal" MLIR.
-    if check_gold(__file__, "test_when_alwcomb_order_complex.v"):
-        return
-    verilator_path = os.path.join(
-        os.path.dirname(__file__),
-        "build",
-        "test_when_alwcomb_order_complex.v"
-    )
-    assert not os.system(f"verilator --lint-only {verilator_path}")
-    update_gold(__file__, "test_when_alwcomb_order_complex.v")
+    _check_or_update(test_when_alwcomb_order_complex)
 
 
 def test_when_alwcomb_order_nested():
@@ -1873,7 +1859,7 @@ def test_when_alwcomb_order_nested():
         x = m.Bit
         y = m.Bits[8]
 
-    class test_when_alwcomb_order(m.Circuit):
+    class test_when_alwcomb_order_nested(m.Circuit):
         io = m.IO(I=m.In(T), S=m.In(m.Bit), O=m.Out(T))
         x = T()
 
@@ -1886,22 +1872,7 @@ def test_when_alwcomb_order_nested():
             x.x @= ~io.I.x
             x.y @= ~io.I.y
 
-    m.compile(
-        "build/test_when_alwcomb_order_nested",
-        test_when_alwcomb_order,
-        output="mlir-verilog"
-    )
-
-    # We check verilog here because the alwcomb order was "legal" MLIR.
-    if check_gold(__file__, "test_when_alwcomb_order_nested.v"):
-        return
-    verilator_path = os.path.join(
-        os.path.dirname(__file__),
-        "build",
-        "test_when_alwcomb_order_nested.v"
-    )
-    assert not os.system(f"verilator --lint-only {verilator_path}")
-    update_gold(__file__, "test_when_alwcomb_order_nested.v")
+    _check_or_update(test_when_alwcomb_order_nested)
 
 
 def test_when_alwcomb_order_nested_2():
@@ -1909,7 +1880,7 @@ def test_when_alwcomb_order_nested_2():
         x = m.Bit
         y = m.Bits[8]
 
-    class test_when_alwcomb_order(m.Circuit):
+    class test_when_alwcomb_order_nested_2(m.Circuit):
         io = m.IO(I=m.In(m.Array[3, T]), S=m.In(m.Bit), O=m.Out(T))
         x = T()
 
@@ -1921,22 +1892,7 @@ def test_when_alwcomb_order_nested_2():
             io.O.y @= x.y
             x @= io.I[2]
 
-    m.compile(
-        "build/test_when_alwcomb_order_nested_2",
-        test_when_alwcomb_order,
-        output="mlir-verilog"
-    )
-
-    # We check verilog here because the alwcomb order was "legal" MLIR.
-    if check_gold(__file__, "test_when_alwcomb_order_nested_2.v"):
-        return
-    verilator_path = os.path.join(
-        os.path.dirname(__file__),
-        "build",
-        "test_when_alwcomb_order_nested_2.v"
-    )
-    assert not os.system(f"verilator --lint-only {verilator_path}")
-    update_gold(__file__, "test_when_alwcomb_order_nested_2.v")
+    _check_or_update(test_when_alwcomb_order_nested_2)
 
 
 # TODO: In this case, we'll generate elaborated assignments, but it should
