@@ -55,8 +55,7 @@ def _ascend_to_leaf(value, leaves):
     ref = value.name
     if isinstance(ref, TupleRef):
         path = _ascend_to_leaf(ref.tuple, leaves)
-        key = tuple_key_to_str(ref.index, type(ref.tuple))
-        return path + [f".{key}"]
+        return path + [f".{tuple_key_to_str(ref.index, type(ref.tuple))}"]
     if isinstance(ref, ArrayRef):
         path = _ascend_to_leaf(ref.array, leaves)
         return path + [f"[{ref.index}]"]
@@ -93,12 +92,11 @@ def get_xmr_paths(ctx: 'HardwareModule', xmr: PortView) -> List[Tuple[str]]:
     #     leaf to the value referred to, joined with ".", since these are not
     #     flattened.
     root = xmr.port.name.root().value()
-    flatten_all_tuples = ctx.opts.flatten_all_tuples
     tree = magma_value_or_value_wrapper_to_tree(
-        root, flatten_all_tuples=flatten_all_tuples)
+        root, flatten_all_tuples=ctx.opts.flatten_all_tuples)
     assert tree.has_node(root)
 
-    separator = "_" if flatten_all_tuples else "."
+    separator = "_" if ctx.opts.flatten_all_tuples else "."
     # (1)
     if tree.has_node(xmr.port):  # visited
         path = _get_path_string(tree, xmr.port, separator)

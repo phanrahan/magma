@@ -565,14 +565,16 @@ def _get_builder_port(value, builder):
     return port
 
 
-def _emit_when_assert(cond, drivee, driver, builder, assignment_map,
-                      flatten_all_tuples):
+def _emit_when_assert(
+    cond, drivee, driver, builder, assignment_map, flatten_all_tuples
+):
     if _contains_tuple(type(drivee)) and flatten_all_tuples:
         # Since tuples are elaborated in verilog, we emit an assert for the
         # leaf values.
         for x, y in zip(drivee, driver):
-            _emit_when_assert(cond, x, y, builder, assignment_map,
-                              flatten_all_tuples)
+            _emit_when_assert(
+                cond, x, y, builder, assignment_map, flatten_all_tuples
+            )
         return
 
     port = _get_builder_port(drivee, builder)
@@ -608,8 +610,9 @@ def _make_else_cond(block, precond):
     return ~block.condition
 
 
-def _emit_default_driver_asserts(block, builder, assignment_map,
-                                 flatten_all_tuples):
+def _emit_default_driver_asserts(
+    block, builder, assignment_map, flatten_all_tuples
+):
     for wire in list(block.root.default_drivers()):
         port = _get_builder_port(wire.drivee, builder)
         assigned_conds = assignment_map[port]
@@ -617,13 +620,22 @@ def _emit_default_driver_asserts(block, builder, assignment_map,
             continue
         cond = ~functools.reduce(operator.or_, assigned_conds)
         _emit_when_assert(
-            cond, wire.drivee, wire.driver, builder, defaultdict(list),
+            cond,
+            wire.drivee,
+            wire.driver,
+            builder,
+            defaultdict(list),
             flatten_all_tuples
         )
 
 
-def emit_when_assertions(block, builder, flatten_all_tuples, precond=None,
-                         assignment_map=defaultdict(list)):
+def emit_when_assertions(
+    block,
+    builder,
+    flatten_all_tuples,
+    precond=None,
+    assignment_map=defaultdict(list)
+):
     """
     For each drivee in a conditional wire, track the conditions where it is
     assigned using assignment_map.  This is used for the default driver logic
@@ -643,16 +655,19 @@ def emit_when_assertions(block, builder, flatten_all_tuples, precond=None,
 
     for child in block.children():
         # Children inherit this block's cond as a precond.
-        emit_when_assertions(child, builder, flatten_all_tuples, cond,
-                             assignment_map)
+        emit_when_assertions(
+            child, builder, flatten_all_tuples, cond, assignment_map
+        )
     else_block = _get_else_block(block)
     if else_block:
         else_cond = _make_else_cond(block, precond)
-        emit_when_assertions(else_block, builder, flatten_all_tuples,
-                             else_cond, assignment_map)
+        emit_when_assertions(
+            else_block, builder, flatten_all_tuples, else_cond, assignment_map
+        )
     if block is block.root:
-        _emit_default_driver_asserts(block, builder, assignment_map,
-                                     flatten_all_tuples)
+        _emit_default_driver_asserts(
+            block, builder, assignment_map, flatten_all_tuples
+        )
 
 
 def when(cond):

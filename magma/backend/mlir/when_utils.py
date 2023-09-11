@@ -15,6 +15,21 @@ from magma.ref import TupleRef, DerivedRef
 from magma.value_utils import make_selector
 
 
+class _IndexBuilder:
+    """Stages getitem/getattr calls by appending them to a tuple"""
+
+    def __init__(self):
+        self.index = tuple()
+
+    def __getitem__(self, idx):
+        self.index += (idx,)
+        return self
+
+    def __getattr__(self, idx):
+        self.index += (idx,)
+        return self
+
+
 class WhenCompiler:
     def __init__(self, module_visitor, module):
         self._module_visitor = module_visitor
@@ -133,18 +148,6 @@ class WhenCompiler:
         wire, parent = self._get_parent(val, collection, to_index)
         if wire is None:
             return None, None
-
-        class _IndexBuilder:
-            def __init__(self):
-                self.index = tuple()
-
-            def __getitem__(self, idx):
-                self.index += (idx,)
-                return self
-
-            def __getattr__(self, idx):
-                self.index += (idx,)
-                return self
 
         builder = _IndexBuilder()
         make_selector(val, stop_at=parent).select(builder)

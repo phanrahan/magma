@@ -18,10 +18,10 @@ class InferLatches(WhenPass):
 class EmitWhenAsserts(WhenPass):
     def __init__(self, main, flatten_all_tuples):
         super().__init__(main)
-        self.flatten_all_tuples = flatten_all_tuples
+        self._flatten_all_tuples = flatten_all_tuples
 
     def process_when_builder(self, builder, defn):
-        builder.emit_when_assertions(self.flatten_all_tuples)
+        builder.emit_when_assertions(self._flatten_all_tuples)
 
 
 class FinalizeWhens(WhenPass):
