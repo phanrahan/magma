@@ -1829,9 +1829,7 @@ def test_when_alwcomb_order():
         "build",
         "test_when_alwcomb_order.v"
     )
-    assert not os.system(
-        f"verilator --lint-only {verilator_path}"
-    )
+    assert not os.system(f"verilator --lint-only {verilator_path}")
     update_gold(__file__, "test_when_alwcomb_order.v")
 
 
@@ -1866,9 +1864,7 @@ def test_when_alwcomb_order_complex():
         "build",
         "test_when_alwcomb_order_complex.v"
     )
-    assert not os.system(
-        f"verilator --lint-only {verilator_path}"
-    )
+    assert not os.system(f"verilator --lint-only {verilator_path}")
     update_gold(__file__, "test_when_alwcomb_order_complex.v")
 
 
@@ -1904,9 +1900,7 @@ def test_when_alwcomb_order_nested():
         "build",
         "test_when_alwcomb_order_nested.v"
     )
-    assert not os.system(
-        f"verilator --lint-only {verilator_path}"
-    )
+    assert not os.system(f"verilator --lint-only {verilator_path}")
     update_gold(__file__, "test_when_alwcomb_order_nested.v")
 
 
@@ -1941,9 +1935,7 @@ def test_when_alwcomb_order_nested_2():
         "build",
         "test_when_alwcomb_order_nested_2.v"
     )
-    assert not os.system(
-        f"verilator --lint-only {verilator_path}"
-    )
+    assert not os.system(f"verilator --lint-only {verilator_path}")
     update_gold(__file__, "test_when_alwcomb_order_nested_2.v")
 
 

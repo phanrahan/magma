@@ -1,6 +1,7 @@
 from magma.passes.passes import DefinitionPass, pass_lambda
+from magma.passes.split_when_utils import split_when_cycles
 from magma.primitives.when import WhenBuilder
-from magma.when import split_when_cycles
+from magma.when import WhenBlock
 
 
 class WhenPass(DefinitionPass):

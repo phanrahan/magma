@@ -70,14 +70,14 @@ class ConditionalWire:
 
 
 class _BlockBase(contextlib.AbstractContextManager):
-    def __init__(self, parent: Optional['_WhenBlock']):
+    def __init__(self, parent: Optional['WhenBlock']):
         self._parent = parent
         self._children = list()
         self._conditional_wires = list()
         self._default_drivers = dict()
 
-    def spawn(self, info: '_WhenBlockInfo') -> '_WhenBlock':
-        child = _WhenBlock(self, info)
+    def spawn(self, info: '_WhenBlockInfo') -> 'WhenBlock':
+        child = WhenBlock(self, info)
         self._children.append(child)
         return child
 
@@ -108,7 +108,7 @@ class _BlockBase(contextlib.AbstractContextManager):
 
     @property
     @abc.abstractmethod
-    def root(self) -> '_WhenBlock':
+    def root(self) -> 'WhenBlock':
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -252,7 +252,7 @@ class _ElseWhenBlockInfo(_WhenBlockInfo):
     pass
 
 
-class _WhenBlock(_BlockBase):
+class WhenBlock(_BlockBase):
     def __init__(
             self,
             parent: Optional[_BlockBase],
@@ -272,14 +272,14 @@ class _WhenBlock(_BlockBase):
                 self._builder.debug_info = debug_info
 
     def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
-        block = _ElseWhenBlock(self, info)
+        block = ElseWhenBlock(self, info)
         self._elsewhens.append(block)
         return block
 
     def new_otherwise_block(self):
         if self._otherwise is not None:
             raise WhenSyntaxError()
-        block = _OtherwiseBlock(self)
+        block = OtherwiseBlock(self)
         self._otherwise = block
         return block
 
@@ -290,7 +290,7 @@ class _WhenBlock(_BlockBase):
         return self._builder
 
     @property
-    def root(self) -> '_WhenBlock':
+    def root(self) -> 'WhenBlock':
         if self._parent is None:
             return self
         return self._parent.root
@@ -316,7 +316,7 @@ class _WhenBlock(_BlockBase):
         return self._parent
 
 
-class _ElseWhenBlock(_BlockBase):
+class ElseWhenBlock(_BlockBase):
     def __init__(self, parent: Optional[_BlockBase], info: _ElseWhenBlockInfo):
         super().__init__(parent)
         self._info = info
@@ -328,7 +328,7 @@ class _ElseWhenBlock(_BlockBase):
         return self._parent.new_otherwise_block()
 
     @property
-    def root(self) -> _WhenBlock:
+    def root(self) -> WhenBlock:
         return self._parent.root
 
     @property
@@ -346,7 +346,7 @@ class _ElseWhenBlock(_BlockBase):
         return self._parent._get_exit_block()
 
 
-class _OtherwiseBlock(_BlockBase):
+class OtherwiseBlock(_BlockBase):
     def new_elsewhen_block(self, _):
         raise ElsewhenWithoutPrecedingWhenError()
 
@@ -354,7 +354,7 @@ class _OtherwiseBlock(_BlockBase):
         raise OtherwiseWithoutPrecedingWhenError()
 
     @property
-    def root(self) -> _WhenBlock:
+    def root(self) -> WhenBlock:
         return self._parent.root
 
     @property
@@ -434,18 +434,18 @@ reset_context = _reset_context
 
 
 def _get_else_block(block: _BlockBase) -> Optional[_BlockBase]:
-    if isinstance(block, _OtherwiseBlock):
+    if isinstance(block, OtherwiseBlock):
         return None
-    if isinstance(block, _ElseWhenBlock):
-        # TODO(rsetaluri): We could augment _ElseWhenBlock to keep track of its
+    if isinstance(block, ElseWhenBlock):
+        # TODO(rsetaluri): We could augment ElseWhenBlock to keep track of its
         # index in the parent block, or alternatively keep an explicit pointer
-        # to the next else/otherwise block in each _ElseWhenBlock.
+        # to the next else/otherwise block in each ElseWhenBlock.
         parent_elsewhen_blocks = list(block._parent.elsewhen_blocks())
         index = parent_elsewhen_blocks.index(block) + 1
         if index == len(parent_elsewhen_blocks):
             return block._parent.otherwise_block
         return parent_elsewhen_blocks[index]
-    if isinstance(block, _WhenBlock):
+    if isinstance(block, WhenBlock):
         try:
             else_block = next(block.elsewhen_blocks())
         except StopIteration:
@@ -464,9 +464,9 @@ def _get_then_ops(block: _BlockBase) -> Iterable[_Op]:
 
 
 def _get_else_ops(block: _BlockBase) -> Iterable[_Op]:
-    if isinstance(block, _OtherwiseBlock):
+    if isinstance(block, OtherwiseBlock):
         return _get_then_ops(block)
-    if isinstance(block, _ElseWhenBlock):
+    if isinstance(block, ElseWhenBlock):
         return (block,)
     raise TypeError(block)
 
@@ -535,7 +535,7 @@ def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
 
 
 def find_inferred_latches(block: _BlockBase) -> Set:
-    if not (isinstance(block, _WhenBlock) and block.root is block):
+    if not (isinstance(block, WhenBlock) and block.root is block):
         raise TypeError("Can only find inferred latches on root when block")
     ops = tuple(block.default_drivers()) + (block,)
     _, latches = _get_assignees_and_latches(ops)
@@ -676,7 +676,7 @@ def when(cond):
     info = _WhenBlockInfo(cond)
     curr_block = _get_curr_block()
     if curr_block is None:
-        return _WhenBlock(None, info, get_debug_info(3))
+        return WhenBlock(None, info, get_debug_info(3))
     return curr_block.spawn(info)
 
 
@@ -695,71 +695,3 @@ def otherwise():
     if prev_block is None:
         raise OtherwiseWithoutPrecedingWhenError()
     return prev_block.new_otherwise_block()
-
-
-def _get_builder_ports(builder, names):
-    """Filter out removed ports."""
-    return [getattr(builder, name) for name in names if hasattr(builder, name)]
-
-
-def _check_to_split(value, outputs, to_split):
-    source = value.trace()
-    for elem in source.root_iter():
-        if any(elem is output for output in outputs):
-            to_split.append(source)
-            return
-    if value.has_children() and value.has_elaborated_children():
-        for _, child in value.enumerate_children():
-            _check_to_split(child, outputs, to_split)
-
-
-def _find_values_to_split(builder):
-    """Detect output values that feed into inputs."""
-    to_split = []
-    outputs = _get_builder_ports(builder, builder.output_to_name.values())
-    inputs = _get_builder_ports(builder, builder.input_to_name.values())
-    for value in inputs:
-        _check_to_split(value, outputs, to_split)
-    return to_split
-
-
-def _emit_new_when_assign(value, driver_map, curr_block):
-    """Reconstruct when logic in new set of blocks."""
-    if isinstance(curr_block, _WhenBlock):
-        new_block = when(curr_block._info.condition)
-    elif isinstance(curr_block, _ElseWhenBlock):
-        new_block = elsewhen(curr_block._info.condition)
-    elif isinstance(curr_block, _OtherwiseBlock):
-        new_block = otherwise()
-    with new_block:
-        if curr_block in driver_map:
-            for driver in driver_map[curr_block]:
-                value @= driver
-        for child in curr_block.children():
-            _emit_new_when_assign(value, driver_map, child)
-    for _elsewhen in curr_block.elsewhen_blocks():
-        _emit_new_when_assign(value, driver_map, _elsewhen)
-    if curr_block.otherwise_block:
-        _emit_new_when_assign(value, driver_map, curr_block.otherwise_block)
-
-
-def _build_driver_map(drivee):
-    """
-    driver_map: for each context that drivee is driven, store the driver
-    """
-    driver_map = {}
-    for ctx in drivee._wired_when_contexts:
-        wires = ctx.get_conditional_wires_for_drivee(drivee)
-        driver_map[ctx] = (wire.driver for wire in wires)
-    return driver_map
-
-
-def split_when_cycles(builder, defn):
-    to_split = _find_values_to_split(builder)
-    for value in to_split:
-        driving = value.driving()
-        driver_map = _build_driver_map(driving[0])
-        for drivee in driving:
-            drivee.unwire()
-            root = next(iter(driver_map.keys())).root
-            _emit_new_when_assign(drivee, driver_map, root)
