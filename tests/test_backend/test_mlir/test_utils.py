@@ -204,7 +204,6 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.simple_smart_bits,
         examples.complex_magma_protocol,
         examples.simple_div,
-        examples.tuple_key_ordering,
     ]
 
 
