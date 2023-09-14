@@ -333,8 +333,8 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             )
             return
 
-        for k in self.keys():
-            if not type(self)[k].is_wireable(type(o)[k]):
+        for i, k in enumerate(self.keys()):
+            if not type(self)[i].is_wireable(type(o)[i]):
                 _logger.error(
                     WiringLog(f"Cannot wire {{}} (type={type(o)}, to "
                               f" {{}} (type={type(self)})"
