@@ -2,6 +2,7 @@ import pytest
 
 import magma as m
 from magma import *
+from magma.testing.utils import has_error
 
 
 def test_pair():
@@ -359,16 +360,17 @@ def test_mixed_direction_lazy_resolve(caplog):
     assert not caplog.messages, "Should not raise wiring errors"
 
 
-def test_key_ordering():
+def test_tuple_key_ordering(caplog):
     T0 = m.AnonProduct[{"x": m.Bit, "y": m.Bits[8]}]
     T1 = m.AnonProduct[{"y": m.Bits[8], "x": m.Bit}]
 
-    class Foo(m.Circuit):
+    class tuple_key_ordering(m.Circuit):
         io = m.IO(I=m.In(T0), O=m.Out(T1))
-        x = m.Register(m.Bit)()
-        x.I @= io.I.x
         io.O @= io.I
 
-    assert Foo.io.O.value().x is Foo.io.I.x
-    assert Foo.io.O.value().y is Foo.io.I.y
-    assert Foo.x.I.value() is Foo.io.I.x
+    msg = """\
+\033[1mtests/test_type/test_tuple.py:368\033[0m: Cannot wire tuple_key_ordering.I (type=Tuple(x=Out(Bit),y=Out(Bits[8])), keys=['y', 'x']) to  tuple_key_ordering.O (type=Tuple(y=In(Bits[8]),x=In(Bit)), keys=['x', 'y']) because the tuples do not have the same keys
+>>         io.O @= io.I\
+"""
+
+    assert has_error(caplog, "")
