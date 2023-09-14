@@ -163,7 +163,8 @@ class TupleKind(TupleMeta, Kind):
         if not isinstance(rhs, TupleKind) or len(cls.fields) != len(rhs.fields):
             return False
         for idx, T in enumerate(cls.fields):
-            if not T.is_wireable(rhs[idx]):
+            T = magma_type(T)
+            if not T.is_wireable(magma_type(rhs[idx])):
                 return False
         return True
 
@@ -172,7 +173,8 @@ class TupleKind(TupleMeta, Kind):
         if not isinstance(rhs, TupleKind) or len(cls.fields) != len(rhs.fields):
             return False
         for idx, T in enumerate(cls.fields):
-            if not T.is_bindable(rhs[idx]):
+            T = magma_type(T)
+            if not T.is_bindable(magma_type(rhs[idx])):
                 return False
         return True
 
@@ -589,7 +591,8 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         ):
             return False
         for k, v in cls.field_dict.items():
-            if k not in rhs.field_dict or not v.is_wireable(rhs.field_dict[k]):
+            v = magma_type(v)
+            if not v.is_wireable(magma_type(rhs.field_dict[k])):
                 return False
         return True
 
@@ -597,11 +600,12 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         rhs = magma_type(rhs)
         if (
             not isinstance(rhs, AnonProductKind) or
-            len(cls.fields) != len(rhs.fields)
+            list(cls.field_dict.keys()) != list(rhs.field_dict.keys())
         ):
             return False
         for k, v in cls.field_dict.items():
-            if k not in rhs.field_dict or not v.is_bindable(rhs.field_dict[k]):
+            v = magma_type(v)
+            if not v.is_bindable(magma_type(rhs.field_dict[k])):
                 return False
         return True
 
