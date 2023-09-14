@@ -1,16 +1,16 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables"} {
-    hw.module @test_when_tuple_as_bits_resolve_False(%I: !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>, %S: i1) -> (O: !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>, X: i34) {
-        %0 = hw.struct_extract %I["x"] : !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>
-        %1 = hw.struct_extract %0["x"] : !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>
+    hw.module @test_when_tuple_as_bits_resolve_False(%I: !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>, %S: i1) -> (O: !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>, X: i34) {
+        %0 = hw.struct_extract %I["x"] : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>
+        %1 = hw.struct_extract %0["x"] : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>
         %3 = hw.constant 0 : i1
         %2 = hw.array_get %1[%3] : !hw.array<2xi8>, i1
         %5 = hw.constant 1 : i1
         %4 = hw.array_get %1[%5] : !hw.array<2xi8>, i1
-        %6 = hw.struct_extract %0["y"] : !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>
-        %7 = hw.struct_extract %0["z"] : !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>
+        %6 = hw.struct_extract %0["y"] : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>
+        %7 = hw.struct_extract %0["z"] : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>
         %9 = hw.array_create %7, %7 : !hw.struct<x: i8, y: i1>
         %8 = hw.array_get %9[%S] : !hw.array<2x!hw.struct<x: i8, y: i1>>, i1
-        %10 = hw.struct_extract %I["y"] : !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>
+        %10 = hw.struct_extract %I["y"] : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>
         %16 = sv.reg : !hw.inout<i8>
         %11 = sv.read_inout %16 : !hw.inout<i8>
         %17 = sv.reg : !hw.inout<i8>
@@ -199,7 +199,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %154 = sv.read_inout %155 : !hw.inout<i1>
         %156 = comb.concat %154, %151, %148, %145, %142, %139, %136, %133 : i1, i1, i1, i1, i1, i1, i1, i1
         %157 = hw.array_create %156, %131 : i8
-        %158 = hw.struct_create (%157, %75, %106) : !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>
+        %158 = hw.struct_create (%75, %106, %157) : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>
         %159 = comb.extract %15 from 0 : (i8) -> i1
         %161 = sv.wire sym @test_when_tuple_as_bits_resolve_False._WHEN_ASSERT_26 name "_WHEN_ASSERT_26" : !hw.inout<i1>
         sv.assign %161, %159 : i1
@@ -233,7 +233,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         sv.assign %182, %180 : i1
         %181 = sv.read_inout %182 : !hw.inout<i1>
         %183 = comb.concat %181, %178, %175, %172, %169, %166, %163, %160 : i1, i1, i1, i1, i1, i1, i1, i1
-        %184 = hw.struct_create (%158, %183) : !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>
+        %184 = hw.struct_create (%158, %183) : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>
         %185 = comb.concat %181, %178, %175, %172, %169, %166, %163, %160, %154, %151, %148, %145, %142, %139, %136, %133, %129, %126, %123, %120, %117, %114, %111, %108, %104, %100, %97, %94, %91, %88, %85, %82, %79, %75 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
         sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %75, %6) : i1, i1, i1
         %186 = hw.struct_extract %8["y"] : !hw.struct<x: i8, y: i1>
@@ -357,6 +357,6 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         sv.verbatim "WHEN_ASSERT_66: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%238, %178, %230) : i1, i1, i1
         %239 = comb.xor %213, %212 : i1
         sv.verbatim "WHEN_ASSERT_67: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%239, %181, %231) : i1, i1, i1
-        hw.output %184, %185 : !hw.struct<x: !hw.struct<x: !hw.array<2xi8>, y: i1, z: !hw.struct<x: i8, y: i1>>, y: i8>, i34
+        hw.output %184, %185 : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>, i34
     }
 }
