@@ -330,6 +330,18 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 debug_info=debug_info
             )
             return
+
+        for k in self.keys():
+            if not type(self[k]).is_wireable(type(o[k])):
+                _logger.error(
+                    WiringLog(f"Cannot wire {{}} (type={type(o)}, to "
+                              f" {{}} (type={type(self)})"
+                              f"because the key {k} is not wireable",
+                              o, self),
+                    debug_info=debug_info
+                )
+                return
+
         if self._should_wire_children(o):
             for self_elem, o_elem in zip(self, o):
                 self_elem = magma_value(self_elem)
@@ -585,7 +597,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         rhs = magma_type(rhs)
         if (
             not isinstance(rhs, AnonProductKind) or
-            len(cls.fields) != len(rhs.fields)
+            list(cls.fields) != list(rhs.fields)
         ):
             return False
         for k, v in cls.field_dict.items():
@@ -597,7 +609,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         rhs = magma_type(rhs)
         if (
             not isinstance(rhs, AnonProductKind) or
-            len(cls.fields) != len(rhs.fields)
+            list(cls.fields) != list(rhs.fields)
         ):
             return False
         for k, v in cls.field_dict.items():
