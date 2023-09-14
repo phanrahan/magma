@@ -320,7 +320,6 @@ class WhenBuilder(CircuitBuilder):
             temp = Wire(type(port).undirected_t, flatten=False)(name=name)
             for value in port.driving():
                 _rewire_driven_value_or_values(value, temp.O)
-            assert not port.driving()
             temp.I @= port
             self._when_assert_wires[port] = temp.O
         return self._when_assert_wires[port]

@@ -187,12 +187,6 @@ class TupleKind(TupleMeta, Kind):
 
     __hash__ = TupleMeta.__hash__
 
-    def sorted_field_dict_items(cls):
-        return sorted(cls.field_dict.items(), key=lambda x: x[0])
-
-    def sorted_fields(cls):
-        return sorted(cls.fields, key=lambda x: x[0])
-
 
 class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
@@ -326,7 +320,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             )
             return
 
-        if self.keys() != o.keys():
+        if list(self.keys()) != list(o.keys()):
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}, "
                           f"keys={list(self.keys())}) to "
@@ -336,6 +330,18 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 debug_info=debug_info
             )
             return
+
+        for k in self.keys():
+            if not type(self[k]).is_wireable(type(o[k])):
+                _logger.error(
+                    WiringLog(f"Cannot wire {{}} (type={type(o)}, to "
+                              f" {{}} (type={type(self)})"
+                              f"because the key {k} is not wireable",
+                              o, self),
+                    debug_info=debug_info
+                )
+                return
+
         if self._should_wire_children(o):
             for key in self.keys():
                 self_elem = magma_value(self[key])
@@ -591,7 +597,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         rhs = magma_type(rhs)
         if (
             not isinstance(rhs, AnonProductKind) or
-            len(cls.fields) != len(rhs.fields)
+            list(cls.fields) != list(rhs.fields)
         ):
             return False
         for k, v in cls.field_dict.items():
@@ -603,7 +609,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         rhs = magma_type(rhs)
         if (
             not isinstance(rhs, AnonProductKind) or
-            len(cls.fields) != len(rhs.fields)
+            list(cls.fields) != list(rhs.fields)
         ):
             return False
         for k, v in cls.field_dict.items():
