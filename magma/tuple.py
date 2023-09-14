@@ -332,6 +332,18 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 debug_info=debug_info
             )
             return
+
+        for k in self.keys():
+            if not type(self)[k].is_wireable(type(o)[k]):
+                _logger.error(
+                    WiringLog(f"Cannot wire {{}} (type={type(o)}, to "
+                              f" {{}} (type={type(self)})"
+                              f"because the key {k} is not wireable",
+                              o, self),
+                    debug_info=debug_info
+                )
+                return
+
         if self._should_wire_children(o):
             for key in self.keys():
                 self_elem = magma_value(self[key])
