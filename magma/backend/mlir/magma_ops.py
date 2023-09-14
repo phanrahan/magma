@@ -75,7 +75,7 @@ def MagmaTupleCreateOp(T: TupleMeta):
     assert isinstance(T, TupleMeta)
     T = T.undirected_t
     name = f"magma_tuple_create_op_{value_or_type_to_string(T)}"
-    ports = {f"I{k}": In(t) for k, t in T.sorted_field_dict_items()}
+    ports = {f"I{k}": In(t) for k, t in T.field_dict.items()}
     ports.update(dict(O=Out(T)))
     return InstanceWrapper(name, ports, {})
 
