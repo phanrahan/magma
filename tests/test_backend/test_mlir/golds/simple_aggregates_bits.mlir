@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @simple_aggregates_bits(%a: i16) -> (y: i16, z: i8) {
         %0 = comb.extract %a from 8 : (i16) -> i8
         %1 = comb.extract %a from 0 : (i16) -> i8

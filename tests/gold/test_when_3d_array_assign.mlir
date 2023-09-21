@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_3d_array_assign(%I: !hw.array<2x!hw.array<2xi2>>, %S: i1) -> (O: !hw.array<2x!hw.array<2xi2>>) {
         %1 = sv.reg : !hw.inout<!hw.array<2x!hw.array<2xi2>>>
         %0 = sv.read_inout %1 : !hw.inout<!hw.array<2x!hw.array<2xi2>>>

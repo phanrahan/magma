@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_lazy_array_slice_driving_resolve(%S: i1) -> (O: i4) {
         %0 = hw.constant 1 : i1
         %1 = hw.constant 2 : i4

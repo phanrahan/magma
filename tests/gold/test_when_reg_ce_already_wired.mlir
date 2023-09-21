@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_reg_ce_already_wired(%I: i8, %x: i1, %y: i1, %CLK: i1) -> (O: i8) {
         %2 = sv.reg : !hw.inout<i8>
         %1 = sv.read_inout %2 : !hw.inout<i8>

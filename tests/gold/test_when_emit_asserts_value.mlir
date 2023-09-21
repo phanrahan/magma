@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_emit_asserts_value(%S: i3, %O_ready: i1, %CLK: i1) -> (O_valid: i1, O_data_x: i1, O_data_y: i8) {
         %0 = hw.constant 0 : i1
         %1 = comb.extract %S from 0 : (i3) -> i1

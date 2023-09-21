@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_lazy_array_multiple_whens(%I: i4, %S: i1) -> (O: i4) {
         %1 = hw.constant -1 : i1
         %0 = comb.xor %1, %S : i1

@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Top(%I: i1) -> (O: i1) {
         %1 = sv.wire sym @Top._magma_bind_wire_0 name "_magma_bind_wire_0" : !hw.inout<i1>
         sv.assign %1, %I : i1

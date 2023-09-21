@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @COND_compile_guard(%port_0: i1) -> () {
         %1 = sv.wire sym @COND_compile_guard.corebit_undriven_inst0 : !hw.inout<i1>
         %0 = sv.read_inout %1 : !hw.inout<i1>
