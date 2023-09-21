@@ -35,15 +35,8 @@ def _push_compile_guard_builder_stack(builder: '_CompileGuardBuilder'):
 
 
 def get_active_compile_guard_info() -> Iterable['CompileGuardInfo']:
-    stack = _get_compile_guard_builder_stack()
-    offset = 0
-    while True:
-        try:
-            builder = stack.peek(offset=offset)
-        except IndexError:
-            break
+    for builder in _get_compile_guard_builder_stack():
         yield builder.info
-        offset += 1
 
 
 @dataclasses.dataclass(frozen=True)

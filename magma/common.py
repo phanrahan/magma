@@ -21,14 +21,17 @@ class Stack:
     def pop(self):
         return self._stack.pop()
 
-    def peek(self, offset: int = 0):
-        return self._stack[-1 - offset]
+    def peek(self):
+        return self._stack[-1]
 
-    def peek_default(self, default: Any, offset: int = 0) -> Any:
+    def peek_default(self, default: Any) -> Any:
         try:
-            return self._stack[-1 - offset]
+            return self._stack[-1]
         except IndexError:
             return default
+
+    def __iter__(self) -> Iterable[Any]:
+        return iter(reversed(self._stack))
 
     def __bool__(self) -> bool:
         return bool(self._stack)
