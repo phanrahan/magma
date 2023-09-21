@@ -198,11 +198,9 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
         self.parent = weakref.ref(parent)
 
     def parent_op(self) -> Optional['MlirOp']:
-        block = maybe_dereference(self.parent)
-        if block is None:
+        if (block := maybe_dereference(self.parent)) is None:
             return None
-        region = maybe_dereference(block.parent)
-        if region is None:
+        if (region := maybe_dereference(block.parent)) is None:
             return None
         return maybe_dereference(region.parent)
 
