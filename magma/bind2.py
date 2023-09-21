@@ -25,29 +25,20 @@ class BoundInstanceInfo:
     compile_guards: List[CompileGuardInfo]
 
 
-class UnboundInstanceError(TypeError):
-    pass
-
-
 def set_bound_instance_info(inst: CircuitType, info: BoundInstanceInfo):
     global _BOUND_INSTANCE_INFO_KEY
     setattr(inst, _BOUND_INSTANCE_INFO_KEY, info)
 
 
-def get_bound_instance_info(inst: CircuitType) -> BoundInstanceInfo:
+def maybe_get_bound_instance_info(
+        inst: CircuitType
+) -> Optional[BoundInstanceInfo]:
     global _BOUND_INSTANCE_INFO_KEY
-    try:
-        return getattr(inst, _BOUND_INSTANCE_INFO_KEY)
-    except AttributeError:
-        raise UnboundInstanceError(inst) from None
+    return getattr(inst, _BOUND_INSTANCE_INFO_KEY, None)
 
 
 def is_bound_instance(inst: CircuitType) -> bool:
-    try:
-        get_bound_instance_info(inst)
-    except UnboundInstanceError:
-        return False
-    return True
+    return maybe_get_bound_instance_info(inst) is not None
 
 
 def set_is_bound_module(defn: CircuitKind, value: bool = True):

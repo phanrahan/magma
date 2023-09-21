@@ -7,7 +7,7 @@ import magma as m
 from magma.bind2 import (
     is_bound_module,
     is_bound_instance,
-    get_bound_instance_info,
+    maybe_get_bound_instance_info,
 )
 from magma.passes.passes import CircuitPass
 import magma.testing
@@ -178,8 +178,9 @@ def test_compile_guard(backend, split_verilog):
     assert is_bound_module(TopCompileGuardAsserts)
     inst = Top.instances[-1]
     assert is_bound_instance(inst)
-    compile_guard_infos = get_bound_instance_info(inst).compile_guards
+    compile_guard_infos = maybe_get_bound_instance_info(inst).compile_guards
     assert len(compile_guard_infos) == 1
+    assert compile_guard_infos[0] is not None
     assert compile_guard_infos[0].condition_str == "ASSERT_ON"
 
     basename = f"test_bind2_compile_guard"
