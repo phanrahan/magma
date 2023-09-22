@@ -70,14 +70,14 @@ class ConditionalWire:
 
 
 class _BlockBase(contextlib.AbstractContextManager):
-    def __init__(self, parent: Optional['_WhenBlock']):
+    def __init__(self, parent: Optional['WhenBlock']):
         self._parent = parent
         self._children = list()
         self._conditional_wires = list()
         self._default_drivers = dict()
 
-    def spawn(self, info: '_WhenBlockInfo') -> '_WhenBlock':
-        child = _WhenBlock(self, info)
+    def spawn(self, info: 'WhenBlockInfo') -> 'WhenBlock':
+        child = WhenBlock(self, info)
         self._children.append(child)
         return child
 
@@ -108,7 +108,7 @@ class _BlockBase(contextlib.AbstractContextManager):
 
     @property
     @abc.abstractmethod
-    def root(self) -> '_WhenBlock':
+    def root(self) -> 'WhenBlock':
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -241,22 +241,22 @@ def get_all_blocks(
 
 
 @dataclasses.dataclass
-class _WhenBlockInfo:
+class WhenBlockInfo:
     # NOTE(leonardt): We can't use Bit here because of circular dependency, so
     # instead we enforce it in the public constructors (e.g. m.when).
     condition: Any
 
 
 @dataclasses.dataclass
-class ElseWhenBlockInfo(_WhenBlockInfo):
+class ElseWhenBlockInfo(WhenBlockInfo):
     pass
 
 
-class _WhenBlock(_BlockBase):
+class WhenBlock(_BlockBase):
     def __init__(
             self,
             parent: Optional[_BlockBase],
-            info: _WhenBlockInfo,
+            info: WhenBlockInfo,
             debug_info: Optional[DebugInfo] = None,
     ):
         super().__init__(parent)
@@ -290,7 +290,7 @@ class _WhenBlock(_BlockBase):
         return self._builder
 
     @property
-    def root(self) -> '_WhenBlock':
+    def root(self) -> 'WhenBlock':
         if self._parent is None:
             return self
         return self._parent.root
@@ -328,7 +328,7 @@ class ElseWhenBlock(_BlockBase):
         return self._parent.new_otherwise_block()
 
     @property
-    def root(self) -> _WhenBlock:
+    def root(self) -> WhenBlock:
         return self._parent.root
 
     @property
@@ -354,7 +354,7 @@ class OtherwiseBlock(_BlockBase):
         raise OtherwiseWithoutPrecedingWhenError()
 
     @property
-    def root(self) -> _WhenBlock:
+    def root(self) -> WhenBlock:
         return self._parent.root
 
     @property
@@ -445,7 +445,7 @@ def _get_else_block(block: _BlockBase) -> Optional[_BlockBase]:
         if index == len(parent_elsewhen_blocks):
             return block._parent.otherwise_block
         return parent_elsewhen_blocks[index]
-    if isinstance(block, _WhenBlock):
+    if isinstance(block, WhenBlock):
         try:
             else_block = next(block.elsewhen_blocks())
         except StopIteration:
@@ -535,7 +535,7 @@ def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
 
 
 def find_inferred_latches(block: _BlockBase) -> Set:
-    if not (isinstance(block, _WhenBlock) and block.root is block):
+    if not (isinstance(block, WhenBlock) and block.root is block):
         raise TypeError("Can only find inferred latches on root when block")
     ops = tuple(block.default_drivers()) + (block,)
     _, latches = _get_assignees_and_latches(ops)
