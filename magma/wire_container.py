@@ -329,9 +329,6 @@ class AggregateWireable(Wireable):
     def _enumerate_children(self):
         raise NotImplementedError()
 
-    def enumerate_children(self):
-        return self._enumerate_children()
-
     def _get_conditional_drivee_info(self):
         """
         * wired_when_contexts: list of contexts in which this value appears as
