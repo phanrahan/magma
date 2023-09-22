@@ -481,7 +481,7 @@ def test_recursive_non_port():
         io.O0 @= x
 
     basename = "test_when_recursive_non_port"
-    m.compile(f"build/{basename}", _Test, output=_OUTPUT_TYPE)
+    m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
 
 
