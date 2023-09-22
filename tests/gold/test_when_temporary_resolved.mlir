@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables,omitVersionComment"} {
     hw.module @test_when_temporary_resolved(%I: i8, %S: i2, %CLK: i1) -> (O: i8) {
         %0 = comb.extract %S from 0 : (i2) -> i1
         %2 = comb.extract %1 from 1 : (i8) -> i1

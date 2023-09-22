@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_output_resolve(%I: i8, %x: i1) -> (O0: i8, O1: i2) {
         %1 = sv.wire sym @test_when_output_resolve.x name "x" : !hw.inout<i8>
         sv.assign %1, %I : i8

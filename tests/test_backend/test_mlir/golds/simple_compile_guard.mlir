@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @COND1_compile_guard(%port_0: i1, %port_1: i1) -> () {
         %1 = sv.reg name "Register_inst0" : !hw.inout<i1>
         sv.alwaysff(posedge %port_1) {

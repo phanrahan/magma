@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @MyWrapperGen_1(%I: i1, %CLK: i1) -> (O: i1) {
         %0 = sv.verbatim.expr "R | I" () : () -> (i1)
         sv.verbatim "reg [0:0] R;\nasssign R <= {{0}};\n" (%I) : i1

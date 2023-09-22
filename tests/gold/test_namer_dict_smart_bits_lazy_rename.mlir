@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_namer_dict_smart_bits_lazy_rename(%I0: i8, %I1: i8) -> (O: i9) {
         %0 = comb.extract %I0 from 0 : (i8) -> i1
         %1 = comb.extract %I0 from 1 : (i8) -> i1

@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @counter(%CLK: i1) -> (y: i16) {
         %0 = hw.constant 1 : i16
         %2 = comb.add %1, %0 : i16

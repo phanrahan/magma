@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_array_resolved_after(%I: i8, %S: i1) -> (O: i16) {
         %0 = hw.constant 0 : i1
         %1 = hw.constant 0 : i1

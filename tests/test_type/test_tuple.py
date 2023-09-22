@@ -366,11 +366,45 @@ def test_tuple_key_ordering(caplog):
 
     class tuple_key_ordering(m.Circuit):
         io = m.IO(I=m.In(T0), O=m.Out(T1))
+        io.O.wire(io.I)
+
+    msg = """\
+\033[1mtests/test_type/test_tuple.py:369\033[0m: Cannot wire tuple_key_ordering.I (type=Tuple(x=Out(Bit),y=Out(Bits[8])), keys=['y', 'x']) to  tuple_key_ordering.O (type=Tuple(y=In(Bits[8]),x=In(Bit)), keys=['x', 'y']) because the tuples do not have the same keys
+>>         io.O.wire(io.I)\
+"""
+
+    assert has_error(caplog, msg)
+
+
+def test_tuple_key_ordering_recursive(caplog):
+    T0 = m.AnonProduct[{"x": m.Bit, "y": m.Bits[8]}]
+    T1 = m.AnonProduct[{"y": m.Bits[8], "x": m.Bit}]
+
+    class tuple_key_ordering(m.Circuit):
+        io = m.IO(I=m.In(m.Array[2, T0]), O=m.Out(m.Array[2, T1]))
         io.O @= io.I
 
     msg = """\
-\033[1mtests/test_type/test_tuple.py:368\033[0m: Cannot wire tuple_key_ordering.I (type=Tuple(x=Out(Bit),y=Out(Bits[8])), keys=['y', 'x']) to  tuple_key_ordering.O (type=Tuple(y=In(Bits[8]),x=In(Bit)), keys=['x', 'y']) because the tuples do not have the same keys
+\033[1mtests/test_type/test_tuple.py:385\033[0m: Cannot wire tuple_key_ordering.I (Array[(2, AnonProduct[{'x': Bit[Out], 'y': Bits[(8, Out(Bit))]}])]) to tuple_key_ordering.O (Array[(2, AnonProduct[{'y': Bits[(8, In(Bit))], 'x': Bit[In]}])])
 >>         io.O @= io.I\
 """
 
-    assert has_error(caplog, "")
+    assert has_error(caplog, msg)
+
+
+def test_tuple_key_ordering_recursive_2(caplog):
+    T0 = m.AnonProduct[{"x": m.Bit, "y": m.Bits[8]}]
+    T1 = m.AnonProduct[{"y": m.Bits[8], "x": m.Bit}]
+    T2 = m.AnonProduct[{"y": T0, "x": m.Bit}]
+    T3 = m.AnonProduct[{"y": T1, "x": m.Bit}]
+
+    class tuple_key_ordering(m.Circuit):
+        io = m.IO(I=m.In(T2), O=m.Out(T3))
+        io.O.wire(io.I)
+
+    msg = """\
+\033[1mtests/test_type/test_tuple.py:403\033[0m: Cannot wire tuple_key_ordering.I (type=Tuple(y=Tuple(x=Out(Bit),y=Out(Bits[8])),x=Out(Bit)), to  tuple_key_ordering.O (type=Tuple(y=Tuple(y=In(Bits[8]),x=In(Bit)),x=In(Bit)))because the key y is not wireable
+>>         io.O.wire(io.I)\
+"""
+
+    assert has_error(caplog, msg)

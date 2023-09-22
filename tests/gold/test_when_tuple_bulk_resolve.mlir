@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_tuple_bulk_resolve(%I_x: i8, %I_y_x_x: i8, %I_y_x_y: i8, %I_y_y_x: i8, %I_y_y_y: i8, %S: i2, %CLK: i1) -> (O_x: i8, O_y_x_x: i8, O_y_x_y: i8, O_y_y_x: i8, O_y_y_y: i8) {
         %0 = comb.extract %S from 0 : (i2) -> i1
         %3 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i8>

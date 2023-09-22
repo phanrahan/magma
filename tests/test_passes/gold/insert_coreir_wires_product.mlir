@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Main(%I_x: i1, %I_y: i1) -> (O_x: i1, O_y: i1) {
         %2 = sv.wire sym @Main.x_x name "x_x" : !hw.inout<i1>
         sv.assign %2, %I_x : i1
