@@ -4,7 +4,11 @@ import pytest
 import string
 
 import magma as m
-from magma.bind2 import is_bound_module
+from magma.bind2 import (
+    is_bound_module,
+    is_bound_instance,
+    maybe_get_bound_instance_info,
+)
 from magma.passes.passes import CircuitPass
 import magma.testing
 
@@ -148,3 +152,44 @@ def test_generator():
 
     assert not is_bound_module(Top)
     _CheckLogicAssertsAreBoundModulesPass(Top).run()
+
+
+@pytest.mark.parametrize(
+    "backend,split_verilog",
+    itertools.product(("mlir",), (False, True))
+)
+def test_compile_guard(backend, split_verilog):
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O @= ~io.I
+
+    class TopCompileGuardAsserts(m.Circuit):
+        name = f"TopCompileGuardAsserts_{backend}"
+        io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit), other=m.In(m.Bit))
+        io.I.unused()
+        io.O.unused()
+        io.other.unused()
+
+    with m.compile_guard("ASSERT_ON"):
+        m.bind2(Top, TopCompileGuardAsserts, Top.I)
+
+    assert not is_bound_module(Top)
+    assert is_bound_module(TopCompileGuardAsserts)
+    inst = Top.instances[-1]
+    assert is_bound_instance(inst)
+    compile_guard_infos = maybe_get_bound_instance_info(inst).compile_guards
+    assert len(compile_guard_infos) == 1
+    assert compile_guard_infos[0] is not None
+    assert compile_guard_infos[0].condition_str == "ASSERT_ON"
+
+    basename = f"test_bind2_compile_guard"
+    suffix = "mlir" if backend == "mlir" else "v"
+    opts = {
+        "output": backend,
+        "use_native_bind_processor": True,
+    }
+    if split_verilog:
+        opts.update({"split_verilog": True})
+        basename = basename + "_split_verilog"
+    _assert_compilation(Top, basename, suffix, opts)

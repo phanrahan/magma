@@ -8,7 +8,7 @@ import weakref
 from magma.backend.mlir.common import WithId, default_field, constant
 from magma.backend.mlir.print_opts import PrintOpts
 from magma.backend.mlir.printer_base import PrinterBase
-from magma.common import Stack, epilogue
+from magma.common import Stack, epilogue, maybe_dereference
 
 
 OptionalWeakRef = Optional[weakref.ReferenceType]
@@ -196,6 +196,13 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
 
     def set_parent(self, parent: MlirBlock):
         self.parent = weakref.ref(parent)
+
+    def parent_op(self) -> Optional['MlirOp']:
+        if (block := maybe_dereference(self.parent)) is None:
+            return None
+        if (region := maybe_dereference(block.parent)) is None:
+            return None
+        return maybe_dereference(region.parent)
 
     @print_location
     def print(self, printer: PrinterBase, opts: PrintOpts):
