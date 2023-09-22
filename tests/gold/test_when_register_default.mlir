@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_register_default(%I: i1, %E: i1, %CLK: i1) -> (O: i1) {
         %2 = sv.reg : !hw.inout<i1>
         %1 = sv.read_inout %2 : !hw.inout<i1>

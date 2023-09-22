@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module.extern @InnerInnerDelayUnit(%INPUT_0_data: i5, %INPUT_0_valid: i1, %INPUT_1_data: i5, %INPUT_1_valid: i1, %OUTPUT_0_ready: i1, %OUTPUT_1_ready: i1) -> (INPUT_0_ready: i1, INPUT_1_ready: i1, OUTPUT_0_data: i5, OUTPUT_0_valid: i1, OUTPUT_1_data: i5, OUTPUT_1_valid: i1)
     hw.module @InnerDelayUnit(%INPUT_0_data: i5, %INPUT_0_valid: i1, %INPUT_1_data: i5, %INPUT_1_valid: i1, %OUTPUT_0_ready: i1, %OUTPUT_1_ready: i1, %CLK: i1) -> (INPUT_0_ready: i1, INPUT_1_ready: i1, OUTPUT_0_data: i5, OUTPUT_0_valid: i1, OUTPUT_1_data: i5, OUTPUT_1_valid: i1) {
         %0, %1, %2, %3, %4, %5 = hw.instance "inner_inner_delay" @InnerInnerDelayUnit(INPUT_0_data: %INPUT_1_data: i5, INPUT_0_valid: %INPUT_1_valid: i1, INPUT_1_data: %INPUT_0_data: i5, INPUT_1_valid: %INPUT_0_valid: i1, OUTPUT_0_ready: %OUTPUT_1_ready: i1, OUTPUT_1_ready: %OUTPUT_0_ready: i1) -> (INPUT_0_ready: i1, INPUT_1_ready: i1, OUTPUT_0_data: i5, OUTPUT_0_valid: i1, OUTPUT_1_data: i5, OUTPUT_1_valid: i1)

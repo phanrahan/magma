@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables,omitVersionComment"} {
     hw.module @test_when_tuple_as_bits_resolve_False(%I: !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>, %S: i1) -> (O: !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>, X: i34) {
         %0 = hw.struct_extract %I["x"] : !hw.struct<x: !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>, y: i8>
         %1 = hw.struct_extract %0["x"] : !hw.struct<y: i1, z: !hw.struct<x: i8, y: i1>, x: !hw.array<2xi8>>

@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_nested_Tuplex_Bits2_y_Bit_False(%I: !hw.array<2x!hw.struct<x: i2, y: i1>>, %S: i1) -> (O: !hw.struct<x: i2, y: i1>) {
         %1 = hw.constant 1 : i1
         %0 = hw.array_get %I[%1] : !hw.array<2x!hw.struct<x: i2, y: i1>>, i1

@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_spurious_assign_False(%x: i8, %y: i1, %z: i2, %CLK: i1) -> (O: !hw.struct<x: i8, y: !hw.struct<x: i8, y: i1>>) {
         %0 = comb.extract %z from 0 : (i2) -> i1
         %1 = comb.extract %z from 1 : (i2) -> i1

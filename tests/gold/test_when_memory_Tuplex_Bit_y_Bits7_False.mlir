@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA: !hw.struct<x: i1, y: i7>, %WE: i1) -> (RDATA: !hw.struct<x: i1, y: i7>) {
         %0 = hw.struct_extract %WDATA["x"] : !hw.struct<x: i1, y: i7>
         %1 = hw.struct_extract %WDATA["y"] : !hw.struct<x: i1, y: i7>

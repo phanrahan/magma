@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Bottom(%I_x: i1, %I_y: i1) -> (O_x: i1, O_y: i1, x_0: i1, x_1: i8) {
         %0 = hw.constant 0 : i1
         %1 = hw.constant 0 : i8

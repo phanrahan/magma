@@ -7,7 +7,8 @@ from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
 from magma.backend.mlir.errors import MlirCompilerInternalError
 from magma.backend.mlir.hardware_module import HardwareModule
 from magma.backend.mlir.hw import hw
-from magma.backend.mlir.mlir import MlirSymbol, push_block
+from magma.backend.mlir.mlir import MlirOp, MlirSymbol, push_block
+from magma.backend.mlir.mlir_passes import CollectMlirOpsPass
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
 from magma.bind2 import is_bound_module
@@ -62,10 +63,15 @@ def _prepare_for_split_verilog(
         )
     for bind_op in bind_ops:
         magma_inst = only(find_by_value(symbol_map, bind_op.instance.name))
-        output_filename = bound_module_to_filename[type(magma_inst)]
-        bind_op.attr_dict["output_file"] = (
-            hw.OutputFileAttr(str(output_filename))
-        )
+        output_filename = str(bound_module_to_filename[type(magma_inst)])
+        curr_op = bind_op
+        while True:
+            curr_op.attr_dict["output_file"] = (
+                hw.OutputFileAttr(output_filename)
+            )
+            curr_op = curr_op.parent_op()
+            if curr_op is None or not isinstance(curr_op, sv.IfDefOp):
+                break
 
 
 class TranslationUnit:
@@ -158,7 +164,7 @@ class TranslationUnit:
                 self._hardware_modules.values(),
                 filter(
                     lambda op: isinstance(op, sv.BindOp),
-                    self._mlir_module.block.operations
+                    CollectMlirOpsPass(self._mlir_module).run(),
                 ),
                 self._symbol_map,
                 self._opts.basename,

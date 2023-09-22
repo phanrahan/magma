@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_reg_ce(%I: i8, %CE: i1, %CLK: i1) -> (O: i8) {
         %0 = hw.constant 1 : i1
         %1 = hw.constant 0 : i1

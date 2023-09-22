@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @simple_structural(%a: i16, %b: i16, %c: i16, %CLK: i1) -> (y: i16, z: i16) {
         %1 = sv.reg name "a_reg" : !hw.inout<i16>
         sv.alwaysff(posedge %CLK) {

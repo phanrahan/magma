@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_internal_instantiation(%I: i2, %S: i1) -> (O: i1) {
         %0 = comb.extract %I from 0 : (i2) -> i1
         %1 = hw.constant 1 : i1
