@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module.extern @Register(%I: i8, %CLK: i1) -> (O: i8)
     hw.module @test_when_user_reg(%I: i8, %x: i1, %CLK: i1) -> (O: i8) {
         %2 = sv.reg : !hw.inout<i8>

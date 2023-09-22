@@ -1,8 +1,6 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @Bottom(%I_x: i1, %I_y: i1) -> (O_x: i1, O_y: i1, x_0: i1, x_1: i8) {
-        %0 = hw.constant 0 : i1
-        %1 = hw.constant 0 : i8
-        hw.output %I_x, %I_y, %0, %1 : i1, i1, i1, i8
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
+    hw.module @Bottom(%I_x: i1, %I_y: i1) -> (O_x: i1, O_y: i1) {
+        hw.output %I_x, %I_y : i1, i1
     }
     hw.module @Middle(%I_x: i1, %I_y: i1) -> (O_x: i1, O_y: i1) {
         %0, %1, %2, %3 = hw.instance "bottom" @Bottom(I_x: %I_x: i1, I_y: %I_y: i1) -> (O_x: i1, O_y: i1, x_0: i1, x_1: i8)

@@ -1,5 +1,5 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @test_when_spurious_assign_True(%x: i8, %y: i1, %z: i2, %CLK: i1) -> (O_x: i8, O_y_x: i8, O_y_y: i1) {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
+    hw.module @test_when_spurious_assign(%x: i8, %y: i1, %z: i2, %CLK: i1) -> (O_x: i8, O_y_x: i8, O_y_y: i1) {
         %0 = comb.extract %z from 0 : (i2) -> i1
         %1 = comb.extract %z from 1 : (i2) -> i1
         %2 = hw.constant 1 : i1

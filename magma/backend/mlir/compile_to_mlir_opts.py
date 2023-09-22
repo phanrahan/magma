@@ -20,5 +20,4 @@ class CompileToMlirOpts:
     disallow_local_variables: bool = False
     disallow_packed_struct_assignments: bool = False
     split_verilog: bool = False
-    omit_version_comment: bool = False
-    emit_when_assertions: bool = False
+    omit_version_comment: bool = True

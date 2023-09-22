@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @simple_disallow_local_variables(%x: i2, %s: i1) -> (O: i2) {
         %1 = hw.constant -1 : i1
         %0 = comb.xor %1, %s : i1

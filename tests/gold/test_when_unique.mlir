@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Gen(%a: i8) -> (y: i8) {
         %0 = comb.extract %a from 0 : (i8) -> i1
         %1 = comb.extract %a from 1 : (i8) -> i1

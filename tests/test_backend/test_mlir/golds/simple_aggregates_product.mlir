@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @simple_aggregates_product(%a: !hw.struct<x: i8, y: i8>) -> (y: !hw.struct<x: i8, y: i8>) {
         %0 = hw.struct_extract %a["x"] : !hw.struct<x: i8, y: i8>
         %2 = hw.constant -1 : i8

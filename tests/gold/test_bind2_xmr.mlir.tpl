@@ -1,9 +1,6 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @Bottom(%I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>, x: !hw.struct<_0: i1, _1: i8>) {
-        %0 = hw.constant 0 : i1
-        %1 = hw.constant 0 : i8
-        %2 = hw.struct_create (%0, %1) : !hw.struct<_0: i1, _1: i8>
-        hw.output %I, %2 : !hw.struct<x: i1, y: i1>, !hw.struct<_0: i1, _1: i8>
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
+    hw.module @Bottom(%I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>) {
+        hw.output %I : !hw.struct<x: i1, y: i1>
     }
     hw.module @Middle(%I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>) {
         %0, %1 = hw.instance "bottom" @Bottom(I: %I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>, x: !hw.struct<_0: i1, _1: i8>)

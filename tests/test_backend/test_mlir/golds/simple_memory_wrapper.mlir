@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Memory(%RADDR: i7, %CLK: i1, %WADDR: i7, %WDATA: i12, %WE: i1) -> (RDATA: i12) {
         %1 = sv.reg name "coreir_mem128x12_inst0" : !hw.inout<!hw.array<128xi12>>
         %2 = sv.array_index_inout %1[%RADDR] : !hw.inout<!hw.array<128xi12>>, i7

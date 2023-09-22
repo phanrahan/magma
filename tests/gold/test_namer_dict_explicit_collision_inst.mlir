@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module.extern @Foo(%I: i8) -> (O: i8)
     hw.module @test_namer_dict_explicit_collision_inst(%I: i8) -> (O: i8) {
         %0 = hw.instance "foo_0" @Foo(I: %I: i8) -> (O: i8)
