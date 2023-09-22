@@ -112,7 +112,7 @@ class _BlockBase(contextlib.AbstractContextManager):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
+    def new_elsewhen_block(self, info: 'ElseWhenBlockInfo'):
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -248,7 +248,7 @@ class _WhenBlockInfo:
 
 
 @dataclasses.dataclass
-class _ElseWhenBlockInfo(_WhenBlockInfo):
+class ElseWhenBlockInfo(_WhenBlockInfo):
     pass
 
 
@@ -271,15 +271,15 @@ class _WhenBlock(_BlockBase):
             if debug_info is not None:
                 self._builder.debug_info = debug_info
 
-    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
-        block = _ElseWhenBlock(self, info)
+    def new_elsewhen_block(self, info: 'ElseWhenBlockInfo'):
+        block = ElseWhenBlock(self, info)
         self._elsewhens.append(block)
         return block
 
     def new_otherwise_block(self):
         if self._otherwise is not None:
             raise WhenSyntaxError()
-        block = _OtherwiseBlock(self)
+        block = OtherwiseBlock(self)
         self._otherwise = block
         return block
 
@@ -316,12 +316,12 @@ class _WhenBlock(_BlockBase):
         return self._parent
 
 
-class _ElseWhenBlock(_BlockBase):
-    def __init__(self, parent: Optional[_BlockBase], info: _ElseWhenBlockInfo):
+class ElseWhenBlock(_BlockBase):
+    def __init__(self, parent: Optional[_BlockBase], info: ElseWhenBlockInfo):
         super().__init__(parent)
         self._info = info
 
-    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
+    def new_elsewhen_block(self, info: 'ElseWhenBlockInfo'):
         return self._parent.new_elsewhen_block(info)
 
     def new_otherwise_block(self):
@@ -346,7 +346,7 @@ class _ElseWhenBlock(_BlockBase):
         return self._parent._get_exit_block()
 
 
-class _OtherwiseBlock(_BlockBase):
+class OtherwiseBlock(_BlockBase):
     def new_elsewhen_block(self, _):
         raise ElsewhenWithoutPrecedingWhenError()
 
@@ -434,12 +434,12 @@ reset_context = _reset_context
 
 
 def _get_else_block(block: _BlockBase) -> Optional[_BlockBase]:
-    if isinstance(block, _OtherwiseBlock):
+    if isinstance(block, OtherwiseBlock):
         return None
-    if isinstance(block, _ElseWhenBlock):
-        # TODO(rsetaluri): We could augment _ElseWhenBlock to keep track of its
+    if isinstance(block, ElseWhenBlock):
+        # TODO(rsetaluri): We could augment ElseWhenBlock to keep track of its
         # index in the parent block, or alternatively keep an explicit pointer
-        # to the next else/otherwise block in each _ElseWhenBlock.
+        # to the next else/otherwise block in each ElseWhenBlock.
         parent_elsewhen_blocks = list(block._parent.elsewhen_blocks())
         index = parent_elsewhen_blocks.index(block) + 1
         if index == len(parent_elsewhen_blocks):
@@ -464,9 +464,9 @@ def _get_then_ops(block: _BlockBase) -> Iterable[_Op]:
 
 
 def _get_else_ops(block: _BlockBase) -> Iterable[_Op]:
-    if isinstance(block, _OtherwiseBlock):
+    if isinstance(block, OtherwiseBlock):
         return _get_then_ops(block)
-    if isinstance(block, _ElseWhenBlock):
+    if isinstance(block, ElseWhenBlock):
         return (block,)
     raise TypeError(block)
 
@@ -651,17 +651,17 @@ def emit_when_assertions(block, builder, precond=None,
 def when(cond):
     if not isinstance(cond, _bit_type()):
         raise TypeError(f"Invalid when cond {cond}, should be Bit")
-    info = _WhenBlockInfo(cond)
+    info = WhenBlockInfo(cond)
     curr_block = _get_curr_block()
     if curr_block is None:
-        return _WhenBlock(None, info, get_debug_info(3))
+        return WhenBlock(None, info, get_debug_info(3))
     return curr_block.spawn(info)
 
 
 def elsewhen(cond):
     if not isinstance(cond, _bit_type()):
         raise TypeError(f"Invalid elsewhen cond {cond}, should be Bit")
-    info = _ElseWhenBlockInfo(cond)
+    info = ElseWhenBlockInfo(cond)
     prev_block = _get_prev_block()
     if prev_block is None:
         raise ElsewhenWithoutPrecedingWhenError()
