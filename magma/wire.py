@@ -54,8 +54,11 @@ def wire(o, i, debug_info=None):
 
     i_T, o_T = type(i), type(o)
     if not i_T.is_wireable(o_T):
+        # Escape curly braces in type string for format call.
+        o_T_str = str(o_T).replace("{", "{{").replace("}", "}}")
+        i_T_str = str(i_T).replace("{", "{{").replace("}", "}}")
         _logger.error(
-            WiringLog(f"Cannot wire {{}} ({o_T}) to {{}} ({i_T})",
+            WiringLog(f"Cannot wire {{}} ({o_T_str}) to {{}} ({i_T_str})",
                       o, i),
             debug_info=debug_info
         )
