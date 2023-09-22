@@ -286,7 +286,7 @@ class WhenBuilder(CircuitBuilder):
         if latches:
             raise InferredLatchError(latches)
 
-    def emit_when_assertions(self):
+    def emit_when_assertions(self, flatten_all_tuples: bool):
         """
         We run this step before finalize since emitting when asserts may cause
         tuple elaboration (since verilog assert references may refer to a
@@ -296,7 +296,7 @@ class WhenBuilder(CircuitBuilder):
 
         Must be done after implicit default driver logic is added.
         """
-        emit_when_assertions(self.block, self)
+        emit_when_assertions(self.block, self, flatten_all_tuples)
 
     def _finalize(self):
         pass
@@ -316,7 +316,6 @@ class WhenBuilder(CircuitBuilder):
             temp = Wire(type(port).undirected_t, flatten=False)(name=name)
             for value in port.driving():
                 _rewire_driven_value_or_values(value, temp.O)
-            assert not port.driving()
             temp.I @= port
             self._when_assert_wires[port] = temp.O
         return self._when_assert_wires[port]

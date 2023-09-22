@@ -1,7 +1,8 @@
 from typing import List, Tuple
 
 from magma.backend.mlir.magma_common import (
-    value_or_value_wrapper_to_tree as magma_value_or_value_wrapper_to_tree
+    value_or_value_wrapper_to_tree as magma_value_or_value_wrapper_to_tree,
+    tuple_key_to_str
 )
 from magma.ref import TupleRef, ArrayRef
 from magma.view import PortView
@@ -54,7 +55,7 @@ def _ascend_to_leaf(value, leaves):
     ref = value.name
     if isinstance(ref, TupleRef):
         path = _ascend_to_leaf(ref.tuple, leaves)
-        return path + [f".{ref.index}"]
+        return path + [f".{tuple_key_to_str(ref.index, type(ref.tuple))}"]
     if isinstance(ref, ArrayRef):
         path = _ascend_to_leaf(ref.array, leaves)
         return path + [f"[{ref.index}]"]
@@ -95,9 +96,10 @@ def get_xmr_paths(ctx: 'HardwareModule', xmr: PortView) -> List[Tuple[str]]:
         root, flatten_all_tuples=ctx.opts.flatten_all_tuples)
     assert tree.has_node(root)
 
+    separator = "_" if ctx.opts.flatten_all_tuples else "."
     # (1)
     if tree.has_node(xmr.port):  # visited
-        path = _get_path_string(tree, xmr.port, "_")
+        path = _get_path_string(tree, xmr.port, separator)
         # (1a)
         if tree.out_degree(xmr.port) == 0:  # is leaf
             return [(path,)]
@@ -105,11 +107,11 @@ def get_xmr_paths(ctx: 'HardwareModule', xmr: PortView) -> List[Tuple[str]]:
         leaves = _get_leaf_descendants(tree, xmr.port)
         leaves = sorted(leaves, key=lambda n: tree.nodes[n]["index"])
         return [
-            (_get_path_string(tree, leaf, "_"),)
+            (_get_path_string(tree, leaf, separator),)
             for leaf in leaves
         ]
     # (2)
     leaves = list(_get_leaf_descendants(tree, root, include_self=True))
     leaf, *path = _ascend_to_leaf(xmr.port, leaves)
-    path = _get_path_string(tree, leaf, "_") + "".join(path)
+    path = _get_path_string(tree, leaf, separator) + "".join(path)
     return [(path,)]

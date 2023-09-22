@@ -1,5 +1,5 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @test_when_nested_Array2_AnonProductxBit_yBits2_Bit(%I_0_0_x: i1, %I_0_0_y: i2, %I_0_1_x: i1, %I_0_1_y: i2, %I_1_0_x: i1, %I_1_0_y: i2, %I_1_1_x: i1, %I_1_1_y: i2, %S: i1) -> (O_0_x: i1, O_0_y: i2, O_1_x: i1, O_1_y: i2) {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
+    hw.module @test_when_nested_Array2_AnonProductxBit_yBits2_Bit_True(%I_0_0_x: i1, %I_0_0_y: i2, %I_0_1_x: i1, %I_0_1_y: i2, %I_1_0_x: i1, %I_1_0_y: i2, %I_1_1_x: i1, %I_1_1_y: i2, %S: i1) -> (O_0_x: i1, O_0_y: i2, O_1_x: i1, O_1_y: i2) {
         %4 = sv.reg : !hw.inout<i1>
         %0 = sv.read_inout %4 : !hw.inout<i1>
         %5 = sv.reg : !hw.inout<i2>
@@ -20,16 +20,16 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %7, %I_0_1_y : i2
             }
         }
-        %9 = sv.wire sym @test_when_nested_Array2_AnonProductxBit_yBits2_Bit._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        %9 = sv.wire sym @test_when_nested_Array2_AnonProductxBit_yBits2_Bit_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
         sv.assign %9, %0 : i1
         %8 = sv.read_inout %9 : !hw.inout<i1>
-        %11 = sv.wire sym @test_when_nested_Array2_AnonProductxBit_yBits2_Bit._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i2>
+        %11 = sv.wire sym @test_when_nested_Array2_AnonProductxBit_yBits2_Bit_True._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i2>
         sv.assign %11, %1 : i2
         %10 = sv.read_inout %11 : !hw.inout<i2>
-        %13 = sv.wire sym @test_when_nested_Array2_AnonProductxBit_yBits2_Bit._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
+        %13 = sv.wire sym @test_when_nested_Array2_AnonProductxBit_yBits2_Bit_True._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
         sv.assign %13, %2 : i1
         %12 = sv.read_inout %13 : !hw.inout<i1>
-        %15 = sv.wire sym @test_when_nested_Array2_AnonProductxBit_yBits2_Bit._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i2>
+        %15 = sv.wire sym @test_when_nested_Array2_AnonProductxBit_yBits2_Bit_True._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i2>
         sv.assign %15, %3 : i2
         %14 = sv.read_inout %15 : !hw.inout<i2>
         sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%S, %8, %I_0_0_x) : i1, i1, i1

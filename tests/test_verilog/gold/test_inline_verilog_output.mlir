@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Main(%I: i1, %arr: i2, %CLK: i1) -> (O: i1) {
         %1 = sv.reg : !hw.inout<i1>
         %0 = sv.read_inout %1 : !hw.inout<i1>

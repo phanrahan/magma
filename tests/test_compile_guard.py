@@ -215,7 +215,7 @@ def test_vcc():
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
 
-        with m.compile_guard("COND"):
+        with m.compile_guard("COND", defn_name="COND_compile_guard"):
             out = m.Register(m.Bit)()(io.I ^ 1)
 
         io.O @= io.I

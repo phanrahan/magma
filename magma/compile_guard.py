@@ -1,10 +1,12 @@
 import contextlib
+import dataclasses
 import itertools
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Iterable, Optional, Tuple, Union
 
 from magma.bits import BitsMeta
 from magma.clock import ClockTypes
 from magma.circuit import CircuitKind, AnonymousCircuitType, CircuitBuilder
+from magma.common import Stack
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.interface import IO
@@ -16,6 +18,31 @@ from magma.type_utils import type_to_sanitized_string
 
 
 _logger = root_logger().getChild("compile_guard")
+
+_compile_guard_builder_stack = Stack()
+
+
+def _get_compile_guard_builder_stack() -> Stack:
+    global _compile_guard_builder_stack
+    return _compile_guard_builder_stack
+
+
+@contextlib.contextmanager
+def _push_compile_guard_builder_stack(builder: '_CompileGuardBuilder'):
+    _get_compile_guard_builder_stack().push(builder)
+    yield
+    _get_compile_guard_builder_stack().pop()
+
+
+def get_active_compile_guard_info() -> Iterable['CompileGuardInfo']:
+    for builder in _get_compile_guard_builder_stack():
+        yield builder.info
+
+
+@dataclasses.dataclass(frozen=True)
+class CompileGuardInfo:
+    condition_str: str
+    type: str
 
 
 class _Grouper(GrouperBase):
@@ -73,10 +100,15 @@ class _CompileGuardBuilder(CircuitBuilder):
         self._system_types_added = set()
         if type not in {"defined", "undefined"}:
             raise ValueError(f"Unexpected compile guard type: {type}")
-        metadata = {"condition_str": cond, "type": type}
-        self._set_inst_attr("coreir_metadata", {"compile_guard": metadata})
-        self._set_definition_attr("_compile_guard_", metadata)
+        self._info = CompileGuardInfo(cond, type)
+        info_as_dict = dataclasses.asdict(self._info)
+        self._set_inst_attr("coreir_metadata", {"compile_guard": info_as_dict})
+        self._set_definition_attr("_compile_guard_", info_as_dict)
         self._num_ports = itertools.count()
+
+    @property
+    def info(self) -> CompileGuardInfo:
+        return self._info
 
     def add_port(self, T: Kind, name: Optional[str] = None) -> Type:
         if name is None:
@@ -128,8 +160,9 @@ def compile_guard(
         type: str = "defined",
 ):
     builder = _make_builder(cond, defn_name, inst_name, type)
-    with builder.open() as f:
-        yield f
+    with _push_compile_guard_builder_stack(builder):
+        with builder.open() as f:
+            yield f
     grouper = _Grouper(builder.instances(), builder)
     grouper.run()
 

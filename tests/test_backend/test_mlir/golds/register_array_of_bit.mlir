@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @register_array_of_bit(%I: i4, %CLK: i1) -> (O: i4) {
         %1 = sv.reg name "Register_inst0" : !hw.inout<i4>
         sv.alwaysff(posedge %CLK) {

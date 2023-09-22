@@ -45,7 +45,7 @@ from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
 from magma.backend.mlir.when_utils import WhenCompiler
 from magma.backend.mlir.xmr_utils import get_xmr_paths
-from magma.bind2 import is_bound_instance
+from magma.bind2 import maybe_get_bound_instance_info, is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2, clog2safe
@@ -308,7 +308,7 @@ class ModuleVisitor:
             hw.ArrayCreateOp(operands=operands, results=[result])
             return result
         if isinstance(T, TupleMeta):
-            fields = T.field_dict.items()
+            fields = list(T.field_dict.items())
             value = value if value is not None else {k: None for k, _ in fields}
             operands = [self.make_constant(t, value[k]) for k, t in fields]
             hw.StructCreateOp(operands=operands, results=[result])
@@ -340,6 +340,12 @@ class ModuleVisitor:
 
         operand = self.ctx.new_value(arr.type.T)
         hw.ArrayGetOp(operands=[arr, start], results=[operand])
+        return operand
+
+    @functools.lru_cache()
+    def make_struct_ref(self, struct: MlirValue, key: str) -> MlirValue:
+        operand = self.ctx.new_value(struct.type.get_field(key))
+        hw.StructExtractOp(field=key, operands=[struct], results=[operand])
         return operand
 
     def make_concat(self, operands, result):
@@ -860,7 +866,6 @@ class ModuleVisitor:
         else:
             return True
         paths = get_xmr_paths(self._ctx, xmr)
-        assert len(paths) == len(module.operands)
         self._ctx.parent.xmr_paths[xmr] = paths
         return True
 
@@ -871,7 +876,6 @@ class ModuleVisitor:
         assert isinstance(defn, XMRSource)
         xmr = defn.value
         paths = self._ctx.parent.xmr_paths[xmr]
-        assert len(paths) == len(module.results)
         base = defn.value.parent_view.path()
         for result, path in zip(module.results, paths):
             in_out = self.ctx.new_value(hw.InOutType(result.type))
@@ -1135,11 +1139,19 @@ class NativeBindProcessor(BindProcessorInterface):
         for sym in self._syms:
             instance = hw.InnerRefAttr(defn_sym, sym)
             sv.BindOp(instance=instance)
-        bound_instances = list(filter(is_bound_instance, self._defn.instances))
-        for bound_instance in bound_instances:
-            inst_sym = self._ctx.parent.get_mapped_symbol(bound_instance)
+        for instance in self._defn.instances:
+            bound_instance_info = maybe_get_bound_instance_info(instance)
+            if bound_instance_info is None:
+                continue
+            inst_sym = self._ctx.parent.get_mapped_symbol(instance)
             ref = hw.InnerRefAttr(defn_sym, inst_sym)
-            sv.BindOp(instance=ref)
+            with contextlib.ExitStack() as stack:
+                for compile_guard_info in bound_instance_info.compile_guards:
+                    block = _make_compile_guard_block(
+                        dataclasses.asdict(compile_guard_info)
+                    )
+                    stack.enter_context(push_block(block))
+                sv.BindOp(instance=ref)
 
 
 class CoreIRBindProcessor(BindProcessorInterface):

@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none,explicitBitcast"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,explicitBitcast,omitVersionComment"} {
     hw.module @simple_comb(%a: i16, %b: i16, %c: i16) -> (y: i16, z: i16) {
         %1 = hw.constant -1 : i16
         %0 = comb.xor %1, %a : i16

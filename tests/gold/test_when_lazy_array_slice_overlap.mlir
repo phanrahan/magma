@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_lazy_array_slice_overlap(%I: i4, %S: i1) -> (O: i4) {
         %1 = sv.reg : !hw.inout<i4>
         %0 = sv.read_inout %1 : !hw.inout<i4>

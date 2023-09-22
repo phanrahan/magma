@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_nested_with_default(%I: i2, %S: i2) -> (O: i1) {
         %0 = comb.extract %S from 0 : (i2) -> i1
         %1 = comb.extract %S from 1 : (i2) -> i1

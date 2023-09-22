@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @Foo(%I: i1) -> () {
         sv.verbatim "always @(*) $display(\"%d\\n\", {{0}});" (%I) : i1
     }

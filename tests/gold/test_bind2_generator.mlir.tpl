@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @LogicAsserts(%I: i1, %O: i1, %other: i1) -> () attributes {output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_generator_bind_files.list">} {
         sv.verbatim "{{0}} {{1}} {{2}}" (%I, %O, %other) : i1, i1, i1
     }

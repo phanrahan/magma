@@ -1,5 +1,5 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @test_when_spurious_assign(%x: i8, %y: i1, %z: i2, %CLK: i1) -> (O_x: i8, O_y_x: i8, O_y_y: i1) {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
+    hw.module @test_when_spurious_assign_True(%x: i8, %y: i1, %z: i2, %CLK: i1) -> (O_x: i8, O_y_x: i8, O_y_y: i1) {
         %0 = comb.extract %z from 0 : (i2) -> i1
         %1 = comb.extract %z from 1 : (i2) -> i1
         %2 = hw.constant 1 : i1
@@ -21,7 +21,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %8, %4 : i8
             }
         }
-        %11 = sv.wire sym @test_when_spurious_assign._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i8>
+        %11 = sv.wire sym @test_when_spurious_assign_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i8>
         sv.assign %11, %6 : i8
         %10 = sv.read_inout %11 : !hw.inout<i8>
         %12 = hw.constant 1 : i1
@@ -38,7 +38,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 sv.bpassign %17, %13 : i1
             }
         }
-        %20 = sv.wire sym @test_when_spurious_assign._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        %20 = sv.wire sym @test_when_spurious_assign_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
         sv.assign %20, %15 : i1
         %19 = sv.read_inout %20 : !hw.inout<i1>
         %24 = sv.reg name "Register_inst0" : !hw.inout<i8>

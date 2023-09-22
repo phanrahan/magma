@@ -261,14 +261,21 @@ class IfDefOp(MlirOp):
         printer.pop()
         printer.print("}")
         if self._else_block is None:
-            printer.flush()
+            self._print_close(printer)
             return
         printer.print(" else {")
         printer.flush()
         printer.push()
         self._else_block.print(printer, opts)
         printer.pop()
-        printer.print_line("}")
+        printer.print("}")
+        self._print_close(printer)
+
+    def _print_close(self, printer: PrinterBase):
+        if self.attr_dict:
+            printer.print(" ")
+            print_attr_dict(self.attr_dict, printer)
+        printer.flush()
 
     def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         raise NotImplementedError()

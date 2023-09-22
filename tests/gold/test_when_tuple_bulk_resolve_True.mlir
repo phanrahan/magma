@@ -1,19 +1,19 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @test_when_tuple_bulk_resolve(%I_x: i8, %I_y_x_x: i8, %I_y_x_y: i8, %I_y_y_x: i8, %I_y_y_y: i8, %S: i2, %CLK: i1) -> (O_x: i8, O_y_x_x: i8, O_y_x_y: i8, O_y_y_x: i8, O_y_y_y: i8) {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
+    hw.module @test_when_tuple_bulk_resolve_True(%I_x: i8, %I_y_x_x: i8, %I_y_x_y: i8, %I_y_y_x: i8, %I_y_y_y: i8, %S: i2, %CLK: i1) -> (O_x: i8, O_y_x_x: i8, O_y_x_y: i8, O_y_y_x: i8, O_y_y_y: i8) {
         %0 = comb.extract %S from 0 : (i2) -> i1
-        %3 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i8>
+        %3 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i8>
         sv.assign %3, %1 : i8
         %2 = sv.read_inout %3 : !hw.inout<i8>
-        %6 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i8>
+        %6 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i8>
         sv.assign %6, %4 : i8
         %5 = sv.read_inout %6 : !hw.inout<i8>
-        %9 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i8>
+        %9 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i8>
         sv.assign %9, %7 : i8
         %8 = sv.read_inout %9 : !hw.inout<i8>
-        %12 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_8 name "_WHEN_ASSERT_8" : !hw.inout<i8>
+        %12 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_8 name "_WHEN_ASSERT_8" : !hw.inout<i8>
         sv.assign %12, %10 : i8
         %11 = sv.read_inout %12 : !hw.inout<i8>
-        %15 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_9 name "_WHEN_ASSERT_9" : !hw.inout<i8>
+        %15 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_9 name "_WHEN_ASSERT_9" : !hw.inout<i8>
         sv.assign %15, %13 : i8
         %14 = sv.read_inout %15 : !hw.inout<i8>
         %21 = sv.reg name "y" : !hw.inout<i8>
@@ -115,19 +115,19 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
                 }
             }
         }
-        %53 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i8>
+        %53 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i8>
         sv.assign %53, %37 : i8
         %52 = sv.read_inout %53 : !hw.inout<i8>
-        %55 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i8>
+        %55 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i8>
         sv.assign %55, %38 : i8
         %54 = sv.read_inout %55 : !hw.inout<i8>
-        %57 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i8>
+        %57 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i8>
         sv.assign %57, %39 : i8
         %56 = sv.read_inout %57 : !hw.inout<i8>
-        %59 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i8>
+        %59 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i8>
         sv.assign %59, %40 : i8
         %58 = sv.read_inout %59 : !hw.inout<i8>
-        %61 = sv.wire sym @test_when_tuple_bulk_resolve._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i8>
+        %61 = sv.wire sym @test_when_tuple_bulk_resolve_True._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i8>
         sv.assign %61, %41 : i8
         %60 = sv.read_inout %61 : !hw.inout<i8>
         %62 = sv.reg name "x" : !hw.inout<i8>

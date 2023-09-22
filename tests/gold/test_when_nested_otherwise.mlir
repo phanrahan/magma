@@ -1,4 +1,4 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
     hw.module @test_when_nested_otherwise(%I: i2, %S: i2) -> (O: i2) {
         %1 = hw.constant -1 : i2
         %0 = comb.icmp eq %S, %1 : i2

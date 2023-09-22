@@ -1,5 +1,5 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
-    hw.module @test_when_nested_array_assign(%I_x: i1, %I_y_0: i1, %I_y_1: i8, %S: i1) -> (O_x: i1, O_y_0: i1, O_y_1: i8) {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
+    hw.module @test_when_nested_array_assign_True(%I_x: i1, %I_y_0: i1, %I_y_1: i8, %S: i1) -> (O_x: i1, O_y_0: i1, O_y_1: i8) {
         %1 = sv.reg : !hw.inout<i8>
         %0 = sv.read_inout %1 : !hw.inout<i8>
         sv.alwayscomb {
@@ -20,35 +20,35 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none"} {
         %8 = comb.extract %I_y_1 from 6 : (i8) -> i1
         %9 = comb.extract %I_y_1 from 7 : (i8) -> i1
         %12 = comb.extract %0 from 0 : (i8) -> i1
-        %14 = sv.wire sym @test_when_nested_array_assign._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        %14 = sv.wire sym @test_when_nested_array_assign_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
         sv.assign %14, %12 : i1
         %13 = sv.read_inout %14 : !hw.inout<i1>
         %15 = comb.extract %0 from 1 : (i8) -> i1
-        %17 = sv.wire sym @test_when_nested_array_assign._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        %17 = sv.wire sym @test_when_nested_array_assign_True._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
         sv.assign %17, %15 : i1
         %16 = sv.read_inout %17 : !hw.inout<i1>
         %18 = comb.extract %0 from 2 : (i8) -> i1
-        %20 = sv.wire sym @test_when_nested_array_assign._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
+        %20 = sv.wire sym @test_when_nested_array_assign_True._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
         sv.assign %20, %18 : i1
         %19 = sv.read_inout %20 : !hw.inout<i1>
         %21 = comb.extract %0 from 3 : (i8) -> i1
-        %23 = sv.wire sym @test_when_nested_array_assign._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
+        %23 = sv.wire sym @test_when_nested_array_assign_True._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
         sv.assign %23, %21 : i1
         %22 = sv.read_inout %23 : !hw.inout<i1>
         %24 = comb.extract %0 from 4 : (i8) -> i1
-        %26 = sv.wire sym @test_when_nested_array_assign._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i1>
+        %26 = sv.wire sym @test_when_nested_array_assign_True._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i1>
         sv.assign %26, %24 : i1
         %25 = sv.read_inout %26 : !hw.inout<i1>
         %27 = comb.extract %0 from 5 : (i8) -> i1
-        %29 = sv.wire sym @test_when_nested_array_assign._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
+        %29 = sv.wire sym @test_when_nested_array_assign_True._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
         sv.assign %29, %27 : i1
         %28 = sv.read_inout %29 : !hw.inout<i1>
         %30 = comb.extract %0 from 6 : (i8) -> i1
-        %32 = sv.wire sym @test_when_nested_array_assign._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i1>
+        %32 = sv.wire sym @test_when_nested_array_assign_True._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i1>
         sv.assign %32, %30 : i1
         %31 = sv.read_inout %32 : !hw.inout<i1>
         %33 = comb.extract %0 from 7 : (i8) -> i1
-        %35 = sv.wire sym @test_when_nested_array_assign._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i1>
+        %35 = sv.wire sym @test_when_nested_array_assign_True._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i1>
         sv.assign %35, %33 : i1
         %34 = sv.read_inout %35 : !hw.inout<i1>
         %36 = comb.concat %34, %31, %28, %25, %22, %19, %16, %13 : i1, i1, i1, i1, i1, i1, i1, i1

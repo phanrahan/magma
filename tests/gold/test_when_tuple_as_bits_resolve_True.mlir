@@ -1,5 +1,5 @@
-module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables"} {
-    hw.module @test_when_tuple_as_bits_resolve(%I_x_y: i1, %I_x_z_x: i8, %I_x_z_y: i1, %I_x_x: !hw.array<2xi8>, %I_y: i8, %S: i1) -> (O_x_y: i1, O_x_z_x: i8, O_x_z_y: i1, O_x_x: !hw.array<2xi8>, O_y: i8, X: i34) {
+module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocalVariables,omitVersionComment"} {
+    hw.module @test_when_tuple_as_bits_resolve_True(%I_x_y: i1, %I_x_z_x: i8, %I_x_z_y: i1, %I_x_x: !hw.array<2xi8>, %I_y: i8, %S: i1) -> (O_x_y: i1, O_x_z_x: i8, O_x_z_y: i1, O_x_x: !hw.array<2xi8>, O_y: i8, X: i34) {
         %1 = hw.constant 0 : i1
         %0 = hw.array_get %I_x_x[%1] : !hw.array<2xi8>, i1
         %3 = hw.constant 1 : i1
@@ -85,142 +85,142 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,disallowLocal
         %61 = comb.extract %I_x_z_x from 5 : (i8) -> i1
         %62 = comb.extract %I_x_z_x from 6 : (i8) -> i1
         %63 = comb.extract %I_x_z_x from 7 : (i8) -> i1
-        %69 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
+        %69 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i1>
         sv.assign %69, %10 : i1
         %68 = sv.read_inout %69 : !hw.inout<i1>
         %70 = comb.extract %11 from 0 : (i8) -> i1
-        %72 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
+        %72 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
         sv.assign %72, %70 : i1
         %71 = sv.read_inout %72 : !hw.inout<i1>
         %73 = comb.extract %11 from 1 : (i8) -> i1
-        %75 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
+        %75 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
         sv.assign %75, %73 : i1
         %74 = sv.read_inout %75 : !hw.inout<i1>
         %76 = comb.extract %11 from 2 : (i8) -> i1
-        %78 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i1>
+        %78 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i1>
         sv.assign %78, %76 : i1
         %77 = sv.read_inout %78 : !hw.inout<i1>
         %79 = comb.extract %11 from 3 : (i8) -> i1
-        %81 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
+        %81 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
         sv.assign %81, %79 : i1
         %80 = sv.read_inout %81 : !hw.inout<i1>
         %82 = comb.extract %11 from 4 : (i8) -> i1
-        %84 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i1>
+        %84 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i1>
         sv.assign %84, %82 : i1
         %83 = sv.read_inout %84 : !hw.inout<i1>
         %85 = comb.extract %11 from 5 : (i8) -> i1
-        %87 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i1>
+        %87 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_7 name "_WHEN_ASSERT_7" : !hw.inout<i1>
         sv.assign %87, %85 : i1
         %86 = sv.read_inout %87 : !hw.inout<i1>
         %88 = comb.extract %11 from 6 : (i8) -> i1
-        %90 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_8 name "_WHEN_ASSERT_8" : !hw.inout<i1>
+        %90 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_8 name "_WHEN_ASSERT_8" : !hw.inout<i1>
         sv.assign %90, %88 : i1
         %89 = sv.read_inout %90 : !hw.inout<i1>
         %91 = comb.extract %11 from 7 : (i8) -> i1
-        %93 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_9 name "_WHEN_ASSERT_9" : !hw.inout<i1>
+        %93 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_9 name "_WHEN_ASSERT_9" : !hw.inout<i1>
         sv.assign %93, %91 : i1
         %92 = sv.read_inout %93 : !hw.inout<i1>
         %94 = comb.concat %92, %89, %86, %83, %80, %77, %74, %71 : i1, i1, i1, i1, i1, i1, i1, i1
-        %96 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        %96 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
         sv.assign %96, %12 : i1
         %95 = sv.read_inout %96 : !hw.inout<i1>
         %97 = comb.extract %8 from 0 : (i8) -> i1
-        %99 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_10 name "_WHEN_ASSERT_10" : !hw.inout<i1>
+        %99 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_10 name "_WHEN_ASSERT_10" : !hw.inout<i1>
         sv.assign %99, %97 : i1
         %98 = sv.read_inout %99 : !hw.inout<i1>
         %100 = comb.extract %8 from 1 : (i8) -> i1
-        %102 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_11 name "_WHEN_ASSERT_11" : !hw.inout<i1>
+        %102 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_11 name "_WHEN_ASSERT_11" : !hw.inout<i1>
         sv.assign %102, %100 : i1
         %101 = sv.read_inout %102 : !hw.inout<i1>
         %103 = comb.extract %8 from 2 : (i8) -> i1
-        %105 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_12 name "_WHEN_ASSERT_12" : !hw.inout<i1>
+        %105 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_12 name "_WHEN_ASSERT_12" : !hw.inout<i1>
         sv.assign %105, %103 : i1
         %104 = sv.read_inout %105 : !hw.inout<i1>
         %106 = comb.extract %8 from 3 : (i8) -> i1
-        %108 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_13 name "_WHEN_ASSERT_13" : !hw.inout<i1>
+        %108 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_13 name "_WHEN_ASSERT_13" : !hw.inout<i1>
         sv.assign %108, %106 : i1
         %107 = sv.read_inout %108 : !hw.inout<i1>
         %109 = comb.extract %8 from 4 : (i8) -> i1
-        %111 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_14 name "_WHEN_ASSERT_14" : !hw.inout<i1>
+        %111 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_14 name "_WHEN_ASSERT_14" : !hw.inout<i1>
         sv.assign %111, %109 : i1
         %110 = sv.read_inout %111 : !hw.inout<i1>
         %112 = comb.extract %8 from 5 : (i8) -> i1
-        %114 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_15 name "_WHEN_ASSERT_15" : !hw.inout<i1>
+        %114 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_15 name "_WHEN_ASSERT_15" : !hw.inout<i1>
         sv.assign %114, %112 : i1
         %113 = sv.read_inout %114 : !hw.inout<i1>
         %115 = comb.extract %8 from 6 : (i8) -> i1
-        %117 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_16 name "_WHEN_ASSERT_16" : !hw.inout<i1>
+        %117 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_16 name "_WHEN_ASSERT_16" : !hw.inout<i1>
         sv.assign %117, %115 : i1
         %116 = sv.read_inout %117 : !hw.inout<i1>
         %118 = comb.extract %8 from 7 : (i8) -> i1
-        %120 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_17 name "_WHEN_ASSERT_17" : !hw.inout<i1>
+        %120 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_17 name "_WHEN_ASSERT_17" : !hw.inout<i1>
         sv.assign %120, %118 : i1
         %119 = sv.read_inout %120 : !hw.inout<i1>
         %121 = comb.concat %119, %116, %113, %110, %107, %104, %101, %98 : i1, i1, i1, i1, i1, i1, i1, i1
         %122 = comb.extract %9 from 0 : (i8) -> i1
-        %124 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_18 name "_WHEN_ASSERT_18" : !hw.inout<i1>
+        %124 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_18 name "_WHEN_ASSERT_18" : !hw.inout<i1>
         sv.assign %124, %122 : i1
         %123 = sv.read_inout %124 : !hw.inout<i1>
         %125 = comb.extract %9 from 1 : (i8) -> i1
-        %127 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_19 name "_WHEN_ASSERT_19" : !hw.inout<i1>
+        %127 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_19 name "_WHEN_ASSERT_19" : !hw.inout<i1>
         sv.assign %127, %125 : i1
         %126 = sv.read_inout %127 : !hw.inout<i1>
         %128 = comb.extract %9 from 2 : (i8) -> i1
-        %130 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_20 name "_WHEN_ASSERT_20" : !hw.inout<i1>
+        %130 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_20 name "_WHEN_ASSERT_20" : !hw.inout<i1>
         sv.assign %130, %128 : i1
         %129 = sv.read_inout %130 : !hw.inout<i1>
         %131 = comb.extract %9 from 3 : (i8) -> i1
-        %133 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_21 name "_WHEN_ASSERT_21" : !hw.inout<i1>
+        %133 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_21 name "_WHEN_ASSERT_21" : !hw.inout<i1>
         sv.assign %133, %131 : i1
         %132 = sv.read_inout %133 : !hw.inout<i1>
         %134 = comb.extract %9 from 4 : (i8) -> i1
-        %136 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_22 name "_WHEN_ASSERT_22" : !hw.inout<i1>
+        %136 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_22 name "_WHEN_ASSERT_22" : !hw.inout<i1>
         sv.assign %136, %134 : i1
         %135 = sv.read_inout %136 : !hw.inout<i1>
         %137 = comb.extract %9 from 5 : (i8) -> i1
-        %139 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_23 name "_WHEN_ASSERT_23" : !hw.inout<i1>
+        %139 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_23 name "_WHEN_ASSERT_23" : !hw.inout<i1>
         sv.assign %139, %137 : i1
         %138 = sv.read_inout %139 : !hw.inout<i1>
         %140 = comb.extract %9 from 6 : (i8) -> i1
-        %142 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_24 name "_WHEN_ASSERT_24" : !hw.inout<i1>
+        %142 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_24 name "_WHEN_ASSERT_24" : !hw.inout<i1>
         sv.assign %142, %140 : i1
         %141 = sv.read_inout %142 : !hw.inout<i1>
         %143 = comb.extract %9 from 7 : (i8) -> i1
-        %145 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_25 name "_WHEN_ASSERT_25" : !hw.inout<i1>
+        %145 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_25 name "_WHEN_ASSERT_25" : !hw.inout<i1>
         sv.assign %145, %143 : i1
         %144 = sv.read_inout %145 : !hw.inout<i1>
         %146 = comb.concat %144, %141, %138, %135, %132, %129, %126, %123 : i1, i1, i1, i1, i1, i1, i1, i1
         %147 = hw.array_create %146, %121 : i8
         %148 = comb.extract %13 from 0 : (i8) -> i1
-        %150 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_26 name "_WHEN_ASSERT_26" : !hw.inout<i1>
+        %150 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_26 name "_WHEN_ASSERT_26" : !hw.inout<i1>
         sv.assign %150, %148 : i1
         %149 = sv.read_inout %150 : !hw.inout<i1>
         %151 = comb.extract %13 from 1 : (i8) -> i1
-        %153 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_27 name "_WHEN_ASSERT_27" : !hw.inout<i1>
+        %153 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_27 name "_WHEN_ASSERT_27" : !hw.inout<i1>
         sv.assign %153, %151 : i1
         %152 = sv.read_inout %153 : !hw.inout<i1>
         %154 = comb.extract %13 from 2 : (i8) -> i1
-        %156 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_28 name "_WHEN_ASSERT_28" : !hw.inout<i1>
+        %156 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_28 name "_WHEN_ASSERT_28" : !hw.inout<i1>
         sv.assign %156, %154 : i1
         %155 = sv.read_inout %156 : !hw.inout<i1>
         %157 = comb.extract %13 from 3 : (i8) -> i1
-        %159 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_29 name "_WHEN_ASSERT_29" : !hw.inout<i1>
+        %159 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_29 name "_WHEN_ASSERT_29" : !hw.inout<i1>
         sv.assign %159, %157 : i1
         %158 = sv.read_inout %159 : !hw.inout<i1>
         %160 = comb.extract %13 from 4 : (i8) -> i1
-        %162 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_30 name "_WHEN_ASSERT_30" : !hw.inout<i1>
+        %162 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_30 name "_WHEN_ASSERT_30" : !hw.inout<i1>
         sv.assign %162, %160 : i1
         %161 = sv.read_inout %162 : !hw.inout<i1>
         %163 = comb.extract %13 from 5 : (i8) -> i1
-        %165 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_31 name "_WHEN_ASSERT_31" : !hw.inout<i1>
+        %165 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_31 name "_WHEN_ASSERT_31" : !hw.inout<i1>
         sv.assign %165, %163 : i1
         %164 = sv.read_inout %165 : !hw.inout<i1>
         %166 = comb.extract %13 from 6 : (i8) -> i1
-        %168 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_32 name "_WHEN_ASSERT_32" : !hw.inout<i1>
+        %168 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_32 name "_WHEN_ASSERT_32" : !hw.inout<i1>
         sv.assign %168, %166 : i1
         %167 = sv.read_inout %168 : !hw.inout<i1>
         %169 = comb.extract %13 from 7 : (i8) -> i1
-        %171 = sv.wire sym @test_when_tuple_as_bits_resolve._WHEN_ASSERT_33 name "_WHEN_ASSERT_33" : !hw.inout<i1>
+        %171 = sv.wire sym @test_when_tuple_as_bits_resolve_True._WHEN_ASSERT_33 name "_WHEN_ASSERT_33" : !hw.inout<i1>
         sv.assign %171, %169 : i1
         %170 = sv.read_inout %171 : !hw.inout<i1>
         %172 = comb.concat %170, %167, %164, %161, %158, %155, %152, %149 : i1, i1, i1, i1, i1, i1, i1, i1
