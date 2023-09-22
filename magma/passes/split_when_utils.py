@@ -55,9 +55,7 @@ def _emit_new_when_assign(value, driver_map, curr_block):
 
 
 def _build_driver_map(drivee):
-    """
-    driver_map: for each context that drivee is driven, store the driver
-    """
+    # driver_map stores the driver for each context that drivee is driven.
     driver_map = {}
     for ctx in drivee._wired_when_contexts:
         wires = ctx.get_conditional_wires_for_drivee(drivee)
