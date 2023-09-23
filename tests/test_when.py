@@ -481,19 +481,8 @@ def test_recursive_non_port():
         io.O0 @= x
 
     basename = "test_when_recursive_non_port"
-    # TODO(leonardt): Remove this when proper analysis for when cycles is
-    # added.
-    # NOTE(leonardt): We disable assert checking for these tests because the
-    # insertion of the wire module prevents seeing the dependency.  In, general
-    # we do not traverse across instances because we do not determine whether
-    # the cycle might be broken by a register inside the hierachy.  This is
-    # essentially the classic combinational loop problem.  For now, rather
-    # than attempt to solve the problem for this analysis, we should eventually
-    # avoid the analysis by appropriately splitting up the when blocks or if
-    # statements to avoid the cycle issue
-    with pytest.raises(MlirWhenCycleError):
-        m.compile(f"build/{basename}", _Test, output="mlir")
-        assert check_gold(__file__, f"{basename}.mlir")
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
 
 
 def test_internal_instantiation():
@@ -1738,15 +1727,23 @@ def test_when_emit_asserts_tuple_elab():
     assert check_gold(__file__, "test_when_emit_asserts_tuple_elab.mlir")
 
 
+def _check_or_update(circ):
+    # We check verilog here because the alwcomb order was "legal" MLIR.
+    m.compile(f"build/{circ.name}", circ, output="mlir-verilog")
+
+    _file = f"{circ.name}.v"
+    if check_gold(__file__, _file):
+        return
+    verilator_path = os.path.join(
+        os.path.dirname(__file__),
+        "build",
+        _file
+    )
+    assert not os.system(f"verilator --lint-only {verilator_path}")
+    update_gold(__file__, _file)
+
+
 def test_when_alwcomb_order():
-    # NOTE(leonardt): We disable assert checking for these tests because the
-    # insertion of the wire module prevents seeing the dependency.  In, general
-    # we do not traverse across instances because we do not determine whether
-    # the cycle might be broken by a register inside the hierachy.  This is
-    # essentially the classic combinational loop problem.  For now, rather
-    # than attempt to solve the problem for this analysis, we should eventually
-    # avoid the analysis by appropriately splitting up the when blocks or if
-    # statements to avoid the cycle issue
 
     class test_when_alwcomb_order(m.Circuit):
         io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[1]), O=m.Out(m.Bits[8]))
@@ -1759,12 +1756,68 @@ def test_when_alwcomb_order():
             x @= ~io.I
             io.O @= ~x
 
-    with pytest.raises(MlirWhenCycleError):
-        m.compile(
-            "build/test_when_alwcomb_order",
-            test_when_alwcomb_order,
-            output="mlir"
-        )
+    _check_or_update(test_when_alwcomb_order)
+
+
+def test_when_alwcomb_order_complex():
+    class test_when_alwcomb_order_complex(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), S=m.In(m.Bits[2]), O=m.Out(m.Bits[8]))
+        x = m.Bits[8]()
+
+        io.O @= x
+        with m.when(io.S[0]):
+            x @= io.I
+            with m.when(io.S[1]):
+                x @= ~io.I
+                io.O @= x & 0xDE
+        with m.elsewhen(io.S[0] ^ io.S[1]):
+            x @= io.I ^ io.I
+        with m.otherwise():
+            io.O @= ~x
+            x @= ~io.I
+
+    _check_or_update(test_when_alwcomb_order_complex)
+
+
+def test_when_alwcomb_order_nested():
+    class T(m.Product):
+        x = m.Bit
+        y = m.Bits[8]
+
+    class test_when_alwcomb_order_nested(m.Circuit):
+        io = m.IO(I=m.In(T), S=m.In(m.Bit), O=m.Out(T))
+        x = T()
+
+        io.O @= io.I
+        with m.when(io.S):
+            io.O @= x
+            x.x @= io.I.x
+            x.y @= io.I.y
+        with m.otherwise():
+            x.x @= ~io.I.x
+            x.y @= ~io.I.y
+
+    _check_or_update(test_when_alwcomb_order_nested)
+
+
+def test_when_alwcomb_order_nested_2():
+    class T(m.Product):
+        x = m.Bit
+        y = m.Bits[8]
+
+    class test_when_alwcomb_order_nested_2(m.Circuit):
+        io = m.IO(I=m.In(m.Array[3, T]), S=m.In(m.Bit), O=m.Out(T))
+        x = T()
+
+        io.O @= io.I[0]
+        with m.when(io.S):
+            x @= io.I[1]
+        with m.otherwise():
+            io.O.x @= x.x
+            io.O.y @= x.y
+            x @= io.I[2]
+
+    _check_or_update(test_when_alwcomb_order_nested_2)
 
 
 # TODO: In this case, we'll generate elaborated assignments, but it should
