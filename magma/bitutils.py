@@ -34,3 +34,6 @@ def clog2safe(x: int) -> int:
     if x == 1:
         return 1
     return clog2(x)
+
+def bitlen(x: int) -> int:
+    return math.floor(math.log2(x)) + 1
