@@ -176,6 +176,18 @@ def _visit_inputs(
         )
 
 
+def _check_for_when_cycles(graph: Graph):
+    """Temporary guard against https://github.com/phanrahan/magma/issues/1248"""
+    for node in graph.nodes():
+        if not iswhen(node):
+            continue
+        for predecessor in graph.predecessors(node):
+            if isinstance(type(node), Register):  # registers break cycles
+                break
+            if predecessor is node:
+                raise MlirWhenCycleError()
+
+
 def build_magma_graph(
         ckt: DefineCircuitKind,
         opts: BuildMagmaGrahOpts = BuildMagmaGrahOpts()) -> Graph:
@@ -183,4 +195,5 @@ def build_magma_graph(
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
+    _check_for_when_cycles(ctx.graph)
     return ctx.graph
