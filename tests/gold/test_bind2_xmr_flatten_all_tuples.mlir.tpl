@@ -8,7 +8,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %0, %1, %2, %3 = hw.instance "bottom" @Bottom(I_x: %I_x: i1, I_y: %I_y: i1) -> (O_x: i1, O_y: i1, x_0: i1, x_1: i8)
         hw.output %0, %1 : i1, i1
     }
-    hw.module @TopXMRAsserts_mlir(%I_x: i1, %I_y: i1, %O_x: i1, %O_y: i1, %a_x: i1, %a_y: i1, %b: i1, %c: i1) -> () attributes {output_filelist = #hw.output_filelist<"/Users/rajsekhar/dev/magma-master/tests/build/test_bind2_xmr_flatten_all_tuples_bind_files.list">} {
+    hw.module @TopXMRAsserts_mlir(%I_x: i1, %I_y: i1, %O_x: i1, %O_y: i1, %a_x: i1, %a_y: i1, %b: i1, %c: i1) -> () attributes {output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_xmr_flatten_all_tuples_bind_files.list">} {
     }
     hw.module @Top(%I_x: i1, %I_y: i1) -> (O_x: i1, O_y: i1) {
         %0, %1 = hw.instance "middle" @Middle(I_x: %I_x: i1, I_y: %I_y: i1) -> (O_x: i1, O_y: i1)
