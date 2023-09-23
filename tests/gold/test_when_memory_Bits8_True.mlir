@@ -11,18 +11,18 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         }
         hw.output %0 : i8
     }
-    hw.module @test_when_memory_Bits8(%data0: i8, %addr0: i5, %en0: i1, %data1: i8, %addr1: i5, %en1: i1, %CLK: i1) -> (out: i8) {
+    hw.module @test_when_memory_Bits8_True(%data0: i8, %addr0: i5, %en0: i1, %data1: i8, %addr1: i5, %en1: i1, %CLK: i1) -> (out: i8) {
         %0 = hw.constant 1 : i1
-        %3 = sv.wire sym @test_when_memory_Bits8._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i5>
+        %3 = sv.wire sym @test_when_memory_Bits8_True._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i5>
         sv.assign %3, %1 : i5
         %2 = sv.read_inout %3 : !hw.inout<i5>
-        %6 = sv.wire sym @test_when_memory_Bits8._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i5>
+        %6 = sv.wire sym @test_when_memory_Bits8_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i5>
         sv.assign %6, %4 : i5
         %5 = sv.read_inout %6 : !hw.inout<i5>
-        %9 = sv.wire sym @test_when_memory_Bits8._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i8>
+        %9 = sv.wire sym @test_when_memory_Bits8_True._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i8>
         sv.assign %9, %7 : i8
         %8 = sv.read_inout %9 : !hw.inout<i8>
-        %12 = sv.wire sym @test_when_memory_Bits8._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
+        %12 = sv.wire sym @test_when_memory_Bits8_True._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i1>
         sv.assign %12, %10 : i1
         %11 = sv.read_inout %12 : !hw.inout<i1>
         %13 = hw.instance "Memory_inst0" @Memory(RADDR: %2: i5, CLK: %CLK: i1, WADDR: %5: i5, WDATA: %8: i8, WE: %11: i1) -> (RDATA: i8)
@@ -64,7 +64,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
                 }
             }
         }
-        %26 = sv.wire sym @test_when_memory_Bits8._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i8>
+        %26 = sv.wire sym @test_when_memory_Bits8_True._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i8>
         sv.assign %26, %19 : i8
         %25 = sv.read_inout %26 : !hw.inout<i8>
         sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %5, %addr0) : i1, i5, i5
