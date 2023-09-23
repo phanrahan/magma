@@ -16,7 +16,7 @@ from magma.value_utils import make_selector
 
 
 class _IndexBuilder:
-    """Stages getitem/getattr calls by appending them to a tuple"""
+    """Stages getitem/getattr calls by appending them to a tuple."""
 
     def __init__(self):
         self.index = tuple()
@@ -72,8 +72,9 @@ class WhenCompiler:
         def _index_map_visit(value):
             nonlocal counter, value_to_index
             if (
-                self._flatten_all_tuples and
-                isinstance(value.name, TupleRef) and value in value_to_index
+                self._flatten_all_tuples
+                and isinstance(value.name, TupleRef)
+                and value in value_to_index
             ):
                 # tuples are flattened by the
                 # `visit_magma_value_or_value_wrapper_by_direction`, so we avoid

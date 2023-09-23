@@ -98,16 +98,20 @@ def test_xmr(backend, flatten_all_tuples, inst_attr):
 
     class TopXMRAsserts(m.Circuit):
         name = f"TopXMRAsserts_{backend}"
-        io = m.IO(I=m.In(T), O=m.In(T), a=m.In(T), b=m.In(m.Bit),
-                  c=m.In(m.Bit))
+        io = m.IO(I=m.In(T), O=m.In(T), a=m.In(T), b=m.In(m.Bit), c=m.In(m.Bit))
         io.I.unused()
         io.O.unused()
         io.a.unused()
         io.b.unused()
         io.c.unused()
 
-    m.bind2(Top, TopXMRAsserts, Top.middle.bottom.O, Top.middle.bottom.I.x,
-            Top.middle.bottom.x[0])
+    m.bind2(
+        Top,
+        TopXMRAsserts,
+        Top.middle.bottom.O,
+        Top.middle.bottom.I.x,
+        Top.middle.bottom.x[0],
+    )
 
     basename = "test_bind2_xmr"
     if flatten_all_tuples:

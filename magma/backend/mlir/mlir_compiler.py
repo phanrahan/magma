@@ -48,7 +48,7 @@ class MlirCompiler(Compiler):
         run_when_passes(
             self.main,
             self._compile_to_mlir_opts.flatten_all_tuples,
-            self._compile_to_mlir_opts.emit_when_assertions
+            self._compile_to_mlir_opts.emit_when_assertions,
         )
 
     def _run_passes(self):

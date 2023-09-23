@@ -36,10 +36,14 @@ def _get_view_inst_parent(view):
 
 
 def _make_inline_value(
-        inline_value_map: Mapping[str, ValueLike], value: ValueLike) -> str:
+        inline_value_map: Mapping[str, ValueLike], value: ValueLike
+) -> str:
     if (
-        (isinstance(value, Array) and not issubclass(value.T, Digital)) or
-        isinstance(value, Tuple)
+            (
+                isinstance(value, Array)
+                and not issubclass(value.T, Digital)
+            )
+            or isinstance(value, Tuple)
     ):
         key = ", ".join(
             _make_inline_value(inline_value_map, t)
