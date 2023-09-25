@@ -21,7 +21,13 @@ _CLOG2SAFE_CASES = (
     (14, 4),
     (16, 4),
 )
-
+_BITLEN_CASES = (
+    (1, 1),
+    (7, 3),
+    (14, 4),
+    (16, 5),
+    (32, 6),
+)
 
 def test_seq2int():
     for s, i in _SEQ2INT_CASES:
@@ -41,3 +47,7 @@ def test_clog2():
 def test_clog2safe():
     for i, o in _CLOG2SAFE_CASES:
         assert m.bitutils.clog2safe(i) == o
+
+def test_bitlen():
+    for i, o in _BITLEN_CASES:
+        assert m.bitutils.bitlen(i) == o
