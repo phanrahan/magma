@@ -28,21 +28,21 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %20 = comb.concat %19, %18, %17, %16, %15, %14, %13 : i1, i1, i1, i1, i1, i1, i1
         hw.output %12, %20 : i1, i7
     }
-    hw.module @test_when_memory_Tuplex_Bit_y_Bits7(%data0_x: i1, %data0_y: i7, %addr0: i5, %en0: i1, %data1_x: i1, %data1_y: i7, %addr1: i5, %en1: i1, %CLK: i1) -> (out_x: i1, out_y: i7) {
+    hw.module @test_when_memory_Tuplex_Bit_y_Bits7_True(%data0_x: i1, %data0_y: i7, %addr0: i5, %en0: i1, %data1_x: i1, %data1_y: i7, %addr1: i5, %en1: i1, %CLK: i1) -> (out_x: i1, out_y: i7) {
         %0 = hw.constant 1 : i1
-        %3 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i5>
+        %3 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_True._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i5>
         sv.assign %3, %1 : i5
         %2 = sv.read_inout %3 : !hw.inout<i5>
-        %6 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i5>
+        %6 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i5>
         sv.assign %6, %4 : i5
         %5 = sv.read_inout %6 : !hw.inout<i5>
-        %9 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        %9 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_True._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
         sv.assign %9, %7 : i1
         %8 = sv.read_inout %9 : !hw.inout<i1>
-        %12 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i7>
+        %12 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_True._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i7>
         sv.assign %12, %10 : i7
         %11 = sv.read_inout %12 : !hw.inout<i7>
-        %15 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
+        %15 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_True._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i1>
         sv.assign %15, %13 : i1
         %14 = sv.read_inout %15 : !hw.inout<i1>
         %16, %17 = hw.instance "Memory_inst0" @Memory(RADDR: %2: i5, CLK: %CLK: i1, WADDR: %5: i5, WDATA_x: %8: i1, WDATA_y: %11: i7, WE: %14: i1) -> (RDATA_x: i1, RDATA_y: i7)
@@ -96,10 +96,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
                 }
             }
         }
-        %35 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
+        %35 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_True._WHEN_ASSERT_5 name "_WHEN_ASSERT_5" : !hw.inout<i1>
         sv.assign %35, %25 : i1
         %34 = sv.read_inout %35 : !hw.inout<i1>
-        %37 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i7>
+        %37 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_True._WHEN_ASSERT_6 name "_WHEN_ASSERT_6" : !hw.inout<i7>
         sv.assign %37, %26 : i7
         %36 = sv.read_inout %37 : !hw.inout<i7>
         sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%en0, %5, %addr0) : i1, i5, i5

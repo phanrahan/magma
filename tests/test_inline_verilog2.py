@@ -7,6 +7,8 @@ from magma.inline_verilog2 import InlineVerilogError
 
 def _compile_and_check(top: m.DefineCircuitKind, **opts):
     basename = f"test_{top.name}"
+    if opts.get('flatten_all_tuples', False):
+        basename += "_flatten_all_tuples"
     m.compile(f"build/{basename}", top, output="mlir", **opts)
     assert m.testing.check_files_equal(
         __file__,
@@ -34,7 +36,8 @@ def test_simple():
     _compile_and_check(_Top)
 
 
-def test_tuple():
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_tuple(flatten_all_tuples):
 
     class RV(m.Product):
         data = m.In(m.Bits[5])
@@ -106,7 +109,7 @@ def test_tuple():
             ready_out=delay.inner_delay.inner_inner_delay.INPUT[1].ready,
         )
 
-    _compile_and_check(_Top)
+    _compile_and_check(_Top, flatten_all_tuples=flatten_all_tuples)
 
 
 def test_undriven_port_error():

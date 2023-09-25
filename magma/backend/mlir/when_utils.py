@@ -11,8 +11,23 @@ from magma.backend.mlir.mlir import get_block_stack, MlirValue, push_block
 from magma.backend.mlir.sv import sv
 from magma.common import sort_by_value
 from magma.primitives.when import iswhen
-from magma.ref import ArrayRef, TupleRef, DerivedRef
+from magma.ref import TupleRef, DerivedRef
 from magma.value_utils import make_selector
+
+
+class _IndexBuilder:
+    """Stages getitem/getattr calls by appending them to a tuple."""
+
+    def __init__(self):
+        self.index = tuple()
+
+    def __getitem__(self, idx):
+        self.index += (idx,)
+        return self
+
+    def __getattr__(self, idx):
+        self.index += (idx,)
+        return self
 
 
 class WhenCompiler:
@@ -56,7 +71,11 @@ class WhenCompiler:
 
         def _index_map_visit(value):
             nonlocal counter, value_to_index
-            if isinstance(value.name, TupleRef) and value in value_to_index:
+            if (
+                self._flatten_all_tuples
+                and isinstance(value.name, TupleRef)
+                and value in value_to_index
+            ):
                 # tuples are flattened by the
                 # `visit_magma_value_or_value_wrapper_by_direction`, so we avoid
                 # adding them twice which invalidates the count logic
@@ -87,7 +106,7 @@ class WhenCompiler:
         return value_to_index
 
     def _make_output_wires(self):
-        """Create the mlir values corresponding to each output"""
+        """Create the mlir values corresponding to each output."""
         wires = [
             self._module_visitor.ctx.new_value(hw.InOutType(result.type))
             for result in self._module.results
@@ -110,33 +129,26 @@ class WhenCompiler:
 
     def _get_parent(self, val, collection, to_index):
         """Search ancestor tree until we find either not an Array or we find a
-        an array that is in the index map"""
+        an array that is in the index map.
+        """
         for ref in val.name.root_iter(
-            stop_if=lambda ref: not isinstance(ref, ArrayRef)
+            stop_if=lambda ref: not isinstance(ref, DerivedRef)
         ):
             try:
-                idx = to_index[ref.array]
+                idx = to_index[ref.parent_value]
             except KeyError:
                 pass  # try next parent
             else:
-                return collection[idx], ref.array
+                return collection[idx], ref.parent_value
         return None, None  # didn't find parent
 
     def _check_array_child_wire(self, val, collection, to_index):
-        """If val is a child of an array in the index map, get the parent wire
-        (so we add to a collection of drivers for a bulk assign)
+        """If val is a child of an array or tuple in the index map, get the
+        parent wire (so we add to a collection of drivers for a bulk assign).
         """
         wire, parent = self._get_parent(val, collection, to_index)
         if wire is None:
             return None, None
-
-        class _IndexBuilder:
-            def __init__(self):
-                self.index = tuple()
-
-            def __getitem__(self, idx):
-                self.index += (idx, )
-                return self
 
         builder = _IndexBuilder()
         make_selector(val, stop_at=parent).select(builder)
@@ -152,7 +164,11 @@ class WhenCompiler:
             # convert to tuple for hashing
             i = (i.start, i.stop, i.step)
         with push_block(self._outer_block):
-            operand = self._module_visitor.make_array_ref(wire, i)
+            if isinstance(wire.type, (hw.ArrayType, builtin.IntegerType)):
+                operand = self._module_visitor.make_array_ref(wire, i)
+            else:
+                assert isinstance(wire.type, hw.StructType)
+                operand = self._module_visitor.make_struct_ref(wire, i)
         return self._make_operand(operand, index[1:])
 
     def _build_wire_map(self, connections):
@@ -188,18 +204,22 @@ class WhenCompiler:
                     wire_map[drivee_wire] = operand
         return wire_map
 
-    def _make_arr_list(self, T):
-        """Create a nested list structure matching the dimensions of T, used to
-        populate the elements of an array create op"""
+    def _make_recursive_collection(self, T):
+        """Create a nested data structure matching T, used to populate the
+        elements of an array or struct create op.
+        """
         if isinstance(T, builtin.IntegerType):
             return [None for _ in range(T.n)]
+        if isinstance(T, hw.StructType):
+            return {k: self._make_recursive_collection(v) for k, v in T.fields}
         assert isinstance(T, hw.ArrayType), T
-        return [self._make_arr_list(T.T) for _ in range(T.dims[0])]
+        return [self._make_recursive_collection(T.T) for _ in range(T.dims[0])]
 
-    def _build_array_value(self, T, value):
-        """Unpack the contents of value into a nested list structure"""
-        # TODO(leonardt): we could use an ndarray here, would simplify indexing
-        arr = self._make_arr_list(T)
+    def _populate_recursive_collection(self, T, value):
+        """Unpack the contents of value into the corresponding nested structure
+        create in `_make_recursive_collection`.
+        """
+        arr = self._make_recursive_collection(T)
         for idx, elem in value.items():
             curr = arr
             for i in idx[:-1]:  # descend up to last index
@@ -207,8 +227,19 @@ class WhenCompiler:
             curr[idx[-1]] = elem  # use last index for setitem
         return arr
 
-    def _combine_array_assign(self, T, value):
-        """Sort drivers by index, use concat or create depending on type"""
+    def _create_struct_from_collection(self, T, value, result):
+        value = [
+            self._create_from_recursive_collection(v, value[k])
+            for k, v in sorted(T.fields, key=lambda x: x[0])
+        ]
+        hw.StructCreateOp(
+            operands=value,
+            results=[result]
+        )
+        return result
+
+    def _create_from_recursive_collection(self, T, value):
+        """Sort drivers by index, use concat or create depending on type."""
         if isinstance(value, MlirValue):
             return value  # found whole value, no need to combine
         if all(x is None for x in value):
@@ -216,9 +247,14 @@ class WhenCompiler:
         result = self._module_visitor.ctx.new_value(T)
         if not isinstance(T, builtin.IntegerType):
             # recursive combine children
+            if isinstance(T, hw.StructType):
+                return self._create_struct_from_collection(T, value, result)
+            assert isinstance(T, hw.ArrayType)
             assert len(T.dims) == 1, "Expected 1d array"
-            value = [self._combine_array_assign(T.T, value[i])
-                     for i in range(T.dims[0])]
+            value = [
+                self._create_from_recursive_collection(T.T, value[i])
+                for i in range(T.dims[0])
+            ]
         # Filter None elements (indices covered by a previous slice)
         value = [x for x in reversed(value) if x is not None]
         self._module_visitor.make_concat(value, result)
@@ -228,14 +264,16 @@ class WhenCompiler:
         """
         * _build_wire_map: contructs mapping from output wire to driver
 
-        * _build_array_value,
-          _combine_array_assign: handle collection elaborated drivers for a bulk
-                                 assign
+        * _populate_recursive_collection,
+          _create_from_recursive_collection: handle collection of elaborated
+                                             drivers for a bulk assign
         """
         for wire, value in self._build_wire_map(connections).items():
             if isinstance(value, dict):
-                value = self._build_array_value(wire.type.T, value)
-                value = self._combine_array_assign(wire.type.T, value)
+                value = self._populate_recursive_collection(wire.type.T, value)
+                value = self._create_from_recursive_collection(
+                    wire.type.T, value
+                )
             sv.BPAssignOp(operands=[wire, value])
 
     def _process_connections(self, block):
@@ -250,10 +288,10 @@ class WhenCompiler:
     def _process_when_block(self, block):
         """
         If no condition, we are in an otherwise case and simply emit the
-        block body (which is inside a previous IfOp)
+        block body (which is inside a previous IfOp).
 
         Otherwise, we emit an IfOp with the true body corresponding to this
-        block, then process the sibilings in the else block
+        block, then process the sibilings in the else block.
         """
         if block.condition is None:
             return self._process_connections(block)
@@ -276,7 +314,7 @@ class WhenCompiler:
         return if_op
 
     def compile(self):
-        """Emit default drivers then process the when block chain"""
+        """Emit default drivers then process the when block chain."""
         with push_block(sv.AlwaysCombOp().body_block):
             self._make_assignments(self._builder.default_drivers.items())
             self._process_when_block(self._builder.block)

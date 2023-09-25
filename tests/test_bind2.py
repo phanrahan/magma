@@ -75,13 +75,17 @@ def test_xmr(backend, flatten_all_tuples, inst_attr):
         x = m.Bit
         y = m.Bit
 
+    U = m.Tuple[m.Bit, m.Bits[8]]
+
     class Bottom(m.Circuit):
-        io = m.IO(I=m.In(T), O=m.Out(T))
+        io = m.IO(I=m.In(T), O=m.Out(T), x=m.Out(U))
         io.O @= io.I
+        io.x[0] @= 0
+        io.x[1] @= 0
 
     class Middle(m.Circuit):
         io = m.IO(I=m.In(T), O=m.Out(T))
-        io.O @= Bottom(name="bottom")(io.I)
+        io.O @= Bottom(name="bottom")(io.I)[0]
 
     class Top(m.Circuit):
         io = m.IO(I=m.In(T), O=m.Out(T))
@@ -94,13 +98,20 @@ def test_xmr(backend, flatten_all_tuples, inst_attr):
 
     class TopXMRAsserts(m.Circuit):
         name = f"TopXMRAsserts_{backend}"
-        io = m.IO(I=m.In(T), O=m.In(T), a=m.In(T), b=m.In(m.Bit))
+        io = m.IO(I=m.In(T), O=m.In(T), a=m.In(T), b=m.In(m.Bit), c=m.In(m.Bit))
         io.I.unused()
         io.O.unused()
         io.a.unused()
         io.b.unused()
+        io.c.unused()
 
-    m.bind2(Top, TopXMRAsserts, Top.middle.bottom.O, Top.middle.bottom.I.x)
+    m.bind2(
+        Top,
+        TopXMRAsserts,
+        Top.middle.bottom.O,
+        Top.middle.bottom.I.x,
+        Top.middle.bottom.x[0],
+    )
 
     basename = "test_bind2_xmr"
     if flatten_all_tuples:

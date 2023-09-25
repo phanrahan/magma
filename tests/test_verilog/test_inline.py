@@ -103,7 +103,12 @@ def test_inline_tuple():
             ready_out=delay.inner_delay.inner_inner_delay.INPUT[1].ready,
         )
 
-    m.compile(f"build/test_inline_tuple", Main, output="mlir")
+    m.compile(
+        f"build/test_inline_tuple",
+        Main,
+        output="mlir",
+        flatten_all_tuples=True,
+    )
     assert m.testing.check_files_equal(
         __file__,
         f"build/test_inline_tuple.mlir",

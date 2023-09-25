@@ -308,7 +308,7 @@ class ModuleVisitor:
             hw.ArrayCreateOp(operands=operands, results=[result])
             return result
         if isinstance(T, TupleMeta):
-            fields = T.field_dict.items()
+            fields = list(T.field_dict.items())
             value = value if value is not None else {k: None for k, _ in fields}
             operands = [self.make_constant(t, value[k]) for k, t in fields]
             hw.StructCreateOp(operands=operands, results=[result])
@@ -340,6 +340,12 @@ class ModuleVisitor:
 
         operand = self.ctx.new_value(arr.type.T)
         hw.ArrayGetOp(operands=[arr, start], results=[operand])
+        return operand
+
+    @functools.lru_cache()
+    def make_struct_ref(self, struct: MlirValue, key: str) -> MlirValue:
+        operand = self.ctx.new_value(struct.type.get_field(key))
+        hw.StructExtractOp(field=key, operands=[struct], results=[operand])
         return operand
 
     def make_concat(self, operands, result):
@@ -860,7 +866,6 @@ class ModuleVisitor:
         else:
             return True
         paths = get_xmr_paths(self._ctx, xmr)
-        assert len(paths) == len(module.operands)
         self._ctx.parent.xmr_paths[xmr] = paths
         return True
 
@@ -871,7 +876,6 @@ class ModuleVisitor:
         assert isinstance(defn, XMRSource)
         xmr = defn.value
         paths = self._ctx.parent.xmr_paths[xmr]
-        assert len(paths) == len(module.results)
         base = defn.value.parent_view.path()
         for result, path in zip(module.results, paths):
             in_out = self.ctx.new_value(hw.InOutType(result.type))
