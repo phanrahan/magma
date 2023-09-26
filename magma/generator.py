@@ -1,18 +1,32 @@
 from abc import abstractmethod, ABCMeta
 import collections
 import functools
+import warnings
 import weakref
-from .circuit import (DefineCircuitKind, Circuit, DebugCircuit,
-                      DebugDefineCircuitKind, NamerDict)
+
+from hwtypes import BitVector
+
+from magma.circuit import (
+    Circuit,
+    DefineCircuitKind,
+    DebugCircuit,
+    DebugDefineCircuitKind,
+    NamerDict,
+)
 from . import cache_definition
 from magma.common import ParamDict
 from magma.config import config
 from magma.debug import get_debug_info
-from hwtypes import BitVector
 
 
 class GeneratorMeta(type):
     def __new__(mcs, name, bases, attrs):
+        warnings.warn(
+            "m.Generator is deprecated. Use m.Generator2 instead",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
         attrs["bind_generators"] = []
         cls = super().__new__(mcs, name, bases, attrs)
         old_generate = cls.generate
