@@ -1,5 +1,4 @@
 import functools
-import math
 from typing import List, Optional, Sequence, Tuple
 
 import hwtypes
@@ -27,7 +26,10 @@ def int2seq(i: int, n: Optional[int] = None) -> List[int]:
 
 
 def clog2(x: int) -> int:
-    return math.ceil(math.log(x, 2))
+    if x < 1:
+        raise ValueError('Expected positive value')
+
+    return (x-1).bit_length() 
 
 
 def clog2safe(x: int) -> int:
