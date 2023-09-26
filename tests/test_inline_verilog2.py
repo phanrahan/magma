@@ -209,3 +209,13 @@ def test_wire_insertion_bad_verilog():
         io.O @= io.I[0]
 
     _compile_and_check(_Top)
+
+
+def test_nd_array_interface():
+
+    class _Top(m.Circuit):
+        name = "test_inline_verilgo2_nd_array_interface"
+        io = m.IO(I=m.In(m.Array[64, m.Bits[8]]))
+        m.inline_verilog2("Foo inst (.I('{I}))", I=io.I)
+
+    _compile_and_check(_Top)
