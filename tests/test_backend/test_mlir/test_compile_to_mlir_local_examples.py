@@ -17,7 +17,6 @@ from examples import (
     aggregate_mux_wrapper,
     non_power_of_two_mux_wrapper,
     complex_register_wrapper,
-    complex_bind,
     simple_comb,
     simple_hierarchy,
     simple_register_wrapper,
@@ -55,7 +54,6 @@ def test_compile_to_mlir(ckt):
         aggregate_mux_wrapper,
         _simple_coreir_common_lib_mux_n_wrapper,
         complex_register_wrapper,
-        complex_bind,
     ]
 )
 def test_compile_to_mlir_flatten_all_tuples(ckt):
