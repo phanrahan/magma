@@ -1,6 +1,7 @@
 import contextlib
 import hashlib
 import string
+import warnings
 from typing import Mapping, Optional, Union
 
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
@@ -191,6 +192,11 @@ def inline_verilog(
         inline_wire_prefix: str = "_magma_inline_wire",
         **kwargs):
     exec(_SKIP_FRAME_DEBUG_STMT)
+    warnings.warn(
+        "m.inline_verilog() is deprecated. Use m.inline_verilog2() instead",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
     format_args = kwargs
     symbol_table = get_symbol_table([inline_verilog], copy_locals=True)
     inline_verilog_impl(
