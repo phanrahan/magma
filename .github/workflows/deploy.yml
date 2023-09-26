@@ -23,11 +23,11 @@ jobs:
         python -m pip install --upgrade pip
         # BEGIN: Temp fix, see
         # https://github.com/henry0312/pytest-pycodestyle/issues/97
-        pip install py
+        python -m pip install py
         # END: Temp fix
-        pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
-        pip install kratos  # test optional dependency
-        python setup.py install
+        python -m pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
+        python -m pip install kratos  # test optional dependency
+        python -m pip install -e .
     - name: Test with pytest
       run: |
         py.test --cov magma -v --cov-report term-missing tests
@@ -40,7 +40,7 @@ jobs:
     - name: Install deploy packages
       shell: bash -l {0}
       run: |
-          pip install twine
+          python -m pip install twine
     - name: Upload to PyPI
       shell: bash -l {0}
       run: |
