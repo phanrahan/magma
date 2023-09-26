@@ -176,7 +176,7 @@ def test_share_default_clocks():
 def test_passthrough_wire():
 
     class _Top(m.Circuit):
-        name = "test_inline_verilog2_passthrough_wire"
+        name = "inline_verilog2_passthrough_wire"
         T = m.AnonProduct[dict(x=m.Bit, y=m.Bits[4])]
         io = m.IO(I=m.In(T), O=m.Out(T))
         io.O @= io.I
@@ -190,7 +190,7 @@ def test_passthrough_wire():
 def test_clock_output():
 
     class _Top(m.Circuit):
-        name = "test_inline_verilog2_clock_output"
+        name = "inline_verilog2_clock_output"
         io = m.IO(x=m.In(m.Clock), y=m.In(m.Clock))
         m.inline_verilog2("Foo bar (.x({io.x}), .y({io.y}))")
 
@@ -201,7 +201,7 @@ def test_wire_insertion_bad_verilog():
     # See #1133 (https://github.com/phanrahan/magma/issues/1133).
 
     class _Top(m.Circuit):
-        name = "test_inline_verilog2_wire_insertion_bad_verilog"
+        name = "inline_verilog2_wire_insertion_bad_verilog"
         io = m.IO(I=m.In(m.Bits[32]), O=m.Out(m.Bit))
         m.inline_verilog2("`ifdef LOGGING_ON")
         m.inline_verilog2("$display(\"%x\", {io.I[0]});")
@@ -214,7 +214,7 @@ def test_wire_insertion_bad_verilog():
 def test_nd_array_interface():
 
     class _Top(m.Circuit):
-        name = "test_inline_verilgo2_nd_array_interface"
+        name = "inline_verilgo2_nd_array_interface"
         io = m.IO(I=m.In(m.Array[64, m.Bits[8]]))
         m.inline_verilog2("Foo inst (.I('{I}))", I=io.I)
 
