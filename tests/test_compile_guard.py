@@ -291,13 +291,14 @@ def test_contained_inline_verilog():
         with m.compile_guard("DEBUG", "DebugModule"):
             reg = m.Register(m.Bit)(name="reg")
             reg.I @= reg.O | io.I
-            m.inline_verilog("assert {io.I};")
-            m.inline_verilog("assert ~{reg.O};")
+            m.inline_verilog2("assert {io.I};")
+            m.inline_verilog2("assert ~{reg.O};")
 
     basename = "test_compile_guard_contained_inline_verilog"
-    m.compile(f"build/{basename}", Top)
+    m.compile(f"build/{basename}", Top, output="mlir")
     assert m.testing.check_files_equal(
-        __file__, f"build/{basename}.v", f"gold/{basename}.v")
+        __file__, f"build/{basename}.mlir", f"gold/{basename}.mlir"
+    )
 
 
 def test_compile_guard_anon_driven_internal():
@@ -339,7 +340,7 @@ def test_compile_guard_inline_verilog_reset():
         io.O @= io.I
 
         with m.compile_guard("COND", defn_name="COND_compile_guard"):
-            m.inline_verilog(
+            m.inline_verilog2(
                 """
 assert property (@(posedge {clk}) disable iff {rst} {x} |-> ##1 {x};
                 """,

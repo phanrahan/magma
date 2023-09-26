@@ -138,7 +138,7 @@ def test_generator():
             T = m.Bit if width is None else m.Bits[width]
             self.width = width
             self.io = io = m.IO(I=m.In(T), O=m.In(T), other=m.In(m.Bit))
-            m.inline_verilog("{I} {O} {other}", I=io.I, O=io.O, other=io.other)
+            m.inline_verilog2("{I} {O} {other}", I=io.I, O=io.O, other=io.other)
             self.bind2_args = [m.bits(dut.I)[0]]
 
     m.bind2(Logic, LogicAsserts)
