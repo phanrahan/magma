@@ -4,7 +4,7 @@ from magma.bitutils import clog2
 from magma.primitives import mux
 from typing import Union, List
 
-def set_index(target: Array, value, idx: Union[UInt, List[UInt]]):
+def set_index(target: Array, value, idx: Union[UInt, Sequence[UInt]]):
     """
     Returns a new value where index `idx` of `target` is set to `value`
     * `target` - a value of type `Array[N, T]` or `Array[(N, M, L, ...), T]`
