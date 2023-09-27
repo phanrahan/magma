@@ -27,9 +27,8 @@ def int2seq(i: int, n: Optional[int] = None) -> List[int]:
 
 def clog2(x: int) -> int:
     if x < 1:
-        raise ValueError('Expected positive value')
-
-    return (x-1).bit_length() 
+        raise ValueError("Expected positive value")
+    return (x - 1).bit_length()
 
 
 def clog2safe(x: int) -> int:
