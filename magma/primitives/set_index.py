@@ -7,7 +7,7 @@ from typing import Union, List
 def set_index(target: Array, value, idx: Union[UInt, List[UInt]]):
     """
     Returns a new value where index `idx` of `target` is set to `value`
-    * `target` - a value of type `Array[N, T]` or `Array[(N, M, ..), T]`
+    * `target` - a value of type `Array[N, T]` or `Array[(N, M, L, ...), T]`
     * `value` - a value of type `T`
     * `idx` - a value of type `UInt[clog2(N)]` or `(UInt[clog2(L)], UInt[clog2(M), UInt[clog2(N)], ...)`
     NOTE(rkshthrmsh): Ordering of indices in `idx` is reverse of ordering in N-D Array definition.
