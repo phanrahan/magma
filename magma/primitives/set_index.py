@@ -1,8 +1,10 @@
 from magma.array import Array
+from collections.abc import Sequence
+from typing import Union
+
 from magma.bits import UInt
 from magma.bitutils import clog2
 from magma.primitives import mux
-from typing import Union, List
 
 def set_index(target: Array, value, idx: Union[UInt, Sequence[UInt]]):
     """
