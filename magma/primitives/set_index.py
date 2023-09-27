@@ -16,28 +16,25 @@ def set_index(target: Array, value, idx: Union[UInt, List[UInt]]):
     if not isinstance(target, Array):
         raise TypeError("Expected target to be an array")
 
-    if isinstance(idx, list):
-        if len(idx) > 1:
-            return set_index(target,
-                             set_index(target[idx[0]], value, idx[1:]),
-                             idx[0])
-        else: # len(idx) == 1
-            return set_index(target, value, idx[0])
-    elif isinstance(idx, UInt):
+    if isinstance(idx, UInt):
         target_T = type(target)
         if not isinstance(value, target_T.T):
             raise TypeError(
-                (f"Expected `value` ({type(value)}) to be the same type as"
-                f"`target`'s contents ({target_T.T})"))
+                f"Expected `value` ({type(value)}) to be the same type as"
+                f"`target`'s contents ({target_T.T})"
+            )
         if not isinstance(idx, UInt):
             raise TypeError("Expected `idx` ({type(idx)}) to be a UInt")
         if len(idx) != clog2(len(target_T)):
             raise TypeError(
-                (f"Expected number of `idx` ({len(idx)}) bits to map to the length of"
-                f"`target` ({clog2(len(target_T))})"))
-
+                f"Expected number of `idx` ({len(idx)}) bits to map to the length of"
+                f"`target` ({clog2(len(target_T))})")
+            )
         return target_T([
             mux([elem, value], idx == i) for i, elem in enumerate(target)
         ])
-    else:
-        raise TypeError(f"Expected `idx` ({type(idx)}) to be UInt or List[UInt, ...] ")
+    if isinstance(idx, Sequence):
+        if len(idx) == 1:
+            return set_index(target, value, idx[0])
+        return set_index(target, set_index(target[idx[0]], value, idx[1:]), idx[0])
+    raise TypeError(f"Expected `idx` ({type(idx)}) to be UInt or List[UInt, ...] ")
