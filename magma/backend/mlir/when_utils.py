@@ -128,8 +128,8 @@ class WhenCompiler:
         return fields
 
     def _get_parent(self, val, collection, to_index):
-        """Search ancestor tree until we find either not an Array or we find a
-        an array that is in the index map.
+        """Search ancestor tree until we find either not an Array or Tuple or
+        we find an array or tuple that is in the index map.
         """
         for ref in val.name.root_iter(
             stop_if=lambda ref: not isinstance(ref, DerivedRef)
@@ -142,7 +142,7 @@ class WhenCompiler:
                 return collection[idx], ref.parent_value
         return None, None  # didn't find parent
 
-    def _check_array_child_wire(self, val, collection, to_index):
+    def _check_derived_wire(self, val, collection, to_index):
         """If val is a child of an array or tuple in the index map, get the
         parent wire (so we add to a collection of drivers for a bulk assign).
         """
@@ -181,7 +181,7 @@ class WhenCompiler:
             elts = zip(*map(self._flatten_value, (drivee, driver)))
             for drivee_elt, driver_elt in elts:
 
-                operand_wire, operand_index = self._check_array_child_wire(
+                operand_wire, operand_index = self._check_derived_wire(
                     driver_elt, self._operands, self._input_to_index)
                 if operand_wire:
                     operand = self._make_operand(operand_wire,
@@ -189,7 +189,7 @@ class WhenCompiler:
                 else:
                     operand = self._get_operand(driver_elt)
 
-                drivee_wire, drivee_index = self._check_array_child_wire(
+                drivee_wire, drivee_index = self._check_derived_wire(
                     drivee_elt, self._output_wires, self._output_to_index)
                 if drivee_wire:
                     wire_map.setdefault(drivee_wire, {})

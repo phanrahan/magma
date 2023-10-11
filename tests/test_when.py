@@ -1791,11 +1791,13 @@ def test_when_emit_asserts_value():
     assert check_gold(__file__, "test_when_emit_asserts_value.mlir")
 
 
-def test_when_emit_asserts_tuple_elab():
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_emit_asserts_tuple_elab(flatten_all_tuples):
 
     T = m.Tuple[m.Bits[8], m.Bit]
 
     class test_when_emit_asserts_tuple_elab(m.Circuit):
+        name = f"test_when_emit_asserts_tuple_elab_{flatten_all_tuples}"
         io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
 
         x = m.Register(T)()
@@ -1805,12 +1807,17 @@ def test_when_emit_asserts_tuple_elab():
         with m.elsewhen(io.I[0][1]):
             x.I @= io.O.value()
 
-    m.compile("build/test_when_emit_asserts_tuple_elab",
-              test_when_emit_asserts_tuple_elab,
-              flatten_all_tuples=True,
-              output=_get_output_type(), emit_when_assertions=True)
+    m.compile(
+        f"build/{test_when_emit_asserts_tuple_elab.name}",
+        test_when_emit_asserts_tuple_elab,
+        flatten_all_tuples=flatten_all_tuples,
+        output=_get_output_type(),
+        emit_when_assertions=True
+    )
 
-    assert check_gold(__file__, "test_when_emit_asserts_tuple_elab.mlir")
+    assert check_gold(
+        __file__, f"{test_when_emit_asserts_tuple_elab.name}.mlir"
+    )
 
 
 def _check_or_update(circ):
