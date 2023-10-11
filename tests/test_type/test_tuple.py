@@ -408,3 +408,14 @@ def test_tuple_key_ordering_recursive_2(caplog):
 """
 
     assert has_error(caplog, msg)
+
+
+def test_tuple_same_key_value():
+    T0 = m.AnonProduct[{"x": m.Bit, "y": m.Bits[8]}]
+    T1 = m.AnonProduct[{"y": m.Bits[8], "x": m.Bit}]
+
+    class tuple_same_key_value(m.Circuit):
+        io = m.IO(I=m.In(T0), O=m.Out(T1))
+        io.O.x @= io.I.x
+        io.O.y @= io.I.y
+        assert isinstance(io.O.value(), m.Out(T1)), type(io.O.value())
