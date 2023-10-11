@@ -375,8 +375,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     def wired(self):
         return all(t.wired() for t in self)
 
-    @staticmethod
-    def _iswhole(ts, keys):
+    def _iswhole(self, ts):
 
         for i in range(len(ts)):
             if ts[i].anon():
@@ -392,19 +391,28 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             if ts[i].name.tuple is not ts[i - 1].name.tuple:
                 return False
 
-        for i in range(len(ts)):
-            # elements should be numbered consecutively
-            if ts[i].name.index != list(keys)[i]:
-                return False
-
         if len(ts) != len(ts[0].name.tuple):
             # elements should refer to a whole tuple
             return False
 
+        keys = list(ts[0].name.tuple.keys())
+
+        if keys != list(self.keys()):
+            return False
+
+        for i in range(len(ts)):
+            try:
+                j = keys[i]
+            except IndexError:
+                return False
+            # elements should be in correct key order
+            if ts[i].name.index != j:
+                return False
+
         return True
 
     def iswhole(self):
-        return Tuple._iswhole(list(self), self.keys())
+        return self._iswhole(list(self))
 
     @aggregate_wireable_method
     def trace(self, skip_self=True):
@@ -418,7 +426,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             else:
                 return None
 
-        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
+        if self._iswhole(ts):
             return ts[0].name.tuple
 
         return type(self).flip()(*ts)
@@ -431,7 +439,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
             if t is None:
                 return None
 
-        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
+        if self._iswhole(ts):
             return ts[0].name.tuple
 
         return type(self).flip()(*ts)
