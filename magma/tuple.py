@@ -204,7 +204,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                     t = T(t)
                 self._ts[i] = t
                 if not isinstance(self, AnonProduct):
-                    setattr(self, k, t)
+                    setattr(self, str(k), t)
             self._resolved = True
 
         self._keys_list = list(self.keys())
@@ -234,7 +234,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
 
     @classmethod
     def keys(cls):
-        return [str(i) for i in range(len(cls.fields))]
+        return list(range(len(cls.fields)))
 
     @output_only("Cannot use == on an input")
     def __eq__(self, rhs):

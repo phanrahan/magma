@@ -6,6 +6,7 @@ from magma.backend.mlir.hw import hw
 from magma.backend.mlir.magma_common import (
     visit_value_or_value_wrapper_by_direction as
     visit_magma_value_or_value_wrapper_by_direction,
+    tuple_key_to_str
 )
 from magma.backend.mlir.mlir import get_block_stack, MlirValue, push_block
 from magma.backend.mlir.sv import sv
@@ -219,13 +220,18 @@ class WhenCompiler:
         """Unpack the contents of value into the corresponding nested structure
         create in `_make_recursive_collection`.
         """
-        arr = self._make_recursive_collection(T)
+        val = self._make_recursive_collection(T)
         for idx, elem in value.items():
-            curr = arr
-            for i in idx[:-1]:  # descend up to last index
-                curr = curr[i]
-            curr[idx[-1]] = elem  # use last index for setitem
-        return arr
+            curr_val = val
+            for i in range(len(idx)):
+                curr_idx = idx[i]
+                if isinstance(curr_val, dict) and isinstance(curr_idx, int):
+                    curr_idx = f"_{curr_idx}"
+                if i < len(idx) - 1:
+                    curr_val = curr_val[curr_idx]  # descend until last index
+                else:
+                    curr_val[curr_idx] = elem  # use last index for setitem
+        return val
 
     def _create_struct_from_collection(self, T, value, result):
         value = [
