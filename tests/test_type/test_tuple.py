@@ -414,8 +414,8 @@ def test_tuple_same_key_value():
     T0 = m.AnonProduct[{"x": m.Bit, "y": m.Bits[8]}]
     T1 = m.AnonProduct[{"y": m.Bits[8], "x": m.Bit}]
 
-    class tuple_same_key_value(m.Circuit):
-        io = m.IO(I=m.In(T0), O=m.Out(T1))
-        io.O.x @= io.I.x
-        io.O.y @= io.I.y
-        assert isinstance(io.O.value(), m.Out(T1)), type(io.O.value())
+    a = m.Out(T0)()
+    b = m.In(T1)()
+    b.x @= a.x
+    b.y @= a.y
+    assert isinstance(b.value(), m.Out(T1)), type(b.value())
