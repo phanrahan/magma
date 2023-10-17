@@ -405,7 +405,7 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
                 j = keys[i]
             except IndexError:
                 return False
-            # elements should be in correct key order
+            # Elements should be in correct key order
             if ts[i].name.index != j:
                 return False
 
