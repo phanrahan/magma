@@ -343,7 +343,13 @@ class ModuleVisitor:
         return operand
 
     @functools.lru_cache()
-    def make_struct_ref(self, struct: MlirValue, key: str) -> MlirValue:
+    def make_struct_ref(
+        self,
+        struct: MlirValue,
+        key: Union[int, str]
+    ) -> MlirValue:
+        if isinstance(key, int):
+            key = f"_{key}"
         operand = self.ctx.new_value(struct.type.get_field(key))
         hw.StructExtractOp(field=key, operands=[struct], results=[operand])
         return operand

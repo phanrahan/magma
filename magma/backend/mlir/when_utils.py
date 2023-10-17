@@ -6,6 +6,7 @@ from magma.backend.mlir.hw import hw
 from magma.backend.mlir.magma_common import (
     visit_value_or_value_wrapper_by_direction as
     visit_magma_value_or_value_wrapper_by_direction,
+    tuple_key_to_str
 )
 from magma.backend.mlir.mlir import get_block_stack, MlirValue, push_block
 from magma.backend.mlir.sv import sv
@@ -128,8 +129,8 @@ class WhenCompiler:
         return fields
 
     def _get_parent(self, val, collection, to_index):
-        """Search ancestor tree until we find either not an Array or we find a
-        an array that is in the index map.
+        """Search ancestor tree until we find either not an Array or Tuple or
+        we find an array or tuple that is in the index map.
         """
         for ref in val.name.root_iter(
             stop_if=lambda ref: not isinstance(ref, DerivedRef)
@@ -142,7 +143,7 @@ class WhenCompiler:
                 return collection[idx], ref.parent_value
         return None, None  # didn't find parent
 
-    def _check_array_child_wire(self, val, collection, to_index):
+    def _check_derived_wire(self, val, collection, to_index):
         """If val is a child of an array or tuple in the index map, get the
         parent wire (so we add to a collection of drivers for a bulk assign).
         """
@@ -181,7 +182,7 @@ class WhenCompiler:
             elts = zip(*map(self._flatten_value, (drivee, driver)))
             for drivee_elt, driver_elt in elts:
 
-                operand_wire, operand_index = self._check_array_child_wire(
+                operand_wire, operand_index = self._check_derived_wire(
                     driver_elt, self._operands, self._input_to_index)
                 if operand_wire:
                     operand = self._make_operand(operand_wire,
@@ -189,7 +190,7 @@ class WhenCompiler:
                 else:
                     operand = self._get_operand(driver_elt)
 
-                drivee_wire, drivee_index = self._check_array_child_wire(
+                drivee_wire, drivee_index = self._check_derived_wire(
                     drivee_elt, self._output_wires, self._output_to_index)
                 if drivee_wire:
                     wire_map.setdefault(drivee_wire, {})
@@ -219,18 +220,23 @@ class WhenCompiler:
         """Unpack the contents of value into the corresponding nested structure
         create in `_make_recursive_collection`.
         """
-        arr = self._make_recursive_collection(T)
+        val = self._make_recursive_collection(T)
         for idx, elem in value.items():
-            curr = arr
-            for i in idx[:-1]:  # descend up to last index
-                curr = curr[i]
-            curr[idx[-1]] = elem  # use last index for setitem
-        return arr
+            curr_val = val
+            for i in range(len(idx)):
+                curr_idx = idx[i]
+                if isinstance(curr_val, dict) and isinstance(curr_idx, int):
+                    curr_idx = f"_{curr_idx}"
+                if i < len(idx) - 1:
+                    curr_val = curr_val[curr_idx]  # descend until last index
+                else:
+                    curr_val[curr_idx] = elem  # use last index for setitem
+        return val
 
     def _create_struct_from_collection(self, T, value, result):
         value = [
             self._create_from_recursive_collection(v, value[k])
-            for k, v in sorted(T.fields, key=lambda x: x[0])
+            for k, v in T.fields
         ]
         hw.StructCreateOp(
             operands=value,
