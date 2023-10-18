@@ -1,10 +1,15 @@
+try:
+    import coreir
+except ImportError:
+    import pytest
+    pytest.skip("missing coreir")
+
 from magma import *
 from magma.clock import *
 from magma.backend.coreir.coreir_backend import CoreIRBackend
 from magma.bitutils import *
 from coreir.context import *
 from magma.simulator.coreir_simulator import CoreIRSimulator
-import coreir
 from magma.scope import Scope
 
 def test_simulator_tuple():

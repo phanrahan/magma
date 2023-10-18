@@ -1,3 +1,9 @@
+try:
+    import coreir
+except ImportError:
+    import pytest
+    pytest.skip("missing coreir")
+
 import magma as m
 from magma import *
 from magma.clock import *
@@ -6,7 +12,6 @@ from magma.bitutils import *
 from coreir.context import *
 from magma.simulator.coreir_simulator import CoreIRSimulator
 from magma.simulator.python_simulator import PythonSimulator
-import coreir
 from magma.scope import Scope
 
 def simulator_nested(simple):
