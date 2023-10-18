@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_emit_asserts_tuple_elab(%I_0_0: i8, %I_0_1: i1, %I_1_0: i8, %I_1_1: i1, %S: i1, %CLK: i1) -> (O_0: i8, O_1: i1) {
+    hw.module @test_when_emit_asserts_tuple_elab_True(%I_0_0: i8, %I_0_1: i1, %I_1_0: i8, %I_1_1: i1, %S: i1, %CLK: i1) -> (O_0: i8, O_1: i1) {
         %4 = sv.reg : !hw.inout<i8>
         %2 = sv.read_inout %4 : !hw.inout<i8>
         %5 = sv.reg : !hw.inout<i1>
@@ -17,10 +17,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
                 }
             }
         }
-        %7 = sv.wire sym @test_when_emit_asserts_tuple_elab._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i8>
+        %7 = sv.wire sym @test_when_emit_asserts_tuple_elab_True._WHEN_ASSERT_0 name "_WHEN_ASSERT_0" : !hw.inout<i8>
         sv.assign %7, %2 : i8
         %6 = sv.read_inout %7 : !hw.inout<i8>
-        %9 = sv.wire sym @test_when_emit_asserts_tuple_elab._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
+        %9 = sv.wire sym @test_when_emit_asserts_tuple_elab_True._WHEN_ASSERT_1 name "_WHEN_ASSERT_1" : !hw.inout<i1>
         sv.assign %9, %3 : i1
         %8 = sv.read_inout %9 : !hw.inout<i1>
         %10 = sv.reg name "Register_inst0" : !hw.inout<i8>

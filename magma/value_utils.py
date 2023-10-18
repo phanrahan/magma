@@ -1,5 +1,5 @@
 import dataclasses
-import typing
+from typing import Union
 
 from magma.ref import Ref, TupleRef, ArrayRef
 from magma.type_utils import (isprotocol, isdigital, isbits, isarray, istuple,
@@ -67,9 +67,11 @@ class Selector:
 
 @dataclasses.dataclass(frozen=True)
 class TupleSelector(Selector):
-    key: str
+    key: Union[int, str]
 
     def _select(self, value):
+        if isinstance(self.key, int):
+            return value[self.key]
         return getattr(value, self.key)
 
     def __str__(self):

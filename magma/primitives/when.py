@@ -168,6 +168,10 @@ class WhenBuilder(CircuitBuilder):
     def output_to_name(self):
         return self._output_to_name
 
+    @property
+    def input_to_name(self):
+        return self._input_to_name
+
     def check_existing_derived_ref(self, value, value_to_name, value_to_index):
         """If value is a child of an array or tuple that has already been added,
         we return the child of the existing value, rather than adding a new
@@ -286,7 +290,7 @@ class WhenBuilder(CircuitBuilder):
         if latches:
             raise InferredLatchError(latches)
 
-    def emit_when_assertions(self):
+    def emit_when_assertions(self, flatten_all_tuples: bool):
         """
         We run this step before finalize since emitting when asserts may cause
         tuple elaboration (since verilog assert references may refer to a
@@ -296,7 +300,7 @@ class WhenBuilder(CircuitBuilder):
 
         Must be done after implicit default driver logic is added.
         """
-        emit_when_assertions(self.block, self)
+        emit_when_assertions(self.block, self, flatten_all_tuples)
 
     def _finalize(self):
         pass

@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, ClassVar, List, Mapping, Optional, Tuple
+from typing import ClassVar, List, Optional, Tuple
 
 from magma.backend.mlir.common import default_field
 from magma.backend.mlir.mlir import (
@@ -43,6 +43,12 @@ class StructType(MlirType):
     def emit(self) -> str:
         field_str = ", ".join(f"{k}: {t.emit()}" for k, t in self.fields)
         return f"!hw.struct<{field_str}>"
+
+    def get_field(self, field: str) -> MlirType:
+        for key, value in self.fields:
+            if key == field:
+                return value
+        raise KeyError(f"Could not find struct key {field} in {self.fields}")
 
 
 @dataclasses.dataclass(frozen=True)

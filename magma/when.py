@@ -70,14 +70,14 @@ class ConditionalWire:
 
 
 class _BlockBase(contextlib.AbstractContextManager):
-    def __init__(self, parent: Optional['_WhenBlock']):
+    def __init__(self, parent: Optional['WhenBlock']):
         self._parent = parent
         self._children = list()
         self._conditional_wires = list()
         self._default_drivers = dict()
 
-    def spawn(self, info: '_WhenBlockInfo') -> '_WhenBlock':
-        child = _WhenBlock(self, info)
+    def spawn(self, info: 'WhenBlockInfo') -> 'WhenBlock':
+        child = WhenBlock(self, info)
         self._children.append(child)
         return child
 
@@ -108,11 +108,11 @@ class _BlockBase(contextlib.AbstractContextManager):
 
     @property
     @abc.abstractmethod
-    def root(self) -> '_WhenBlock':
+    def root(self) -> 'WhenBlock':
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
+    def new_elsewhen_block(self, info: 'ElseWhenBlockInfo'):
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -241,22 +241,22 @@ def get_all_blocks(
 
 
 @dataclasses.dataclass
-class _WhenBlockInfo:
+class WhenBlockInfo:
     # NOTE(leonardt): We can't use Bit here because of circular dependency, so
     # instead we enforce it in the public constructors (e.g. m.when).
     condition: Any
 
 
 @dataclasses.dataclass
-class _ElseWhenBlockInfo(_WhenBlockInfo):
+class ElseWhenBlockInfo(WhenBlockInfo):
     pass
 
 
-class _WhenBlock(_BlockBase):
+class WhenBlock(_BlockBase):
     def __init__(
             self,
             parent: Optional[_BlockBase],
-            info: _WhenBlockInfo,
+            info: WhenBlockInfo,
             debug_info: Optional[DebugInfo] = None,
     ):
         super().__init__(parent)
@@ -271,15 +271,15 @@ class _WhenBlock(_BlockBase):
             if debug_info is not None:
                 self._builder.debug_info = debug_info
 
-    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
-        block = _ElseWhenBlock(self, info)
+    def new_elsewhen_block(self, info: 'ElseWhenBlockInfo'):
+        block = ElseWhenBlock(self, info)
         self._elsewhens.append(block)
         return block
 
     def new_otherwise_block(self):
         if self._otherwise is not None:
             raise WhenSyntaxError()
-        block = _OtherwiseBlock(self)
+        block = OtherwiseBlock(self)
         self._otherwise = block
         return block
 
@@ -290,7 +290,7 @@ class _WhenBlock(_BlockBase):
         return self._builder
 
     @property
-    def root(self) -> '_WhenBlock':
+    def root(self) -> 'WhenBlock':
         if self._parent is None:
             return self
         return self._parent.root
@@ -316,19 +316,19 @@ class _WhenBlock(_BlockBase):
         return self._parent
 
 
-class _ElseWhenBlock(_BlockBase):
-    def __init__(self, parent: Optional[_BlockBase], info: _ElseWhenBlockInfo):
+class ElseWhenBlock(_BlockBase):
+    def __init__(self, parent: Optional[_BlockBase], info: ElseWhenBlockInfo):
         super().__init__(parent)
         self._info = info
 
-    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
+    def new_elsewhen_block(self, info: 'ElseWhenBlockInfo'):
         return self._parent.new_elsewhen_block(info)
 
     def new_otherwise_block(self):
         return self._parent.new_otherwise_block()
 
     @property
-    def root(self) -> _WhenBlock:
+    def root(self) -> WhenBlock:
         return self._parent.root
 
     @property
@@ -346,7 +346,7 @@ class _ElseWhenBlock(_BlockBase):
         return self._parent._get_exit_block()
 
 
-class _OtherwiseBlock(_BlockBase):
+class OtherwiseBlock(_BlockBase):
     def new_elsewhen_block(self, _):
         raise ElsewhenWithoutPrecedingWhenError()
 
@@ -354,7 +354,7 @@ class _OtherwiseBlock(_BlockBase):
         raise OtherwiseWithoutPrecedingWhenError()
 
     @property
-    def root(self) -> _WhenBlock:
+    def root(self) -> WhenBlock:
         return self._parent.root
 
     @property
@@ -434,18 +434,18 @@ reset_context = _reset_context
 
 
 def _get_else_block(block: _BlockBase) -> Optional[_BlockBase]:
-    if isinstance(block, _OtherwiseBlock):
+    if isinstance(block, OtherwiseBlock):
         return None
-    if isinstance(block, _ElseWhenBlock):
-        # TODO(rsetaluri): We could augment _ElseWhenBlock to keep track of its
+    if isinstance(block, ElseWhenBlock):
+        # TODO(rsetaluri): We could augment ElseWhenBlock to keep track of its
         # index in the parent block, or alternatively keep an explicit pointer
-        # to the next else/otherwise block in each _ElseWhenBlock.
+        # to the next else/otherwise block in each ElseWhenBlock.
         parent_elsewhen_blocks = list(block._parent.elsewhen_blocks())
         index = parent_elsewhen_blocks.index(block) + 1
         if index == len(parent_elsewhen_blocks):
             return block._parent.otherwise_block
         return parent_elsewhen_blocks[index]
-    if isinstance(block, _WhenBlock):
+    if isinstance(block, WhenBlock):
         try:
             else_block = next(block.elsewhen_blocks())
         except StopIteration:
@@ -464,9 +464,9 @@ def _get_then_ops(block: _BlockBase) -> Iterable[_Op]:
 
 
 def _get_else_ops(block: _BlockBase) -> Iterable[_Op]:
-    if isinstance(block, _OtherwiseBlock):
+    if isinstance(block, OtherwiseBlock):
         return _get_then_ops(block)
-    if isinstance(block, _ElseWhenBlock):
+    if isinstance(block, ElseWhenBlock):
         return (block,)
     raise TypeError(block)
 
@@ -535,7 +535,7 @@ def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
 
 
 def find_inferred_latches(block: _BlockBase) -> Set:
-    if not (isinstance(block, _WhenBlock) and block.root is block):
+    if not (isinstance(block, WhenBlock) and block.root is block):
         raise TypeError("Can only find inferred latches on root when block")
     ops = tuple(block.default_drivers()) + (block,)
     _, latches = _get_assignees_and_latches(ops)
@@ -565,13 +565,16 @@ def _get_builder_port(value, builder):
     return port
 
 
-def _emit_when_assert(cond, drivee, driver, builder, assignment_map):
-    if _contains_tuple(type(drivee)):
+def _emit_when_assert(
+    cond, drivee, driver, builder, assignment_map, flatten_all_tuples
+):
+    if _contains_tuple(type(drivee)) and flatten_all_tuples:
         # Since tuples are elaborated in verilog, we emit an assert for the
         # leaf values.
-        # TODO(leonardt): Update this when we remove flatten_all_tuples.
         for x, y in zip(drivee, driver):
-            _emit_when_assert(cond, x, y, builder, assignment_map)
+            _emit_when_assert(
+                cond, x, y, builder, assignment_map, flatten_all_tuples
+            )
         return
 
     port = _get_builder_port(drivee, builder)
@@ -607,7 +610,9 @@ def _make_else_cond(block, precond):
     return ~block.condition
 
 
-def _emit_default_driver_asserts(block, builder, assignment_map):
+def _emit_default_driver_asserts(
+    block, builder, assignment_map, flatten_all_tuples
+):
     for wire in list(block.root.default_drivers()):
         port = _get_builder_port(wire.drivee, builder)
         assigned_conds = assignment_map[port]
@@ -615,12 +620,22 @@ def _emit_default_driver_asserts(block, builder, assignment_map):
             continue
         cond = ~functools.reduce(operator.or_, assigned_conds)
         _emit_when_assert(
-            cond, wire.drivee, wire.driver, builder, defaultdict(list)
+            cond,
+            wire.drivee,
+            wire.driver,
+            builder,
+            defaultdict(list),
+            flatten_all_tuples
         )
 
 
-def emit_when_assertions(block, builder, precond=None,
-                         assignment_map=defaultdict(list)):
+def emit_when_assertions(
+    block,
+    builder,
+    flatten_all_tuples,
+    precond=None,
+    assignment_map=defaultdict(list)
+):
     """
     For each drivee in a conditional wire, track the conditions where it is
     assigned using assignment_map.  This is used for the default driver logic
@@ -634,34 +649,41 @@ def emit_when_assertions(block, builder, precond=None,
             conditional_wire.drivee,
             conditional_wire.driver,
             builder,
-            assignment_map
+            assignment_map,
+            flatten_all_tuples
         )
 
     for child in block.children():
         # Children inherit this block's cond as a precond.
-        emit_when_assertions(child, builder, cond, assignment_map)
+        emit_when_assertions(
+            child, builder, flatten_all_tuples, cond, assignment_map
+        )
     else_block = _get_else_block(block)
     if else_block:
         else_cond = _make_else_cond(block, precond)
-        emit_when_assertions(else_block, builder, else_cond, assignment_map)
+        emit_when_assertions(
+            else_block, builder, flatten_all_tuples, else_cond, assignment_map
+        )
     if block is block.root:
-        _emit_default_driver_asserts(block, builder, assignment_map)
+        _emit_default_driver_asserts(
+            block, builder, assignment_map, flatten_all_tuples
+        )
 
 
 def when(cond):
     if not isinstance(cond, _bit_type()):
         raise TypeError(f"Invalid when cond {cond}, should be Bit")
-    info = _WhenBlockInfo(cond)
+    info = WhenBlockInfo(cond)
     curr_block = _get_curr_block()
     if curr_block is None:
-        return _WhenBlock(None, info, get_debug_info(3))
+        return WhenBlock(None, info, get_debug_info(3))
     return curr_block.spawn(info)
 
 
 def elsewhen(cond):
     if not isinstance(cond, _bit_type()):
         raise TypeError(f"Invalid elsewhen cond {cond}, should be Bit")
-    info = _ElseWhenBlockInfo(cond)
+    info = ElseWhenBlockInfo(cond)
     prev_block = _get_prev_block()
     if prev_block is None:
         raise ElsewhenWithoutPrecedingWhenError()

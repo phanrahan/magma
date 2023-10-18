@@ -30,10 +30,11 @@ jobs:
         python -m pip install --upgrade pip
         # BEGIN: Temp fix, see
         # https://github.com/henry0312/pytest-pycodestyle/issues/97
-        pip install py
+        python -m pip install py
         # END: Temp fix
-        pip install .
-        pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
+        python -m pip install .
+        python -m pip install git+https://github.com/leonardt/fault@deprecate-coreir#egg=fault
+        python -m pip install flake8 pytest pytest-cov pytest-pycodestyle
 
     - name: Test with pytest
       run: |
@@ -42,10 +43,10 @@ jobs:
 
     - name: Test optional dependencies
       run: |
-        # TODO(leonardt): Ideally we only run specific tests
-        pip install kratos  # test optional dependency
-        pip install coreir  # test optional dependency
-        py.test tests
+        python -m pip install kratos
+        py.test tests/test_syntax/test_to_verilog.py
+        python -m pip install coreir
+        py.test tests/test_coreir
 
     - name: Smoke test package
       run: |
