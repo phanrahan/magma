@@ -2,7 +2,7 @@ try:
     import coreir
 except ImportError:
     import pytest
-    pytest.skip("missing coreir")
+    pytest.skip("missing coreir", allow_module_level=True)
 
 import magma as m
 from magma import *
