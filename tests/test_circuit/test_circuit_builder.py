@@ -1,5 +1,5 @@
 import magma as m
-from magma.testing import check_files_equal, skip_if_no_coreir
+from magma.testing import check_files_equal
 
 
 class _GrandChildBuilder(m.CircuitBuilder):
@@ -38,7 +38,6 @@ class _PassThroughBuilder(m.CircuitBuilder):
 
 
 def test_basic():
-    skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(x=m.In(m.Bit), y=m.Out(m.Bit))
