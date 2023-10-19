@@ -36,17 +36,17 @@ jobs:
         python -m pip install git+https://github.com/leonardt/fault@deprecate-coreir#egg=fault
         python -m pip install flake8 pytest pytest-cov pytest-pycodestyle
 
-    - name: Test with pytest
+    - name: Test without coreir
       run: |
+        # Quick check to make sure it works without dependency installed
+        py.test tests/test_backend/test_mlir.py
+
+    - name: Test with optional dependencies
+      run: |
+        python -m pip install kratos coreir
+        # Report coverage here with optional dependencies
         py.test --cov magma -v --cov-report term-missing tests
         pycodestyle magma/
-
-    - name: Test optional dependencies
-      run: |
-        python -m pip install kratos
-        py.test tests/test_syntax/test_to_verilog.py
-        python -m pip install coreir
-        py.test tests/test_coreir
 
     - name: Smoke test package
       run: |
