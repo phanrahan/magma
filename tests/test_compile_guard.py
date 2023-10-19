@@ -352,3 +352,25 @@ assert property (@(posedge {clk}) disable iff {rst} {x} |-> ##1 {x};
     m.compile(f"build/{basename}", _Top, output="mlir")
     assert m.testing.check_files_equal(
         __file__, f"build/{basename}.mlir", f"gold/{basename}.mlir")
+
+
+def test_compile_guard_when():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), S=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+
+        with m.compile_guard("COND"):
+            reg = m.Register(m.Bit)()
+            with m.when(io.S):
+                reg.I @= io.I
+            with m.otherwise():
+                # TODO: Fix issue with instances
+                # reg.I @= ~io.I
+                reg.I @= io.I
+
+        io.O @= io.I
+
+    m.compile("build/test_compile_guard_when", _Top, output="mlir")
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_when.mlir",
+        f"gold/test_compile_guard_when.mlir")

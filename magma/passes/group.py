@@ -141,6 +141,7 @@ class _GrouperBase(abc.ABC):
 
     def _run_impl(self):
         for instance in self._instances:
+            print(instance)
             self._run_on_instance(instance)
 
 
