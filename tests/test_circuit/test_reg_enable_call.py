@@ -1,8 +1,10 @@
 import magma as m
 from magma.generator import ParamDict
+from magma.testing import skip_if_no_coreir
 
 
 def test_reg_enable_call():
+    skip_if_no_coreir()
     class test_reg_enable_call(m.Circuit):
         io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bits[5]), nen=m.In(m.Bit))
         io += m.ClockIO()

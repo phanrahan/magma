@@ -33,7 +33,6 @@ jobs:
         python -m pip install py
         # END: Temp fix
         python -m pip install .
-        python -m pip install git+https://github.com/leonardt/fault@deprecate-coreir#egg=fault
         python -m pip install flake8 pytest pytest-cov pytest-pycodestyle
 
     - name: Test without optional dependencies
@@ -43,7 +42,7 @@ jobs:
 
     - name: Test with optional dependencies
       run: |
-        python -m pip install kratos coreir
+        python -m pip install kratos coreir fault
         # Measure full coverage here with optional dependencies
         py.test --cov magma -v --cov-report term-missing tests
         pycodestyle magma/

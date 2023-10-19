@@ -1,8 +1,9 @@
 import magma as m
-from magma.testing import check_files_equal
+from magma.testing import check_files_equal, skip_if_no_coreir
 
 
 def test_inline_single_instances_metadata():
+    skip_if_no_coreir()
     mux_aoi_2_16 = m.define_from_verilog("""
 module mux_aoi_2_16 (
     input logic  [15 : 0] I0,

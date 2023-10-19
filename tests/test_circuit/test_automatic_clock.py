@@ -1,8 +1,9 @@
 import magma as m
-from magma.testing import check_files_equal
+from magma.testing import check_files_equal, skip_if_no_coreir
 
 
 def test_magma_add_default_clock():
+    skip_if_no_coreir()
 
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
@@ -15,6 +16,7 @@ def test_magma_add_default_clock():
 
 
 def test_magma_add_default_clock_not_used():
+    skip_if_no_coreir()
 
     class Bar(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))

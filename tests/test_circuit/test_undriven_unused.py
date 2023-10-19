@@ -6,10 +6,11 @@ import pytest
 
 
 import magma as m
-from magma.testing import check_files_equal
+from magma.testing import check_files_equal, skip_if_no_coreir
 
 
 def test_ignore_unused_undriven_basic():
+    skip_if_no_coreir()
     class Main(m.Circuit):
         _ignore_undriven_ = True
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
