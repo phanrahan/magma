@@ -39,7 +39,7 @@ jobs:
     - name: Test without coreir
       run: |
         # Quick check to make sure it works without dependency installed
-        py.test tests/test_backend/test_mlir.py
+        py.test tests/test_backend/test_mlir
 
     - name: Test with optional dependencies
       run: |
