@@ -2,13 +2,15 @@ import magma as m
 import operator
 from common import DeclareAnd
 import pytest
-from magma.testing import check_files_equal
+from magma.testing import check_files_equal, skip_if_no_coreir
 
 
 @pytest.mark.parametrize("width", [None, 3])
 @pytest.mark.parametrize("output", ["verilog", "coreir"])
 @pytest.mark.parametrize("op", [operator.imatmul, operator.le])
 def test_assign(width, output, op):
+    if output == "coreir":
+        skip_if_no_coreir()
     T = m.util.BitOrBits(width)
 
     class Circ(m.Circuit):
@@ -29,6 +31,8 @@ def test_assign(width, output, op):
 @pytest.mark.parametrize("output", ["verilog", "coreir"])
 @pytest.mark.parametrize("op", [operator.imatmul, operator.le])
 def test_assign_to_var(width, output, op):
+    if output == "coreir":
+        skip_if_no_coreir()
     T = m.util.BitOrBits(width)
 
     class Circ(m.Circuit):
