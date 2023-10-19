@@ -3,7 +3,7 @@ import pytest
 import tempfile
 
 import magma as m
-from magma.testing import check_files_equal
+from magma.testing import check_files_equal, skip_if_no_coreir
 
 
 class _BinOpInterface(m.Circuit):
@@ -42,6 +42,7 @@ def _wrap_with_clear_link_info(fn):
 
 def _compile(output, basename=None):
     if output == "coreir":
+        skip_if_no_coreir()
         with tempfile.TemporaryDirectory() as tempdir:
             basename = f"{tempdir}/Top"
             m.compile(basename, _Top, output="coreir")

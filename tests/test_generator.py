@@ -1,9 +1,10 @@
 import magma as m
 from magma.generator import Generator, ParamDict
-from magma.testing import check_files_equal
+from magma.testing import check_files_equal, skip_if_no_coreir
 
 
 def test_add_gen():
+    skip_if_no_coreir()
     class Add(Generator):
         @staticmethod
         def generate(width):
