@@ -2,10 +2,6 @@ import magma as m
 from magma.testing import check_files_equal
 import logging
 import pytest
-try:
-    import coreir
-except ImportError:
-    pytest.skip("missing coreir", allow_module_level=True)
 
 
 class And2(m.Circuit):

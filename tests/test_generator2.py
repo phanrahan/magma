@@ -1,5 +1,5 @@
 import magma as m
-from magma.testing import check_files_equal, skip_if_no_coreir
+from magma.testing import check_files_equal
 
 
 class _MyMux(m.Generator2):
@@ -47,7 +47,6 @@ def test_properties():
 
 
 def test_compilation():
-    skip_if_no_coreir()
 
     class _Top(m.Circuit):
         io = m.IO(x=m.In(m.Bit), y=m.In(m.Bit), z=m.Out(m.Bit))

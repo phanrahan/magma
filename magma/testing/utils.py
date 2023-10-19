@@ -161,10 +161,3 @@ def update_gold(callee_file, filename):
     file_path = os.path.dirname(callee_file)
     return shutil.copy(f"{file_path}/build/{filename}",
                        f"{file_path}/gold/{filename}")
-
-
-def skip_if_no_coreir():
-    try:
-        import coreir
-    except ModuleNotFoundError:
-        pytest.skip("coreir module not found")

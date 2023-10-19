@@ -1,4 +1,3 @@
-from pathlib import Path
 import pytest
 from magma.config import config as magma_config
 from magma.util import reset_global_context
@@ -16,16 +15,3 @@ def pytest_configure(config):
 @pytest.fixture(autouse=True)
 def magma_test():
     reset_global_context()
-
-
-def pytest_ignore_collect(path, config):
-    try:
-        import coreir
-    except ImportError:
-        here = Path.cwd().absolute()
-        if path in (
-            here / "tests/test_coreir/",
-            here / "tests/test_syntax/",
-            here / "tests/test_coroutine/"
-        ):
-            return True

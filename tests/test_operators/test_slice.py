@@ -1,12 +1,11 @@
 import fault
 import os
 import magma as m
-from magma.testing import check_files_equal, skip_if_no_coreir
+from magma.testing import check_files_equal
 from hwtypes import BitVector
 
 
 def test_get_slice_fixed_range():
-    skip_if_no_coreir()
     class TestSlice(m.Circuit):
         io = m.IO(
             I=m.In(m.Bits[10]),
@@ -37,7 +36,6 @@ def test_get_slice_fixed_range():
 
 
 def test_set_slice_fixed_range():
-    skip_if_no_coreir()
     class TestSetSlice(m.Circuit):
         io = m.IO(
             I=m.In(m.Bits[6]),

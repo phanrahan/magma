@@ -73,7 +73,6 @@ EndCircuit()"""
 
 
 def test_compilation_coreir():
-    magma.testing.skip_if_no_coreir()
     with pytest.raises(NotImplementedError) as e:
         m.compile("", _Top, output="coreir")
 
