@@ -1,6 +1,6 @@
 import pytest
 import magma as m
-from magma.testing import check_files_equal
+from magma.testing import check_files_equal, skip_if_no_coreir
 
 
 def test_verilog_field_uniquify():
@@ -15,6 +15,7 @@ def test_verilog_field_uniquify():
 
 
 def test_uniquify_equal():
+    skip_if_no_coreir()
     class foo(m.Circuit):
         name = "foo"
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
@@ -44,6 +45,7 @@ def test_uniquify_equal():
 
 
 def test_uniquify_unequal():
+    skip_if_no_coreir()
     class foo(m.Circuit):
         name = "foo"
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
@@ -73,6 +75,7 @@ def test_uniquify_unequal():
 
 
 def test_key_error():
+    skip_if_no_coreir()
     default_port_mapping = {
         "I": "in",
         "I0": "in0",
@@ -144,6 +147,7 @@ def test_key_error():
 
 
 def test_uniquify_verilog():
+    skip_if_no_coreir()
     [foo0] = m.define_from_verilog("""
 module foo(input I, output O);
     assign O = I;
@@ -246,6 +250,7 @@ endmodule""")[0]
 
 
 def test_multiple_renamed():
+    skip_if_no_coreir()
     def _gen_foo(width):
         class Foo(m.Circuit):
             io = m.IO(I=m.In(m.Bits[width]), O=m.Out(m.Bits[width]))
@@ -289,6 +294,7 @@ def test_multiple_renamed():
 
 
 def test_reset_names():
+    skip_if_no_coreir()
 
     def _make_foo(width: int):
 

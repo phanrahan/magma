@@ -2,9 +2,11 @@ import pytest
 
 import magma as m
 from magma.symbol_table import SYMBOL_TABLE_EMPTY
+from magma.testing import skip_if_no_coreir
 
 
 def _compile(name, ckt, include_master=False):
+    skip_if_no_coreir()
     res = m.compile(name, ckt, generate_symbols=True)
     symbol_table = res["symbol_table"]
     if not include_master:
