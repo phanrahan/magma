@@ -5,7 +5,13 @@ import magma.testing
 
 
 def _parameterize_by_backend(fn):
-    return pytest.mark.parametrize("backend", ("coreir-verilog", "mlir-verilog"))(fn)
+    backends = ("mlir-verilog",)
+    try:
+        import coreir
+        backends += ("coreir-verilog",)
+    except ImportError:
+        pass
+    return pytest.mark.parametrize("backend", backends)(fn)
 
 
 def _run_test(dut, bound_module, basename, backend):
