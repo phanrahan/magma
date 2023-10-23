@@ -173,44 +173,44 @@ def _is_simple_type(T: Kind) -> bool:
 
 class _CompileGuardSelect(Generator2):
     def __init__(self, T: Kind, keys: Tuple[str]):
-        # NOTE(rsetaluri): We need to add this check because the implementation
+        assert keys, "Expected at least one key"
+        self.T = T
+        self.keys = keys
+        self.io = IO(
+            **{f"I{i}": In(T) for i in range(len(self.keys) + 1)},
+            O=Out(T),
+        )
+        T_str = type_to_sanitized_string(T)
+        self.name = f"CompileGuardSelect_{T_str}_{'_'.join(keys)}_default"
+        self.primitive = True
+
+    def elaborate(self):
+        # NOTE(rsetaluri): We need to add this check because this implementation
         # of this generator emits verilog directly, and thereby requires that no
         # transformations happen to the port names/types. If the type is not
         # "simple" (i.e. Bit or Bits[N]) then the assumption breaks down and
         # this implementation will not work.
-        if not _is_simple_type(T):
-            raise TypeError(f"Unsupported type: {T}")
-        num_keys = len(keys)
-        assert num_keys > 1
-        self.io = IO(**{f"I{i}": In(T) for i in range(num_keys)}, O=Out(T))
+        if not _is_simple_type(self.T):
+            raise TypeError(f"Unsupported type: {self.T}")
         self.verilog = ""
-        for i, key in enumerate(keys):
-            if i == 0:
-                stmt = f"`ifdef {key}"
-            elif key == "default":
-                assert i == (num_keys - 1)
-                stmt = "`else"
-            else:
-                stmt = f"`elsif {key}"
-            self.verilog += f"""\
-{stmt}
-    assign O = I{i};
-"""
+        for i, key in enumerate(self.keys):
+            pred = f"`ifdef {key}" if i == 0 else f"`elsif {key}"
+            self.verilog += f"{pred}\n    assign O = I{i};\n"
+        self.verilog += f"`else\n    assign O = I{len(self.keys)};\n"
         self.verilog += "`endif"
-        T_str = type_to_sanitized_string(T)
-        self.name = f"CompileGuardSelect_{T_str}_{'_'.join(keys)}"
+
+
+CompileGuardSelect = _CompileGuardSelect
 
 
 def compile_guard_select(**kwargs):
     try:
         default = kwargs.pop("default")
     except KeyError:
-        raise ValueError("Expected default argument") from None
-    if not (len(kwargs) > 1):
-        raise ValueError("Expected at least one key besides default")
-    # We rely on insertion order to make the default the last element for the
-    # generated if/elif/else code.
-    kwargs["default"] = default
-    T, _ = infer_mux_type(list(kwargs.values()))
+        raise KeyError("Expected default argument") from None
+    if not kwargs:  # kwargs is empty
+        raise KeyError("Expected at least one key besides default")
+    values = tuple(kwargs.values()) + (default,)
+    T, values = infer_mux_type(values)
     Select = _CompileGuardSelect(T, tuple(kwargs.keys()))
-    return Select()(*kwargs.values())
+    return Select()(*values)

@@ -1,5 +1,6 @@
 import os
 import subprocess
+from magma.compile_guard import CompileGuardSelect
 from magma.compiler import Compiler
 from magma.config import EnvConfig, config
 from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
@@ -84,7 +85,7 @@ class CoreIRCompiler(Compiler):
     def compile(self):
         result = {}
         result["symbol_table"] = symbol_table = SymbolTable()
-        elaborate_all_pass(self.main, generators=(Mux,))
+        elaborate_all_pass(self.main, generators=(Mux, CompileGuardSelect,))
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
         raise_logs_as_exceptions_pass(self.main)

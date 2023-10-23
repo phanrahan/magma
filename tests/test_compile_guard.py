@@ -2,6 +2,7 @@ import pytest
 
 import magma as m
 import magma.testing
+from magma.passes.elaborate_circuit import elaborate_circuit
 import fault as f
 
 
@@ -253,20 +254,50 @@ def test_anon_drivee():
 
 
 def test_compile_guard_select_basic():
+
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
-
         x = m.Register(m.Bit)()(io.I ^ 1)
         y = m.Register(m.Bit)()(io.I)
-
-        io.O @= m.compile_guard_select(
-            COND1=x, COND2=y, default=io.I
-        )
+        io.O @= m.compile_guard_select(COND1=x, COND2=y, default=io.I)
 
     basename = "test_compile_guard_select_basic"
     m.compile(f"build/{basename}", _Top, inline=True)
     assert m.testing.check_files_equal(
-        __file__, f"build/{basename}.v", f"gold/{basename}.v")
+        __file__, f"build/{basename}.v", f"gold/{basename}.v"
+    )
+
+
+def test_compile_guard_select_two_keys():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+        x = m.Register(m.Bit)()(io.I ^ 1)
+        io.O @= m.compile_guard_select(COND1=x, default=io.I)
+
+    basename = "test_compile_guard_select_two_keys"
+    m.compile(f"build/{basename}", _Top, inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v"
+    )
+
+
+def test_compile_guard_select_no_default():
+    with pytest.raises(KeyError):
+
+        class _Top(m.Circuit):
+            io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+            x = m.Register(m.Bit)()(io.I ^ 1)
+            io.O @= m.compile_guard_select(COND1=x)
+
+
+def test_compile_guard_select_only_default():
+    with pytest.raises(KeyError):
+
+        class _Top(m.Circuit):
+            io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+            x = m.Register(m.Bit)()(io.I ^ 1)
+            io.O @= m.compile_guard_select(default=x)
 
 
 def test_compile_guard_select_complex_type():
@@ -277,7 +308,10 @@ def test_compile_guard_select_complex_type():
         class _Top(m.Circuit):
             io = m.IO(I0=m.In(T), I1=m.In(T), O=m.Out(T))
             io.O @= m.compile_guard_select(
-                COND1=io.I0, COND2=io.I1, default=io.I0)
+                COND1=io.I0, COND2=io.I1, default=io.I0
+            )
+
+        elaborate_circuit(type(_Top.instances[0]))
 
     with pytest.raises(TypeError):
         make_top()

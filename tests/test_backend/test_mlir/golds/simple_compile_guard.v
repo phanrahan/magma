@@ -28,11 +28,19 @@ module simple_compile_guard(
   output O
 );
 
+  reg _GEN;
   `ifdef COND1
+    assign _GEN = I;
     COND1_compile_guard COND1_compile_guard (
       .port_0 (I),
       .port_1 (CLK)
     );
+  `else  // COND1
+    `ifdef COND2
+      assign _GEN = ~I;
+    `else  // COND2
+      assign _GEN = 1'h0;
+    `endif // COND2
   `endif // COND1
   `ifndef COND2
     COND2_compile_guard COND2_compile_guard (
@@ -40,6 +48,6 @@ module simple_compile_guard(
       .port_1 (CLK)
     );
   `endif // not def COND2
-  assign O = I;
+  assign O = _GEN;
 endmodule
 
