@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_reg_ce_implicit_wire_twice(%I: i8, %x: i1, %y: i1, %CLK: i1) -> (O: i8) {
+    hw.module @test_when_reg_ce_implicit_wire_twice(in %I: i8, in %x: i1, in %y: i1, in %CLK: i1, out O: i8) {
         %0 = hw.constant 1 : i1
         %1 = hw.constant 0 : i1
         %5 = sv.reg : !hw.inout<i8>

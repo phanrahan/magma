@@ -118,9 +118,12 @@ class ModuleOpBase(MlirOp):
             printer.print(", ".join(param.emit() for param in self.parameters))
             printer.print(">")
         printer.print("(")
-        print_signature(self.operands, printer, print_opts)
-        printer.print(") -> (")
-        print_signature(self.results, printer, print_opts, raw_names=True)
+        if self.operands:
+            print_signature(self.operands, printer, print_opts, "in")
+            if self.results:
+                printer.print(", ")
+        if self.results:
+            print_signature(self.results, printer, print_opts, "out", raw_names=True)
         printer.print(")")
         if self.attr_dict:
             printer.print(" attributes ")

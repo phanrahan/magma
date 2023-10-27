@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_emit_asserts_tuple_elab_True(%I_0_0: i8, %I_0_1: i1, %I_1_0: i8, %I_1_1: i1, %S: i1, %CLK: i1) -> (O_0: i8, O_1: i1) {
+    hw.module @test_when_emit_asserts_tuple_elab_True(in %I_0_0: i8, in %I_0_1: i1, in %I_1_0: i8, in %I_1_1: i1, in %S: i1, in %CLK: i1, out O_0: i8, out O_1: i1) {
         %4 = sv.reg : !hw.inout<i8>
         %2 = sv.read_inout %4 : !hw.inout<i8>
         %5 = sv.reg : !hw.inout<i1>

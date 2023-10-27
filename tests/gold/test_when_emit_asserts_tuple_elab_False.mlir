@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_emit_asserts_tuple_elab_False(%I: !hw.array<2x!hw.struct<_0: i8, _1: i1>>, %S: i1, %CLK: i1) -> (O: !hw.struct<_0: i8, _1: i1>) {
+    hw.module @test_when_emit_asserts_tuple_elab_False(in %I: !hw.array<2x!hw.struct<_0: i8, _1: i1>>, in %S: i1, in %CLK: i1, out O: !hw.struct<_0: i8, _1: i1>) {
         %1 = hw.constant 0 : i1
         %0 = hw.array_get %I[%1] : !hw.array<2x!hw.struct<_0: i8, _1: i1>>, i1
         %2 = hw.struct_extract %0["_1"] : !hw.struct<_0: i8, _1: i1>

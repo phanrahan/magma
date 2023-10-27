@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @complex_register_wrapper(%a_x: i8, %a_y: i1, %b: !hw.array<6xi16>, %CLK: i1, %CE: i1, %ASYNCRESET: i1) -> (y_u_x: i8, y_u_y: i1, y_v: !hw.array<6xi16>) {
+    hw.module @complex_register_wrapper(in %a_x: i8, in %a_y: i1, in %b: !hw.array<6xi16>, in %CLK: i1, in %CE: i1, in %ASYNCRESET: i1, out y_u_x: i8, out y_u_y: i1, out y_v: !hw.array<6xi16>) {
         %2 = sv.reg name "Register_inst0" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.if %CE {

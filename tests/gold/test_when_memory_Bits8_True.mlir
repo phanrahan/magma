@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA: i8, %WE: i1) -> (RDATA: i8) {
+    hw.module @Memory(in %RADDR: i5, in %CLK: i1, in %WADDR: i5, in %WDATA: i8, in %WE: i1, out RDATA: i8) {
         %1 = sv.reg name "coreir_mem32x8_inst0" : !hw.inout<!hw.array<32xi8>>
         %2 = sv.array_index_inout %1[%RADDR] : !hw.inout<!hw.array<32xi8>>, i5
         %0 = sv.read_inout %2 : !hw.inout<i8>
@@ -11,7 +11,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         }
         hw.output %0 : i8
     }
-    hw.module @test_when_memory_Bits8_True(%data0: i8, %addr0: i5, %en0: i1, %data1: i8, %addr1: i5, %en1: i1, %CLK: i1) -> (out: i8) {
+    hw.module @test_when_memory_Bits8_True(in %data0: i8, in %addr0: i5, in %en0: i1, in %data1: i8, in %addr1: i5, in %en1: i1, in %CLK: i1, out out: i8) {
         %0 = hw.constant 1 : i1
         %3 = sv.wire sym @test_when_memory_Bits8_True._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i5>
         sv.assign %3, %1 : i5
