@@ -123,7 +123,13 @@ class ModuleOpBase(MlirOp):
             if self.results:
                 printer.print(", ")
         if self.results:
-            print_signature(self.results, printer, print_opts, "out", raw_names=True)
+            print_signature(
+                self.results,
+                printer,
+                print_opts,
+                "out",
+                raw_names=True
+            )
         printer.print(")")
         if self.attr_dict:
             printer.print(" attributes ")
