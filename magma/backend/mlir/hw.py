@@ -1,5 +1,5 @@
 import dataclasses
-from typing import ClassVar, List, Optional, Tuple
+from typing import ClassVar, Iterable, List, Optional, Tuple
 
 from magma.backend.mlir.common import default_field
 from magma.backend.mlir.mlir import (
@@ -15,7 +15,6 @@ from magma.backend.mlir.mlir import (
 from magma.backend.mlir.mlir_printer_utils import (
     print_attr_dict,
     print_names,
-    print_signature,
     print_types,
 )
 from magma.backend.mlir.print_opts import PrintOpts
@@ -111,6 +110,21 @@ class ModuleOpBase(MlirOp):
     name: MlirSymbol
     parameters: List[ParamDeclAttr] = default_field(list)
 
+    def _get_terms(self, print_locations: bool) -> Iterable[str]:
+        if not print_locations:
+            for value in self.operands:
+                yield f"in {value.name}: {value.type.emit()}"
+            for value in self.results:
+                yield f"out {value.raw_name}: {value.type.emit()}"
+            return
+        for value in self.operands:
+            yield f"in {value.name}: {value.type.emit()} {value.location.emit()}"
+        for value in self.results:
+            yield (
+                f"out {value.raw_name}: {value.type.emit()} "
+                f"{value.location.emit()}"
+            )
+
     def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print(f"hw.{self.op_name} {self.name.name}")
         if self.parameters:
@@ -118,18 +132,7 @@ class ModuleOpBase(MlirOp):
             printer.print(", ".join(param.emit() for param in self.parameters))
             printer.print(">")
         printer.print("(")
-        if self.operands:
-            print_signature(self.operands, printer, print_opts, "in")
-            if self.results:
-                printer.print(", ")
-        if self.results:
-            print_signature(
-                self.results,
-                printer,
-                print_opts,
-                "out",
-                raw_names=True
-            )
+        printer.print(", ".join(self._get_terms(print_opts.print_locations)))
         printer.print(")")
         if self.attr_dict:
             printer.print(" attributes ")
