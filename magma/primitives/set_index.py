@@ -25,13 +25,10 @@ def set_index(target: Array, value, idx: Union[UInt, Sequence[UInt]]):
                 f"Expected `value` ({type(value)}) to be the same type as"
                 f"`target`'s contents ({target_T.T})"
             )
-        if not isinstance(idx, UInt):
-            raise TypeError("Expected `idx` ({type(idx)}) to be a UInt")
         if len(idx) != clog2(len(target_T)):
             raise TypeError(
                 f"Expected number of `idx` ({len(idx)}) bits to map to the length of"
                 f"`target` ({clog2(len(target_T))})")
-            )
         return target_T([
             mux([elem, value], idx == i) for i, elem in enumerate(target)
         ])
