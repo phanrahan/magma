@@ -110,20 +110,20 @@ class ModuleOpBase(MlirOp):
     name: MlirSymbol
     parameters: List[ParamDeclAttr] = default_field(list)
 
+    def _yield_term(self, prefix, value, print_locations):
+        assert prefix in {"in", "out"}
+        name = value.name if prefix == "in" else value.raw_name
+        type = value.type.emit()
+        s = f"{prefix} {name}: {type}"
+        if print_locations:
+            s += f" {value.location.emit()}"
+        yield s
+
     def _get_terms(self, print_locations: bool) -> Iterable[str]:
-        if not print_locations:
-            for value in self.operands:
-                yield f"in {value.name}: {value.type.emit()}"
-            for value in self.results:
-                yield f"out {value.raw_name}: {value.type.emit()}"
-            return
         for value in self.operands:
-            yield f"in {value.name}: {value.type.emit()} {value.location.emit()}"
+            yield from self._yield_term("in", value, print_locations)
         for value in self.results:
-            yield (
-                f"out {value.raw_name}: {value.type.emit()} "
-                f"{value.location.emit()}"
-            )
+            yield from self._yield_term("out", value, print_locations)
 
     def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print(f"hw.{self.op_name} {self.name.name}")
