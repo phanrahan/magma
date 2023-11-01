@@ -110,20 +110,28 @@ class ModuleOpBase(MlirOp):
     name: MlirSymbol
     parameters: List[ParamDeclAttr] = default_field(list)
 
-    def _yield_term(self, prefix, value, print_locations):
-        assert prefix in {"in", "out"}
-        name = value.name if prefix == "in" else value.raw_name
-        type = value.type.emit()
-        s = f"{prefix} {name}: {type}"
+    @staticmethod
+    def _get_signature_term(
+            qualifier: str,
+            value: MlirValue,
+            raw_name: bool,
+            print_locations: bool,
+    ) -> str:
+        name = value.raw_name if raw_name else value.name
+        term = f"{qualifier} {name}: {value.type.emit()}"
         if print_locations:
-            s += f" {value.location.emit()}"
-        yield s
+            return f"{term} {value.location.emit()}"
+        return term
 
-    def _get_terms(self, print_locations: bool) -> Iterable[str]:
+    def _get_signature_terms(self, print_locations: bool) -> Iterable[str]:
         for value in self.operands:
-            yield from self._yield_term("in", value, print_locations)
+            yield ModuleOpBase._get_signature_term(
+                "in", value, False, print_locations
+            )
         for value in self.results:
-            yield from self._yield_term("out", value, print_locations)
+            yield ModuleOpBase._get_signature_term(
+                "out", value, True, print_locations
+            )
 
     def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print(f"hw.{self.op_name} {self.name.name}")
@@ -132,7 +140,9 @@ class ModuleOpBase(MlirOp):
             printer.print(", ".join(param.emit() for param in self.parameters))
             printer.print(">")
         printer.print("(")
-        printer.print(", ".join(self._get_terms(print_opts.print_locations)))
+        printer.print(
+            ", ".join(self._get_signature_terms(print_opts.print_locations))
+        )
         printer.print(")")
         if self.attr_dict:
             printer.print(" attributes ")
