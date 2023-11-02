@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @Register(%I: !hw.struct<x: i8, y: i1>, %CE: i1, %CLK: i1, %ASYNCRESET: i1) -> (O: !hw.struct<x: i8, y: i1>) {
+    hw.module @Register(in %I: !hw.struct<x: i8, y: i1>, in %CE: i1, in %CLK: i1, in %ASYNCRESET: i1, out O: !hw.struct<x: i8, y: i1>) {
         %1 = comb.extract %0 from 1 : (i9) -> i1
         %2 = comb.extract %0 from 2 : (i9) -> i1
         %3 = comb.extract %0 from 3 : (i9) -> i1
@@ -39,7 +39,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %28 = hw.struct_create (%27, %10) : !hw.struct<x: i8, y: i1>
         hw.output %28 : !hw.struct<x: i8, y: i1>
     }
-    hw.module @Register_unq1(%I: !hw.array<6xi16>, %CLK: i1) -> (O: !hw.array<6xi16>) {
+    hw.module @Register_unq1(in %I: !hw.array<6xi16>, in %CLK: i1, out O: !hw.array<6xi16>) {
         %1 = hw.constant 0 : i3
         %0 = hw.array_get %I[%1] : !hw.array<6xi16>, i3
         %2 = comb.extract %0 from 0 : (i16) -> i1
@@ -263,7 +263,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %214 = hw.array_create %213, %196, %179, %162, %145, %128 : i16
         hw.output %214 : !hw.array<6xi16>
     }
-    hw.module @Register_unq2(%I: i8, %CE: i1, %CLK: i1) -> (O: i8) {
+    hw.module @Register_unq2(in %I: i8, in %CE: i1, in %CLK: i1, out O: i8) {
         %2 = hw.array_create %I, %0 : i8
         %1 = hw.array_get %2[%CE] : !hw.array<2xi8>, i1
         %3 = sv.reg name "reg_P8_inst0" : !hw.inout<i8>
@@ -277,7 +277,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %0 = sv.read_inout %3 : !hw.inout<i8>
         hw.output %0 : i8
     }
-    hw.module @complex_register_wrapper(%a: !hw.struct<x: i8, y: i1>, %b: !hw.array<6xi16>, %CLK: i1, %CE: i1, %ASYNCRESET: i1) -> (y: !hw.struct<u: !hw.struct<x: i8, y: i1>, v: !hw.array<6xi16>>) {
+    hw.module @complex_register_wrapper(in %a: !hw.struct<x: i8, y: i1>, in %b: !hw.array<6xi16>, in %CLK: i1, in %CE: i1, in %ASYNCRESET: i1, out y: !hw.struct<u: !hw.struct<x: i8, y: i1>, v: !hw.array<6xi16>>) {
         %0 = hw.instance "Register_inst0" @Register(I: %a: !hw.struct<x: i8, y: i1>, CE: %CE: i1, CLK: %CLK: i1, ASYNCRESET: %ASYNCRESET: i1) -> (O: !hw.struct<x: i8, y: i1>)
         %1 = hw.instance "Register_inst1" @Register_unq1(I: %b: !hw.array<6xi16>, CLK: %CLK: i1) -> (O: !hw.array<6xi16>)
         %2 = hw.struct_create (%0, %1) : !hw.struct<u: !hw.struct<x: i8, y: i1>, v: !hw.array<6xi16>>

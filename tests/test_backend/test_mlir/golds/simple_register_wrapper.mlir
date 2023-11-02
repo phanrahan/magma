@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @simple_register_wrapper(%a: i8, %CLK: i1) -> (y: i8) {
+    hw.module @simple_register_wrapper(in %a: i8, in %CLK: i1, out y: i8) {
         %1 = sv.reg name "reg0" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %1, %a : i8

@@ -1,8 +1,8 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @simple_bind_asserts(%I: i1, %O: i1, %CLK: i1) -> () {
+    hw.module @simple_bind_asserts(in %I: i1, in %O: i1, in %CLK: i1) {
         sv.verbatim "assert property (@(posedge CLK) {{1}} |-> ##1 {{0}});" (%O, %I) : i1, i1
     }
-    hw.module @simple_bind(%I: i1, %CLK: i1) -> (O: i1) {
+    hw.module @simple_bind(in %I: i1, in %CLK: i1, out O: i1) {
         %1 = sv.reg name "Register_inst0" : !hw.inout<i1>
         sv.alwaysff(posedge %CLK) {
             sv.passign %1, %I : i1

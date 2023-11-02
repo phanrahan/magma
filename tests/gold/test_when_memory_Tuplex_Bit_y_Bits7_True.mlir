@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA_x: i1, %WDATA_y: i7, %WE: i1) -> (RDATA_x: i1, RDATA_y: i7) {
+    hw.module @Memory(in %RADDR: i5, in %CLK: i1, in %WADDR: i5, in %WDATA_x: i1, in %WDATA_y: i7, in %WE: i1, out RDATA_x: i1, out RDATA_y: i7) {
         %0 = comb.extract %WDATA_y from 0 : (i7) -> i1
         %1 = comb.extract %WDATA_y from 1 : (i7) -> i1
         %2 = comb.extract %WDATA_y from 2 : (i7) -> i1
@@ -28,7 +28,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %20 = comb.concat %19, %18, %17, %16, %15, %14, %13 : i1, i1, i1, i1, i1, i1, i1
         hw.output %12, %20 : i1, i7
     }
-    hw.module @test_when_memory_Tuplex_Bit_y_Bits7_True(%data0_x: i1, %data0_y: i7, %addr0: i5, %en0: i1, %data1_x: i1, %data1_y: i7, %addr1: i5, %en1: i1, %CLK: i1) -> (out_x: i1, out_y: i7) {
+    hw.module @test_when_memory_Tuplex_Bit_y_Bits7_True(in %data0_x: i1, in %data0_y: i7, in %addr0: i5, in %en0: i1, in %data1_x: i1, in %data1_y: i7, in %addr1: i5, in %en1: i1, in %CLK: i1, out out_x: i1, out out_y: i7) {
         %0 = hw.constant 1 : i1
         %3 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_True._WHEN_ASSERT_4 name "_WHEN_ASSERT_4" : !hw.inout<i5>
         sv.assign %3, %1 : i5

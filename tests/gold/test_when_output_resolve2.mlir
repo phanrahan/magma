@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_output_resolve2(%I: i8, %x: i1) -> (O0: i8, O1: i8) {
+    hw.module @test_when_output_resolve2(in %I: i8, in %x: i1, out O0: i8, out O1: i8) {
         %1 = hw.constant -1 : i8
         %0 = comb.xor %1, %I : i8
         %3 = sv.reg : !hw.inout<i8>

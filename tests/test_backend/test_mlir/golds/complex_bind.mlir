@@ -1,9 +1,9 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @complex_bind_asserts(%I: !hw.struct<I: i1>, %O: i1, %CLK: i1, %I0: i1) -> () {
+    hw.module @complex_bind_asserts(in %I: !hw.struct<I: i1>, in %O: i1, in %CLK: i1, in %I0: i1) {
         %0 = hw.struct_extract %I["I"] : !hw.struct<I: i1>
         sv.verbatim "assert property (@(posedge CLK) {{1}} |-> ##1 {{0}});assert property ({{1}} |-> {{2}};" (%O, %0, %I0) : i1, i1, i1
     }
-    hw.module @complex_bind(%I: !hw.struct<I: i1>, %CLK: i1) -> (O: i1) {
+    hw.module @complex_bind(in %I: !hw.struct<I: i1>, in %CLK: i1, out O: i1) {
         %0 = hw.struct_extract %I["I"] : !hw.struct<I: i1>
         %2 = hw.constant -1 : i1
         %1 = comb.xor %2, %0 : i1
