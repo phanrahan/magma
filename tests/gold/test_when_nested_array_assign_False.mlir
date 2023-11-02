@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_nested_array_assign_False(%I: !hw.struct<x: i1, y: !hw.struct<_0: i1, _1: i8>>, %S: i1) -> (O: !hw.struct<x: i1, y: !hw.struct<_0: i1, _1: i8>>) {
+    hw.module @test_when_nested_array_assign_False(in %I: !hw.struct<x: i1, y: !hw.struct<_0: i1, _1: i8>>, in %S: i1, out O: !hw.struct<x: i1, y: !hw.struct<_0: i1, _1: i8>>) {
         %0 = hw.struct_extract %I["x"] : !hw.struct<x: i1, y: !hw.struct<_0: i1, _1: i8>>
         %1 = hw.struct_extract %I["y"] : !hw.struct<x: i1, y: !hw.struct<_0: i1, _1: i8>>
         %2 = hw.struct_extract %1["_0"] : !hw.struct<_0: i1, _1: i8>

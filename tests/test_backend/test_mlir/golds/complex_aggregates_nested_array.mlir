@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @complex_aggregates_nested_array(%a: !hw.array<2x!hw.array<3xi4>>) -> (y: !hw.array<2x!hw.array<3xi4>>) {
+    hw.module @complex_aggregates_nested_array(in %a: !hw.array<2x!hw.array<3xi4>>, out y: !hw.array<2x!hw.array<3xi4>>) {
         %1 = hw.constant 0 : i1
         %0 = hw.array_get %a[%1] : !hw.array<2x!hw.array<3xi4>>, i1
         %3 = hw.constant 0 : i2

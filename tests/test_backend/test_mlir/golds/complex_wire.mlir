@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (O0: i8, O1: i1, O2: !hw.array<4xi8>) {
+    hw.module @complex_wire(in %I0: i8, in %I1: i1, in %I2: !hw.array<4xi8>, out O0: i8, out O1: i1, out O2: !hw.array<4xi8>) {
         %1 = sv.wire sym @complex_wire.tmp0 name "tmp0" : !hw.inout<i8>
         sv.assign %1, %I0 : i8
         %0 = sv.read_inout %1 : !hw.inout<i8>

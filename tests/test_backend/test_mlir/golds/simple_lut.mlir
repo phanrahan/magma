@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @LUT(%I: i2) -> (O: i8) {
+    hw.module @LUT(in %I: i2, out O: i8) {
         %1 = hw.constant 1 : i1
         %2 = hw.constant 0 : i1
         %3 = hw.array_create %1, %2, %1, %2 : i1
@@ -21,7 +21,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %18 = comb.concat %16, %14, %12, %10, %8, %6, %4, %0 : i1, i1, i1, i1, i1, i1, i1, i1
         hw.output %18 : i8
     }
-    hw.module @simple_lut(%a: i2) -> (y: i8) {
+    hw.module @simple_lut(in %a: i2, out y: i8) {
         %0 = hw.instance "LUT_inst0" @LUT(I: %a: i2) -> (O: i8)
         hw.output %0 : i8
     }

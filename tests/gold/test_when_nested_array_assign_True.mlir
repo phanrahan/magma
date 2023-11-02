@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_nested_array_assign_True(%I_x: i1, %I_y_0: i1, %I_y_1: i8, %S: i1) -> (O_x: i1, O_y_0: i1, O_y_1: i8) {
+    hw.module @test_when_nested_array_assign_True(in %I_x: i1, in %I_y_0: i1, in %I_y_1: i8, in %S: i1, out O_x: i1, out O_y_0: i1, out O_y_1: i8) {
         %1 = sv.reg : !hw.inout<i8>
         %0 = sv.read_inout %1 : !hw.inout<i8>
         sv.alwayscomb {

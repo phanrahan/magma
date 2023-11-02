@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_emit_asserts_value(%S: i3, %O_ready: i1, %CLK: i1) -> (O_valid: i1, O_data_x: i1, O_data_y: i8) {
+    hw.module @test_when_emit_asserts_value(in %S: i3, in %O_ready: i1, in %CLK: i1, out O_valid: i1, out O_data_x: i1, out O_data_y: i8) {
         %0 = hw.constant 0 : i1
         %1 = comb.extract %S from 0 : (i3) -> i1
         %2 = comb.extract %S from 1 : (i3) -> i1

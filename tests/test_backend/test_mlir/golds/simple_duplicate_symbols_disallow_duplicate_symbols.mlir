@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @simple_duplicate_symbols(%I: i1) -> (O: i2) {
+    hw.module @simple_duplicate_symbols(in %I: i1, out O: i2) {
         %1 = sv.wire sym @simple_duplicate_symbols.x name "x" : !hw.inout<i1>
         sv.assign %1, %I : i1
         %0 = sv.read_inout %1 : !hw.inout<i1>

@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_partial_assign_order(%I: i2, %S: i2) -> (O0: i2, O1: i2, O2: i2) {
+    hw.module @test_when_partial_assign_order(in %I: i2, in %S: i2, out O0: i2, out O1: i2, out O2: i2) {
         %0 = comb.extract %S from 0 : (i2) -> i1
         %2 = hw.constant -1 : i2
         %1 = comb.xor %2, %I : i2

@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @register_array_of_bit(%I: i4, %CLK: i1) -> (O: i4) {
+    hw.module @register_array_of_bit(in %I: i4, in %CLK: i1, out O: i4) {
         %1 = sv.reg name "Register_inst0" : !hw.inout<i4>
         sv.alwaysff(posedge %CLK) {
             sv.passign %1, %I : i4
