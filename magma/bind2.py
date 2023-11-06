@@ -25,6 +25,12 @@ class BoundInstanceInfo:
     compile_guards: List[CompileGuardInfo]
 
 
+@dataclasses.dataclass(frozen=True)
+class BoundGeneratorInfo:
+    bind_generator: Generator2Kind
+    compile_guards: List[CompileGuardInfo]
+
+
 def set_bound_instance_info(inst: CircuitType, info: BoundInstanceInfo):
     global _BOUND_INSTANCE_INFO_KEY
     setattr(inst, _BOUND_INSTANCE_INFO_KEY, info)
@@ -51,7 +57,7 @@ def is_bound_module(defn: CircuitKind) -> bool:
     return getattr(defn, _IS_BOUND_MODULE_KEY, False)
 
 
-def get_bound_generator_info(inst: CircuitType) -> List[Generator2Kind]:
+def get_bound_generator_infos(inst: CircuitType) -> List[BoundGeneratorInfo]:
     global _BOUND_GENERATOR_INFO_KEY
     try:
         info = getattr(inst, _BOUND_GENERATOR_INFO_KEY)
@@ -66,10 +72,12 @@ class BindGenerators(DefinitionPass):
         if not isinstance(defn, Generator2):
             return
         gen = type(defn)
-        for bind_generator in get_bound_generator_info(gen):
-            bind_module = bind_generator(defn, *defn._args_, **defn._kwargs_)
+        for info in get_bound_generator_infos(type(defn)):
+            bind_module = info.bind_generator(
+                defn, *defn._args_, **defn._kwargs_
+            )
             bind_args = getattr(bind_module, "bind2_args", list())
-            _bind_impl(defn, bind_module, bind_args, list())
+            _bind_impl(defn, bind_module, bind_args, info.compile_guards)
 
 
 bind_generators = pass_lambda(BindGenerators)
@@ -82,9 +90,14 @@ def make_bind_ports(defn_or_decl: CircuitKind) -> Dict[str, Type]:
     }
 
 
-def _bind_generator_impl(dut: Generator2Kind, bind_module: Generator2Kind):
-    info = get_bound_generator_info(dut)
-    info.append(bind_module)
+def _bind_generator_impl(
+        dut: Generator2Kind,
+        bind_generator: Generator2Kind,
+        compile_guards: List[CompileGuardInfo],
+):
+    infos = get_bound_generator_infos(dut)
+    info = BoundGeneratorInfo(bind_generator, compile_guards)
+    infos.append(info)
 
 
 def _bind_impl(
@@ -120,7 +133,7 @@ def bind2(
                 "Expected no arguments for binding generators. "
                 "Implement bind_arguments() instead."
             )
-        _bind_generator_impl(dut, bind_module)
+        _bind_generator_impl(dut, bind_module, compile_guards)
         return
     are_modules = (
         isinstance(dut, DefineCircuitKind) and
