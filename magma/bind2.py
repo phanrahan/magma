@@ -69,7 +69,7 @@ class BindGenerators(DefinitionPass):
         for bind_generator in get_bound_generator_info(gen):
             bind_module = bind_generator(defn, *defn._args_, **defn._kwargs_)
             bind_args = getattr(bind_module, "bind2_args", list())
-            bind2(defn, bind_module, *bind_args)
+            _bind_impl(defn, bind_module, bind_args, list())
 
 
 bind_generators = pass_lambda(BindGenerators)
