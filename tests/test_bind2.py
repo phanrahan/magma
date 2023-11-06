@@ -204,3 +204,44 @@ def test_compile_guard(backend, split_verilog):
         opts.update({"split_verilog": True})
         basename = basename + "_split_verilog"
     _assert_compilation(Top, basename, suffix, opts)
+
+
+@pytest.mark.parametrize(
+    "backend,split_verilog",
+    itertools.product(("mlir",), (False, True))
+)
+def test_compile_guard_generator(backend, split_verilog):
+
+    class Logic(m.Generator2):
+        def __init__(self, width=None):
+            T = m.Bit if width is None else m.Bits[width]
+            self.io = io = m.IO(I=m.In(T), O=m.Out(T))
+            io.O @= ~io.I
+
+    class LogicAsserts(m.Generator2):
+        def __init__(self, dut, width=None):
+            T = m.Bit if width is None else m.Bits[width]
+            self.width = width
+            self.io = io = m.IO(I=m.In(T), O=m.In(T), other=m.In(m.Bit))
+            m.inline_verilog2("{I} {O} {other}", I=io.I, O=io.O, other=io.other)
+            self.bind2_args = [m.bits(dut.I)[0]]
+
+    with m.compile_guard("ASSERT_ON"):
+        m.bind2(Logic, LogicAsserts)
+
+    class Top(m.Circuit):
+        T = m.Bits[2]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        I = m.bits(list(map(lambda x: Logic()()(x), io.I)))
+        io.O @= Logic(2)()(I)
+
+    basename = f"test_bind2_compile_guard_generator"
+    suffix = "mlir" if backend == "mlir" else "v"
+    opts = {
+        "output": backend,
+        "use_native_bind_processor": True,
+    }
+    if split_verilog:
+        opts.update({"split_verilog": True})
+        basename = basename + "_split_verilog"
+    _assert_compilation(Top, basename, suffix, opts)
