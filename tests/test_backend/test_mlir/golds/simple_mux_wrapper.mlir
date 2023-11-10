@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @simple_mux_wrapper(%a: i8, %s: i1) -> (y: i8) {
+    hw.module @simple_mux_wrapper(in %a: i8, in %s: i1, out y: i8) {
         %1 = hw.constant -1 : i8
         %0 = comb.xor %1, %a : i8
         %3 = hw.array_create %0, %a : i8

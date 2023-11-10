@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_nested_Array2_AnonProductxBit_yBits2_Bit_False(%I: !hw.array<2x!hw.array<2x!hw.struct<x: i1, y: i2>>>, %S: i1) -> (O: !hw.array<2x!hw.struct<x: i1, y: i2>>) {
+    hw.module @test_when_nested_Array2_AnonProductxBit_yBits2_Bit_False(in %I: !hw.array<2x!hw.array<2x!hw.struct<x: i1, y: i2>>>, in %S: i1, out O: !hw.array<2x!hw.struct<x: i1, y: i2>>) {
         %1 = hw.constant 1 : i1
         %0 = hw.array_get %I[%1] : !hw.array<2x!hw.array<2x!hw.struct<x: i1, y: i2>>>, i1
         %3 = hw.constant 0 : i1

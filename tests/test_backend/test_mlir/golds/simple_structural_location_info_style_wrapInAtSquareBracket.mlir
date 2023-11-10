@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=wrapInAtSquareBracket,omitVersionComment"} {
-    hw.module @simple_structural(%a: i16 loc(unknown), %b: i16 loc(unknown), %c: i16 loc(unknown), %CLK: i1 loc(unknown)) -> (y: i16 loc(unknown), z: i16 loc(unknown)) {
+    hw.module @simple_structural(in %a: i16 loc(unknown), in %b: i16 loc(unknown), in %c: i16 loc(unknown), in %CLK: i1 loc(unknown), out y: i16 loc(unknown), out z: i16 loc(unknown)) {
         %1 = sv.reg name "a_reg" : !hw.inout<i16>
         loc("file.py":100:0)
         sv.alwaysff(posedge %CLK) {

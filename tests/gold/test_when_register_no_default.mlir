@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_register_no_default(%I: i1, %E: i1, %CLK: i1) -> (O: i1) {
+    hw.module @test_register_no_default(in %I: i1, in %E: i1, in %CLK: i1, out O: i1) {
         %1 = hw.constant -1 : i1
         %0 = comb.xor %1, %I : i1
         %3 = sv.reg : !hw.inout<i1>

@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA: !hw.struct<x: i1, y: i7>, %WE: i1) -> (RDATA: !hw.struct<x: i1, y: i7>) {
+    hw.module @Memory(in %RADDR: i5, in %CLK: i1, in %WADDR: i5, in %WDATA: !hw.struct<x: i1, y: i7>, in %WE: i1, out RDATA: !hw.struct<x: i1, y: i7>) {
         %0 = hw.struct_extract %WDATA["x"] : !hw.struct<x: i1, y: i7>
         %1 = hw.struct_extract %WDATA["y"] : !hw.struct<x: i1, y: i7>
         %2 = comb.extract %1 from 0 : (i7) -> i1
@@ -31,7 +31,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %23 = hw.struct_create (%14, %22) : !hw.struct<x: i1, y: i7>
         hw.output %23 : !hw.struct<x: i1, y: i7>
     }
-    hw.module @test_when_memory_Tuplex_Bit_y_Bits7_False(%data0: !hw.struct<x: i1, y: i7>, %addr0: i5, %en0: i1, %data1: !hw.struct<x: i1, y: i7>, %addr1: i5, %en1: i1, %CLK: i1) -> (out: !hw.struct<x: i1, y: i7>) {
+    hw.module @test_when_memory_Tuplex_Bit_y_Bits7_False(in %data0: !hw.struct<x: i1, y: i7>, in %addr0: i5, in %en0: i1, in %data1: !hw.struct<x: i1, y: i7>, in %addr1: i5, in %en1: i1, in %CLK: i1, out out: !hw.struct<x: i1, y: i7>) {
         %0 = hw.constant 1 : i1
         %3 = sv.wire sym @test_when_memory_Tuplex_Bit_y_Bits7_False._WHEN_ASSERT_3 name "_WHEN_ASSERT_3" : !hw.inout<i5>
         sv.assign %3, %1 : i5

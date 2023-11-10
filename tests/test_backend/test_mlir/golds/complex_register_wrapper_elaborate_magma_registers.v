@@ -11,7 +11,7 @@ module Register(
     if (ASYNCRESET)
       reg_PR9_inst0 <= 9'h10A;
     else begin
-      automatic struct packed {logic [7:0] x; logic y; }      _GEN;
+      automatic struct packed {logic [7:0] x; logic y; } _GEN;
       automatic struct packed {logic [7:0] x; logic y; }[1:0] _GEN_0;
       _GEN = '{x: (reg_PR9_inst0[7:0]), y: (reg_PR9_inst0[8])};
       _GEN_0 = {{I}, {_GEN}};
@@ -70,7 +70,7 @@ module complex_register_wrapper(
   output struct packed {struct packed {logic [7:0] x; logic y; } u; logic [5:0][15:0] v; } y
 );
 
-  wire [5:0][15:0]                              _Register_inst1_O;
+  wire [5:0][15:0] _Register_inst1_O;
   wire struct packed {logic [7:0] x; logic y; } _Register_inst0_O;
   Register Register_inst0 (
     .I          (a),

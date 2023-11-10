@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_lazy_array_protocol(%S: i1) -> (O: !hw.array<2xi1>) {
+    hw.module @test_when_lazy_array_protocol(in %S: i1, out O: !hw.array<2xi1>) {
         %0 = hw.constant 0 : i1
         %1 = hw.constant 1 : i1
         %4 = sv.reg : !hw.inout<i1>

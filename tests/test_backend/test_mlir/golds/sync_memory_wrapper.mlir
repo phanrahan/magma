@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @Memory(%RADDR: i7, %CLK: i1, %WADDR: i7, %WDATA: i12, %WE: i1) -> (RDATA: i12) {
+    hw.module @Memory(in %RADDR: i7, in %CLK: i1, in %WADDR: i7, in %WDATA: i12, in %WE: i1, out RDATA: i12) {
         %0 = hw.constant 1 : i1
         %2 = sv.reg name "coreir_mem128x12_inst0" : !hw.inout<!hw.array<128xi12>>
         %3 = sv.array_index_inout %2[%RADDR] : !hw.inout<!hw.array<128xi12>>, i7
@@ -17,7 +17,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         }
         hw.output %1 : i12
     }
-    hw.module @sync_memory_wrapper(%RADDR: i7, %CLK: i1, %WADDR: i7, %WDATA: i12, %WE: i1) -> (RDATA: i12) {
+    hw.module @sync_memory_wrapper(in %RADDR: i7, in %CLK: i1, in %WADDR: i7, in %WDATA: i12, in %WE: i1, out RDATA: i12) {
         %0 = hw.instance "Memory_inst0" @Memory(RADDR: %RADDR: i7, CLK: %CLK: i1, WADDR: %WADDR: i7, WDATA: %WDATA: i12, WE: %WE: i1) -> (RDATA: i12)
         hw.output %0 : i12
     }

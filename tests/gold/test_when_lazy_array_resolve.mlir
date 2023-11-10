@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_lazy_array_resolve(%I: i2, %S: i1) -> (O: i2) {
+    hw.module @test_when_lazy_array_resolve(in %I: i2, in %S: i1, out O: i2) {
         %0 = hw.constant 1 : i2
         %1 = comb.shru %I, %0 : i2
         %2 = comb.extract %1 from 0 : (i2) -> i1

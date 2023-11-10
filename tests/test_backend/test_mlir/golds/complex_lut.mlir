@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @LUT(%I: i2) -> (O: !hw.array<2x!hw.struct<x: i8, y: i1>>) {
+    hw.module @LUT(in %I: i2, out O: !hw.array<2x!hw.struct<x: i8, y: i1>>) {
         %1 = hw.constant 0 : i1
         %2 = hw.constant 1 : i1
         %3 = hw.array_create %1, %2, %2, %2 : i1
@@ -45,7 +45,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %42 = hw.array_create %41, %21 : !hw.struct<x: i8, y: i1>
         hw.output %42 : !hw.array<2x!hw.struct<x: i8, y: i1>>
     }
-    hw.module @complex_lut(%a: i2) -> (y: !hw.array<2x!hw.struct<x: i8, y: i1>>) {
+    hw.module @complex_lut(in %a: i2, out y: !hw.array<2x!hw.struct<x: i8, y: i1>>) {
         %0 = hw.instance "LUT_inst0" @LUT(I: %a: i2) -> (O: !hw.array<2x!hw.struct<x: i8, y: i1>>)
         hw.output %0 : !hw.array<2x!hw.struct<x: i8, y: i1>>
     }

@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @simple_reduction(%I0: i8, %I1: i8, %I2: i8) -> (O0: i1, O1: i1, O2: i1) {
+    hw.module @simple_reduction(in %I0: i8, in %I1: i8, in %I2: i8, out O0: i1, out O1: i1, out O2: i1) {
         %1 = hw.constant -1 : i8
         %0 = comb.icmp eq %I0, %1 : i8
         %3 = hw.constant 0 : i8

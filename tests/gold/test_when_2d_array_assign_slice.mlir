@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_2d_array_assign_slice(%I: !hw.array<4xi2>, %S: i1) -> (O: !hw.array<4xi2>) {
+    hw.module @test_when_2d_array_assign_slice(in %I: !hw.array<4xi2>, in %S: i1, out O: !hw.array<4xi2>) {
         %1 = sv.reg : !hw.inout<!hw.array<4xi2>>
         %0 = sv.read_inout %1 : !hw.inout<!hw.array<4xi2>>
         sv.alwayscomb {

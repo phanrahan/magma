@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @Gen(%a: i8) -> (y: i8) {
+    hw.module @Gen(in %a: i8, out y: i8) {
         %0 = comb.extract %a from 0 : (i8) -> i1
         %1 = comb.extract %a from 1 : (i8) -> i1
         %2 = hw.constant 0 : i1
@@ -97,7 +97,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         sv.verbatim "WHEN_ASSERT_15: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%48, %39, %8) : i1, i1, i1
         hw.output %41 : i8
     }
-    hw.module @Gen_unq1(%a: i8) -> (y: i8) {
+    hw.module @Gen_unq1(in %a: i8, out y: i8) {
         %0 = comb.extract %a from 0 : (i8) -> i1
         %1 = comb.extract %a from 1 : (i8) -> i1
         %2 = comb.extract %a from 2 : (i8) -> i1
@@ -193,7 +193,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         sv.verbatim "WHEN_ASSERT_31: assert property (({{0}}) |-> ({{1}} == {{2}}));" (%46, %39, %8) : i1, i1, i1
         hw.output %41 : i8
     }
-    hw.module @test_when_unique(%a: i8) -> (y: i8) {
+    hw.module @test_when_unique(in %a: i8, out y: i8) {
         %0 = hw.instance "Gen_inst0" @Gen(a: %a: i8) -> (y: i8)
         %1 = hw.instance "Gen_inst1" @Gen_unq1(a: %a: i8) -> (y: i8)
         %2 = comb.or %0, %1 : i8

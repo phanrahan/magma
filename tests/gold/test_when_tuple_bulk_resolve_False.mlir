@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_tuple_bulk_resolve_False(%I: !hw.struct<x: i8, y: !hw.struct<x: !hw.struct<x: i8, y: i8>, y: !hw.struct<x: i8, y: i8>>>, %S: i2, %CLK: i1) -> (O: !hw.struct<x: i8, y: !hw.struct<x: !hw.struct<x: i8, y: i8>, y: !hw.struct<x: i8, y: i8>>>) {
+    hw.module @test_when_tuple_bulk_resolve_False(in %I: !hw.struct<x: i8, y: !hw.struct<x: !hw.struct<x: i8, y: i8>, y: !hw.struct<x: i8, y: i8>>>, in %S: i2, in %CLK: i1, out O: !hw.struct<x: i8, y: !hw.struct<x: !hw.struct<x: i8, y: i8>, y: !hw.struct<x: i8, y: i8>>>) {
         %0 = comb.extract %S from 0 : (i2) -> i1
         %2 = hw.struct_extract %1["x"] : !hw.struct<x: i8, y: !hw.struct<x: !hw.struct<x: i8, y: i8>, y: !hw.struct<x: i8, y: i8>>>
         %4 = sv.wire sym @test_when_tuple_bulk_resolve_False._WHEN_ASSERT_2 name "_WHEN_ASSERT_2" : !hw.inout<i8>
