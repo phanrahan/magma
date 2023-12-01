@@ -25,7 +25,7 @@ module complex_register_wrapper(
   end // always_ff @(posedge)
   initial begin
     Register_inst0 = '{x: 8'hA, y: 1'h1};
-    Register_inst1 = {16'h0, 16'h2, 16'h4, 16'h6, 16'h8, 16'hA};
+    Register_inst1 = '{16'h0, 16'h2, 16'h4, 16'h6, 16'h8, 16'hA};
     Register_inst2 = 8'h0;
   end // initial
   assign y = '{u: Register_inst0, v: Register_inst1};

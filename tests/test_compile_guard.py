@@ -33,10 +33,10 @@ def test_assert():
             count.CE @= io.I.valid
             f.assert_immediate((count.O != 3) | (io.O.value() == 3))
 
-    m.compile("build/test_compile_guard_assert", _Top, inline=True)
+    m.compile("build/test_compile_guard_assert", _Top, output="mlir")
     assert m.testing.check_files_equal(
-        __file__, f"build/test_compile_guard_assert.json",
-        f"gold/test_compile_guard_assert.json")
+        __file__, f"build/test_compile_guard_assert.mlir",
+        f"gold/test_compile_guard_assert.mlir")
 
 
 def test_array():
