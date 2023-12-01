@@ -7,7 +7,7 @@ from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
 from magma.backend.mlir.errors import MlirCompilerInternalError
 from magma.backend.mlir.hardware_module import HardwareModule
 from magma.backend.mlir.hw import hw
-from magma.backend.mlir.mlir import MlirOp, MlirSymbol, push_block
+from magma.backend.mlir.mlir import MlirSymbol, push_block
 from magma.backend.mlir.mlir_passes import CollectMlirOpsPass
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
