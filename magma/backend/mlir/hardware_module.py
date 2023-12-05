@@ -1124,9 +1124,7 @@ class NativeBindProcessor(BindProcessorInterface):
 
 
 def _make_bind_processor(ctx: 'HardwareModule', defn: CircuitKind):
-    if ctx.opts.use_native_bind_processor:
-        return NativeBindProcessor(ctx, defn)
-    raise NotImplementedError()
+    return NativeBindProcessor(ctx, defn)
 
 
 def _visit_linked_module(

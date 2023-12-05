@@ -53,7 +53,6 @@ def test_basic(backend, split_verilog):
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,
-        "use_native_bind_processor": True,
     }
     if split_verilog:
         opts.update({"split_verilog": True})
@@ -119,7 +118,6 @@ def test_xmr(backend, flatten_all_tuples, inst_attr):
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,
-        "use_native_bind_processor": True,
         "flatten_all_tuples": flatten_all_tuples,
     }
     _assert_compilation(Top, basename, suffix, opts)
@@ -151,7 +149,6 @@ def test_generator():
 
     opts = {
         "output": "mlir",
-        "use_native_bind_processor": True,
     }
     _assert_compilation(Top, "test_bind_generator", "mlir", opts)
 
@@ -198,7 +195,6 @@ def test_compile_guard(backend, split_verilog):
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,
-        "use_native_bind_processor": True,
     }
     if split_verilog:
         opts.update({"split_verilog": True})
@@ -239,7 +235,6 @@ def test_compile_guard_generator(backend, split_verilog):
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,
-        "use_native_bind_processor": True,
     }
     if split_verilog:
         opts.update({"split_verilog": True})

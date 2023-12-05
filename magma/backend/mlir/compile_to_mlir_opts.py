@@ -7,7 +7,6 @@ class CompileToMlirOpts:
     flatten_all_tuples: bool = False
     basename: Optional[str] = None
     sv: bool = False
-    use_native_bind_processor: bool = True
     verilog_prefix: Optional[str] = None
     user_namespace: Optional[str] = None
     disable_initial_blocks: bool = False
