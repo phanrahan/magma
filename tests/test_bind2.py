@@ -139,7 +139,7 @@ def test_generator():
             self.width = width
             self.io = io = m.IO(I=m.In(T), O=m.In(T), other=m.In(m.Bit))
             m.inline_verilog("{I} {O} {other}", I=io.I, O=io.O, other=io.other)
-            self.bind2_args = [m.bits(dut.I)[0]]
+            self.bind_args = [m.bits(dut.I)[0]]
 
     m.bind2(Logic, LogicAsserts)
 
@@ -224,7 +224,7 @@ def test_compile_guard_generator(backend, split_verilog):
             self.width = width
             self.io = io = m.IO(I=m.In(T), O=m.In(T), other=m.In(m.Bit))
             m.inline_verilog2("{I} {O} {other}", I=io.I, O=io.O, other=io.other)
-            self.bind2_args = [m.bits(dut.I)[0]]
+            self.bind_args = [m.bits(dut.I)[0]]
 
     with m.compile_guard("ASSERT_ON"):
         m.bind2(Logic, LogicAsserts)

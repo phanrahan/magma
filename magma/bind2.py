@@ -76,7 +76,7 @@ class BindGenerators(DefinitionPass):
             bind_module = info.bind_generator(
                 defn, *defn._args_, **defn._kwargs_
             )
-            bind_args = getattr(bind_module, "bind2_args", list())
+            bind_args = getattr(bind_module, "bind_args", list())
             _bind_impl(defn, bind_module, bind_args, info.compile_guards)
 
 

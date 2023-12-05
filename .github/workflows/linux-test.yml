@@ -34,6 +34,7 @@ jobs:
         # END: Temp fix
         python -m pip install .
         python -m pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
+        python -m pip install importlib-resources
         python -m pip install kratos  # test optional dependency
 
     - name: Test with pytest
