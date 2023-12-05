@@ -4,7 +4,7 @@ from magma.circuit import coreir_port_mapping
 from magma.clock import AsyncReset, AsyncResetN, Clock, _ClockType
 from magma.conversions import bit, convertbit
 from magma.digital import Digital
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.t import Kind, In, Out
 from magma.type_utils import type_to_sanitized_string
@@ -14,7 +14,7 @@ def _simulate_wire(this, value_store, state_store):
     value_store.set_value(this.O, value_store.get_value(this.I))
 
 
-class Wire(Generator2):
+class Wire(Generator):
     def __init__(self, T: Kind, flatten: bool = True):
         self.T = T
         self.flattened = flatten

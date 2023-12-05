@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Union
 
 from magma.circuit import DefineCircuitKind, CircuitKind, CircuitType
 from magma.compile_guard import get_active_compile_guard_info, CompileGuardInfo
-from magma.generator import Generator2Kind, Generator2
+from magma.generator import GeneratorKind, Generator
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.view import PortView
 from magma.wire_utils import wire_value_or_port_view
@@ -14,8 +14,8 @@ _BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
 _BOUND_GENERATOR_INFO_KEY = "_bound_generator_info_"
 _IS_BOUND_MODULE_KEY = "_is_bound_module_"
 
-DutType = Union[DefineCircuitKind, Generator2Kind]
-BindModuleType = Union[CircuitKind, Generator2Kind]
+DutType = Union[DefineCircuitKind, GeneratorKind]
+BindModuleType = Union[CircuitKind, GeneratorKind]
 ArgumentType = Union[Type, PortView]
 
 
@@ -27,7 +27,7 @@ class BoundInstanceInfo:
 
 @dataclasses.dataclass(frozen=True)
 class BoundGeneratorInfo:
-    bind_generator: Generator2Kind
+    bind_generator: GeneratorKind
     compile_guards: List[CompileGuardInfo]
 
 
@@ -69,7 +69,7 @@ def get_bound_generator_infos(inst: CircuitType) -> List[BoundGeneratorInfo]:
 
 class BindGenerators(DefinitionPass):
     def __call__(self, defn):
-        if not isinstance(defn, Generator2):
+        if not isinstance(defn, Generator):
             return
         gen = type(defn)
         for info in get_bound_generator_infos(type(defn)):
@@ -91,8 +91,8 @@ def make_bind_ports(defn_or_decl: CircuitKind) -> Dict[str, Type]:
 
 
 def _bind_generator_impl(
-        dut: Generator2Kind,
-        bind_generator: Generator2Kind,
+        dut: GeneratorKind,
+        bind_generator: GeneratorKind,
         compile_guards: List[CompileGuardInfo],
 ):
     infos = get_bound_generator_infos(dut)
@@ -124,8 +124,8 @@ def bind(
     args = list(args)
     compile_guards = list(get_active_compile_guard_info())
     are_generators = (
-        isinstance(dut, Generator2Kind) and
-        isinstance(bind_module, Generator2Kind)
+        isinstance(dut, GeneratorKind) and
+        isinstance(bind_module, GeneratorKind)
     )
     if are_generators:
         if args:

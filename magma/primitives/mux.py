@@ -10,7 +10,7 @@ from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
 from magma.common import is_int
 from magma.debug import magma_helper_function
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.protocol_type import MagmaProtocol, magma_type
 from magma.t import Type, In, Out, Direction
@@ -19,7 +19,7 @@ from magma.type_utils import type_to_sanitized_string
 from magma.conversions import tuple_, as_bits, from_bits
 
 
-class CoreIRCommonLibMuxN(Generator2):
+class CoreIRCommonLibMuxN(Generator):
     def __init__(self, N: int, width: int):
         self.name = f"coreir_commonlib_mux{N}x{width}"
         FlatT = Array[width, Bit]
@@ -41,7 +41,7 @@ class CoreIRCommonLibMuxN(Generator2):
         self.simulate = simulate
 
 
-class Mux(Generator2):
+class Mux(Generator):
     def __init__(self, height: int, T: Type):
         if issubclass(T, BitVector):
             T = Bits[len(T)]

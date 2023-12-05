@@ -2,7 +2,7 @@ import magma as m
 from magma.testing import check_files_equal
 
 
-class _MyMux(m.Generator2):
+class _MyMux(m.Generator):
     cls_level_var = "I like being a mux"
 
     def __init__(self, width, height):
@@ -20,7 +20,7 @@ class _MyMux(m.Generator2):
 
 
 def test_type_relations():
-    assert issubclass(_MyMux, m.Generator2)
+    assert issubclass(_MyMux, m.Generator)
     assert issubclass(_MyMux, m.DefineCircuitKind)
     MyMux4x4 = _MyMux(4, 4)  # circuit defn.
     assert isinstance(MyMux4x4, m.DefineCircuitKind)
@@ -71,7 +71,7 @@ def test_cache():
 def test_cache_miss():
 
     # Different class, with same parameters; internals don't matter.
-    class _MyOtherMux(m.Generator2):
+    class _MyOtherMux(m.Generator):
         def __init__(self, width, height):
             pass
 
@@ -82,7 +82,7 @@ def test_cache_miss():
 
 def test_no_cache():
 
-    class _MyGen(m.Generator2):
+    class _MyGen(m.Generator):
         _cache_ = False
 
         def __init__(self):

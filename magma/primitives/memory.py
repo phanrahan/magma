@@ -6,7 +6,7 @@ from magma.bitutils import clog2
 from magma.clock import Clock, Enable
 from magma.clock_io import ClockIO
 from magma.conversions import from_bits, as_bits, enable, uint
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.logging import root_logger
 from magma.primitives.register import Register
@@ -17,7 +17,7 @@ from magma.t import In, Out, Kind, Type
 _logger = root_logger()
 
 
-class CoreIRMemory(Generator2):
+class CoreIRMemory(Generator):
     def __init__(self, depth, width, init=None, sync_read=False):
         self.name = f"coreir_mem{depth}x{width}"
         addr_width = clog2(depth)
@@ -115,7 +115,7 @@ class StagedMemoryPort(MagmaProtocol, metaclass=StagedMemoryPortMeta):
         return self.memory.RDATA
 
 
-class Memory(Generator2):
+class Memory(Generator):
     def __init__(self, height, T: Kind,
                  read_latency: int = 0, read_only: bool = False,
                  init: Optional[tuple] = None, has_read_enable: bool = False):

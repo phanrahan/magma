@@ -4,7 +4,7 @@ from ast_tools.stack import get_symbol_table
 
 from magma.circuit import Circuit
 from magma.common import hash_expr
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.t import In, Kind, Type
 from magma.view import PortView
@@ -64,7 +64,7 @@ def _wire_ports(value_map: ValueLikeMap, inst: Circuit):
             ) from None
 
 
-class _InlineVerilog2(Generator2):
+class _InlineVerilog2(Generator):
     def __init__(self, expr: str, arg_types: Iterable[Kind]):
         self.expr = expr
         self.io = IO(**{

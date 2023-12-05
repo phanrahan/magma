@@ -4,12 +4,12 @@ from magma.compile_exception import MagmaCompileException
 
 
 def test_missing_generator_paren(caplog):
-    class Foo(m.Generator2):
+    class Foo(m.Generator):
         def __init__(self, width):
             self.io = m.IO(x=m.In(m.Bits[width]), y=m.Out(m.Bits[width]))
             self.io.y @= self.io.x
 
-    class Bar(m.Generator2):
+    class Bar(m.Generator):
         def __init__(self, width):
             self.io = m.IO(a=m.In(m.Bits[width]),
                            z=m.Out(m.Bit))
