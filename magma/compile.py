@@ -4,7 +4,6 @@ from pathlib import PurePath
 from magma.backend import verilog, blif, firrtl, dot
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.backend.mlir.mlir_compiler import MlirCompiler
-from magma.bind import BindPass
 from magma.bind2 import bind_generators
 from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
@@ -91,8 +90,6 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     # NOTE(rsetaluri): This is a hack to use packed arrays when the compilation
     # goes through MLIR.
     compile_fn = _make_bind_compile_fn(output)
-    BindPass(main, compile_fn, opts.get("user_namespace"),
-             opts.get("verilog_prefix")).run()
 
     if opts.get("drive_undriven", False):
         drive_undriven(main)

@@ -27,7 +27,6 @@ class GeneratorMeta(type):
             stacklevel=2,
         )
 
-        attrs["bind_generators"] = []
         cls = super().__new__(mcs, name, bases, attrs)
         old_generate = cls.generate
 
@@ -35,12 +34,9 @@ class GeneratorMeta(type):
             result = old_generate(*args, **kwargs)
             if hasattr(result, "circuit_definition"):
                 result = result.circuit_definition
-            for gen in cls.bind_generators:
-                gen.generate_bind(result, *args, **kwargs)
             return result
 
         cls.generate = generate_wrapper
-        # Cache after bind logic so we don't run it twice on a cached entry
         if cls.cache:
             cls.generate = cache_definition(cls.generate)
         return cls
@@ -93,8 +89,6 @@ def _make_type(cls, *args, **kwargs):
     ckt = cls._base_metacls_.__new__(cls, name, bases, dct)
     ckt._args_ = args
     ckt._kwargs_ = kwargs
-    for gen in cls.bind_generators:
-        gen.generate_bind(ckt, *args, **kwargs)
     return ckt
 
 
@@ -105,7 +99,6 @@ class _Generator2Meta(type):
 
     def __new__(metacls, name, bases, dct):
         bases = bases + (metacls._base_metacls_,)
-        assert dct.setdefault("bind_generators", []) == []
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):

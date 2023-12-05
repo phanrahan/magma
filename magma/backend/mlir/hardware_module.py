@@ -1094,16 +1094,7 @@ class BindProcessorInterface(abc.ABC):
 
 class NativeBindProcessor(BindProcessorInterface):
     def preprocess(self):
-        for bind_module in self._defn.bind_modules:
-            # TODO(rsetaluri): Here we should check if @bind_module has already
-            # been compiled, in the case that the bound module is either used
-            # multiple times or is also a "normal" module that was compiled
-            # elsewhere. Currently, the `set_hardware_module` call will raise an
-            # error if @bind_module has been compiled already.
-            hardware_module = self._ctx.parent.new_hardware_module(bind_module)
-            hardware_module.compile()
-            assert hardware_module.hw_module is not None
-            self._ctx.parent.set_hardware_module(bind_module, hardware_module)
+        pass
 
     @wrap_with_not_implemented_error
     def _resolve_arg(self, arg) -> MlirValue:
@@ -1113,38 +1104,10 @@ class NativeBindProcessor(BindProcessorInterface):
             return resolve_xmr(self._ctx, arg)
 
     def process(self):
-        self._syms = []
-        for bind_module, (args, _) in self._defn.bind_modules.items():
-            operands = []
-            for port in self._defn.interface.ports.values():
-                port = get_magma_value(port)
-                visit_magma_value_or_value_wrapper_by_direction(
-                    port,
-                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
-                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
-                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
-                )
-            operands += list(map(self._resolve_arg, args))
-            inst_name = f"{bind_module.name}_inst"
-            sym = self._ctx.parent.get_or_make_mapped_symbol(
-                (self._defn, bind_module),
-                name=f"{self._defn.name}.{inst_name}",
-                force=True)
-            module = self._ctx.parent.get_hardware_module(bind_module)
-            inst = hw.InstanceOp(
-                name=inst_name,
-                module=module.hw_module,
-                operands=operands,
-                results=[],
-                sym=sym)
-            inst.attr_dict["doNotPrint"] = builtin.BoolAttr(True)
-            self._syms.append(sym)
+        pass
 
     def postprocess(self):
         defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
-        for sym in self._syms:
-            instance = hw.InnerRefAttr(defn_sym, sym)
-            sv.BindOp(instance=instance)
         for instance in self._defn.instances:
             bound_instance_info = maybe_get_bound_instance_info(instance)
             if bound_instance_info is None:
@@ -1160,26 +1123,10 @@ class NativeBindProcessor(BindProcessorInterface):
                 sv.BindOp(instance=ref)
 
 
-class CoreIRBindProcessor(BindProcessorInterface):
-    def preprocess(self):
-        return
-
-    def process(self):
-        for name, content in self._defn.compiled_bind_modules.items():
-            path = pathlib.Path(self._ctx.opts.basename).parent
-            filename = path / f"{name}.sv"
-            with open(filename, "w") as f:
-                f.write(content)
-            self._ctx.parent.add_external_bind_file(filename.name)
-
-    def postprocess(self):
-        return
-
-
 def _make_bind_processor(ctx: 'HardwareModule', defn: CircuitKind):
     if ctx.opts.use_native_bind_processor:
         return NativeBindProcessor(ctx, defn)
-    return CoreIRBindProcessor(ctx, defn)
+    raise NotImplementedError()
 
 
 def _visit_linked_module(
