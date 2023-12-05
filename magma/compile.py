@@ -4,7 +4,7 @@ from pathlib import PurePath
 from magma.backend import verilog, blif, firrtl, dot
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.backend.mlir.mlir_compiler import MlirCompiler
-from magma.bind2 import bind_generators
+from magma.bind import bind_generators
 from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass

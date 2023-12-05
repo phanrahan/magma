@@ -4,7 +4,7 @@ import pytest
 import string
 
 import magma as m
-from magma.bind2 import (
+from magma.bind import (
     is_bound_module,
     is_bound_instance,
     maybe_get_bound_instance_info,
@@ -44,12 +44,12 @@ def test_basic(backend, split_verilog):
         io.O.unused()
         io.other.unused()
 
-    m.bind2(Top, TopBasicAsserts, Top.I)
+    m.bind(Top, TopBasicAsserts, Top.I)
 
     assert not is_bound_module(Top)
     assert is_bound_module(TopBasicAsserts)
 
-    basename = f"test_bind2_basic"
+    basename = f"test_bind_basic"
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,
@@ -105,7 +105,7 @@ def test_xmr(backend, flatten_all_tuples, inst_attr):
         io.b.unused()
         io.c.unused()
 
-    m.bind2(
+    m.bind(
         Top,
         TopXMRAsserts,
         Top.middle.bottom.O,
@@ -113,7 +113,7 @@ def test_xmr(backend, flatten_all_tuples, inst_attr):
         Top.middle.bottom.x[0],
     )
 
-    basename = "test_bind2_xmr"
+    basename = "test_bind_xmr"
     if flatten_all_tuples:
         basename += "_flatten_all_tuples"
     suffix = "mlir" if backend == "mlir" else "v"
@@ -141,7 +141,7 @@ def test_generator():
             m.inline_verilog("{I} {O} {other}", I=io.I, O=io.O, other=io.other)
             self.bind_args = [m.bits(dut.I)[0]]
 
-    m.bind2(Logic, LogicAsserts)
+    m.bind(Logic, LogicAsserts)
 
     class Top(m.Circuit):
         T = m.Bits[2]
@@ -153,7 +153,7 @@ def test_generator():
         "output": "mlir",
         "use_native_bind_processor": True,
     }
-    _assert_compilation(Top, "test_bind2_generator", "mlir", opts)
+    _assert_compilation(Top, "test_bind_generator", "mlir", opts)
 
     class _CheckLogicAssertsAreBoundModulesPass(CircuitPass):
         def __call__(self, defn):
@@ -183,7 +183,7 @@ def test_compile_guard(backend, split_verilog):
         io.other.unused()
 
     with m.compile_guard("ASSERT_ON"):
-        m.bind2(Top, TopCompileGuardAsserts, Top.I)
+        m.bind(Top, TopCompileGuardAsserts, Top.I)
 
     assert not is_bound_module(Top)
     assert is_bound_module(TopCompileGuardAsserts)
@@ -194,7 +194,7 @@ def test_compile_guard(backend, split_verilog):
     assert compile_guard_infos[0] is not None
     assert compile_guard_infos[0].condition_str == "ASSERT_ON"
 
-    basename = f"test_bind2_compile_guard"
+    basename = f"test_bind_compile_guard"
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,
@@ -227,7 +227,7 @@ def test_compile_guard_generator(backend, split_verilog):
             self.bind_args = [m.bits(dut.I)[0]]
 
     with m.compile_guard("ASSERT_ON"):
-        m.bind2(Logic, LogicAsserts)
+        m.bind(Logic, LogicAsserts)
 
     class Top(m.Circuit):
         T = m.Bits[2]
@@ -235,7 +235,7 @@ def test_compile_guard_generator(backend, split_verilog):
         I = m.bits(list(map(lambda x: Logic()()(x), io.I)))
         io.O @= Logic(2)()(I)
 
-    basename = f"test_bind2_compile_guard_generator"
+    basename = f"test_bind_compile_guard_generator"
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,

@@ -45,7 +45,7 @@ from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
 from magma.backend.mlir.when_utils import WhenCompiler
 from magma.backend.mlir.xmr_utils import get_xmr_paths
-from magma.bind2 import maybe_get_bound_instance_info, is_bound_instance
+from magma.bind import maybe_get_bound_instance_info, is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2, clog2safe

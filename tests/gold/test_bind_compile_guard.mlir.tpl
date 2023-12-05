@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @TopCompileGuardAsserts_mlir(in %I: i1, in %O: i1, in %other: i1) attributes {output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_compile_guard_bind_files.list">} {
+    hw.module @TopCompileGuardAsserts_mlir(in %I: i1, in %O: i1, in %other: i1) attributes {output_filelist = #hw.output_filelist<"$cwd/build/test_bind_compile_guard_bind_files.list">} {
     }
     hw.module @Top(in %I: i1, out O: i1) {
         %1 = hw.constant -1 : i1

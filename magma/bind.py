@@ -116,7 +116,7 @@ def _bind_impl(
         set_is_bound_module(bind_module, True)
 
 
-def bind2(
+def bind(
         dut: DutType,
         bind_module: BindModuleType,
         *args,

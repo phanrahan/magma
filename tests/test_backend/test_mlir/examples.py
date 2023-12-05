@@ -425,7 +425,7 @@ class simple_bind_asserts(m.Circuit):
 
 
 ProcessInlineVerilogPass(simple_bind_asserts).run()
-m.bind2(simple_bind, simple_bind_asserts)
+m.bind(simple_bind, simple_bind_asserts)
 m.passes.clock.WireClockPass(simple_bind).run()
 m.passes.clock.WireClockPass(simple_bind_asserts).run()
 
@@ -448,7 +448,7 @@ class complex_bind_asserts(m.Circuit):
 
 
 ProcessInlineVerilogPass(complex_bind_asserts).run()
-m.bind2(complex_bind, complex_bind_asserts, complex_bind.not_I)
+m.bind(complex_bind, complex_bind_asserts, complex_bind.not_I)
 m.passes.clock.WireClockPass(complex_bind).run()
 m.passes.clock.WireClockPass(complex_bind_asserts).run()
 
@@ -482,7 +482,7 @@ class xmr_bind_asserts(m.Circuit):
 
 
 ProcessInlineVerilogPass(xmr_bind_asserts).run()
-m.bind2(xmr_bind, xmr_bind_asserts, xmr_bind.inst.xmr_bind_grandchild_inst0.y)
+m.bind(xmr_bind, xmr_bind_asserts, xmr_bind.inst.xmr_bind_grandchild_inst0.y)
 
 
 class simple_compile_guard(m.Circuit):
