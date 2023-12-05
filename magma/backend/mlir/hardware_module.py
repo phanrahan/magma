@@ -1075,20 +1075,20 @@ def treat_as_definition(defn_or_decl: CircuitKind) -> bool:
 
 
 def _process_bound_modules(defn: CircuitKind, ctx: 'HardwareModule'):
-   defn_sym = ctx.parent.get_mapped_symbol(defn)
-   for instance in defn.instances:
-       bound_instance_info = maybe_get_bound_instance_info(instance)
-       if bound_instance_info is None:
-           continue
-       inst_sym = ctx.parent.get_mapped_symbol(instance)
-       ref = hw.InnerRefAttr(defn_sym, inst_sym)
-       with contextlib.ExitStack() as stack:
-           for compile_guard_info in bound_instance_info.compile_guards:
-               block = _make_compile_guard_block(
-                   dataclasses.asdict(compile_guard_info)
-               )
-               stack.enter_context(push_block(block))
-           sv.BindOp(instance=ref)
+    defn_sym = ctx.parent.get_mapped_symbol(defn)
+    for instance in defn.instances:
+        bound_instance_info = maybe_get_bound_instance_info(instance)
+        if bound_instance_info is None:
+            continue
+        inst_sym = ctx.parent.get_mapped_symbol(instance)
+        ref = hw.InnerRefAttr(defn_sym, inst_sym)
+        with contextlib.ExitStack() as stack:
+            for compile_guard_info in bound_instance_info.compile_guards:
+                block = _make_compile_guard_block(
+                    dataclasses.asdict(compile_guard_info)
+                )
+                stack.enter_context(push_block(block))
+            sv.BindOp(instance=ref)
 
 
 def _visit_linked_module(
