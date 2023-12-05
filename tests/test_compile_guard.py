@@ -295,9 +295,10 @@ def test_contained_inline_verilog():
             m.inline_verilog("assert ~{reg.O};")
 
     basename = "test_compile_guard_contained_inline_verilog"
-    m.compile(f"build/{basename}", Top)
+    m.compile(f"build/{basename}", Top, output="mlir-verilog")
     assert m.testing.check_files_equal(
-        __file__, f"build/{basename}.v", f"gold/{basename}.v")
+        __file__, f"build/{basename}.v", f"gold/{basename}.v"
+    )
 
 
 def test_compile_guard_anon_driven_internal():

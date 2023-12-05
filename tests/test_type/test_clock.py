@@ -396,6 +396,7 @@ def test_asyncreset_cast(T, convert):
                              f"gold/test_{T.__name__}_cast.v")
 
 
+@pytest.mark.skip("coreir backend soon to be deprecated")
 def test_insert_wrap_casts_temporary():
     class Foo(m.Circuit):
         io = m.ClockIO()
@@ -424,7 +425,7 @@ def test_wire_error(caplog):
         io = m.IO(I=m.In(m.Clock), O=m.Out(m.Reset))
         m.wire(io.I, io.O)
     assert has_error(caplog, """\
-tests/test_type/test_clock.py:425: Cannot wire Foo.I (Out(Clock)) to Foo.O (In(Reset))
+tests/test_type/test_clock.py:426: Cannot wire Foo.I (Out(Clock)) to Foo.O (In(Reset))
 >>         m.wire(io.I, io.O)\
 """)
 
@@ -471,11 +472,11 @@ def test_implicit_clock_tuple(caplog):
 
     m.compile("build/Bar", Bar)
     assert has_debug(caplog, """\
-tests/test_type/test_clock.py:469: Foo_inst0.clocks.clk not driven, will attempt to automatically wire
+tests/test_type/test_clock.py:470: Foo_inst0.clocks.clk not driven, will attempt to automatically wire
 >>             io.O @= Foo()(I=io.I)\
 """)
     assert has_debug(caplog, """\
-tests/test_type/test_clock.py:469: Foo_inst0.clocks.reset not driven, will attempt to automatically wire
+tests/test_type/test_clock.py:470: Foo_inst0.clocks.reset not driven, will attempt to automatically wire
 >>             io.O @= Foo()(I=io.I)\
 """)
 
@@ -500,6 +501,6 @@ def test_implicit_clock_mixed(caplog):
 
     m.compile("build/Bar", Bar)
     assert has_debug(caplog, """\
-tests/test_type/test_clock.py:495: Foo_inst0.y.clk not driven, will attempt to automatically wire
+tests/test_type/test_clock.py:496: Foo_inst0.y.clk not driven, will attempt to automatically wire
 >>             foo = Foo()\
 """)

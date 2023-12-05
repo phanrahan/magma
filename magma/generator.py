@@ -66,10 +66,6 @@ class Generator(metaclass=GeneratorMeta):
     def generate(*args, **kwargs):
         raise NotImplementedError()
 
-    @classmethod
-    def bind(cls, monitor):
-        cls.bind_generators.append(monitor)
-
 
 def _make_key(cls, *args, **kwargs):
     _SECRET_KEY = "__magma_generator2_secret_key__"
@@ -94,9 +90,6 @@ def _make_type(cls, *args, **kwargs):
     dct = cls._base_metacls_.__prepare__(name, bases)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
-    # NOTE(leonardt): We need to override the Generator2 classmethod bind with
-    # DefineCircuitKind.bind for generator instances (circuits).
-    dct["bind"] = classmethod(cls._base_metacls_.bind)
     ckt = cls._base_metacls_.__new__(cls, name, bases, dct)
     ckt._args_ = args
     ckt._kwargs_ = kwargs
@@ -156,10 +149,6 @@ class Generator2(metaclass=_Generator2Meta):
         if "debug_info" not in kwargs:
             kwargs["debug_info"] = get_debug_info(3)
         return type(cls)._base_metacls_.__call__(cls, *args, **kwargs)
-
-    @classmethod
-    def bind(cls, monitor):
-        cls.bind_generators.append(monitor)
 
     def __setattr__(cls, key, value):
         if config.use_namer_dict:

@@ -78,9 +78,11 @@ from hwtypes.bit_vector_abc import TypeFamily
 from magma.family import get_family
 _Family_ = get_family()
 
-from .generator import Generator, Generator2, DebugGenerator2
+from .generator import Generator2, DebugGenerator2
+Generator = Generator2
+DebugGenerator = DebugGenerator2
+
 from .monitor import MonitorIO, MonitorGenerator, make_monitor_ports
-from .inline_verilog import inline_verilog
 from .display import display, posedge, negedge, File, time
 from .log import info, debug, warning, error
 
@@ -132,6 +134,7 @@ from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
 import magma.smart
 from magma.compile_guard import compile_guard, compile_guard_select
 from magma.inline_verilog2 import inline_verilog2
+inline_verilog = inline_verilog2
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.set_name import set_name
 from magma.stubify import (
@@ -144,6 +147,7 @@ import magma.math
 from magma.when import when, elsewhen, otherwise
 from magma.value_utils import fill
 from magma.bind2 import bind2, make_bind_ports
+bind = bind2
 from magma.debug import magma_helper_function
 import magma.mantle
 
