@@ -1074,57 +1074,21 @@ def treat_as_definition(defn_or_decl: CircuitKind) -> bool:
     return True
 
 
-class BindProcessorInterface(abc.ABC):
-    def __init__(self, ctx: 'HardwareModule', defn: CircuitKind):
-        self._ctx = ctx
-        self._defn = defn
-
-    @abc.abstractmethod
-    def preprocess(self):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def process(self):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def postprocess(self):
-        raise NotImplementedError()
-
-
-class NativeBindProcessor(BindProcessorInterface):
-    def preprocess(self):
-        pass
-
-    @wrap_with_not_implemented_error
-    def _resolve_arg(self, arg) -> MlirValue:
-        if isinstance(arg, Type):
-            return self._ctx.get_mapped_value(arg)
-        if isinstance(arg, PortView):
-            return resolve_xmr(self._ctx, arg)
-
-    def process(self):
-        pass
-
-    def postprocess(self):
-        defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
-        for instance in self._defn.instances:
-            bound_instance_info = maybe_get_bound_instance_info(instance)
-            if bound_instance_info is None:
-                continue
-            inst_sym = self._ctx.parent.get_mapped_symbol(instance)
-            ref = hw.InnerRefAttr(defn_sym, inst_sym)
-            with contextlib.ExitStack() as stack:
-                for compile_guard_info in bound_instance_info.compile_guards:
-                    block = _make_compile_guard_block(
-                        dataclasses.asdict(compile_guard_info)
-                    )
-                    stack.enter_context(push_block(block))
-                sv.BindOp(instance=ref)
-
-
-def _make_bind_processor(ctx: 'HardwareModule', defn: CircuitKind):
-    return NativeBindProcessor(ctx, defn)
+def _process_bound_modules(defn: CircuitKind, ctx: 'HardwareModule'):
+   defn_sym = ctx.parent.get_mapped_symbol(defn)
+   for instance in defn.instances:
+       bound_instance_info = maybe_get_bound_instance_info(instance)
+       if bound_instance_info is None:
+           continue
+       inst_sym = ctx.parent.get_mapped_symbol(instance)
+       ref = hw.InnerRefAttr(defn_sym, inst_sym)
+       with contextlib.ExitStack() as stack:
+           for compile_guard_info in bound_instance_info.compile_guards:
+               block = _make_compile_guard_block(
+                   dataclasses.asdict(compile_guard_info)
+               )
+               stack.enter_context(push_block(block))
+           sv.BindOp(instance=ref)
 
 
 def _visit_linked_module(
@@ -1281,8 +1245,6 @@ class HardwareModule:
                 name=name,
                 operands=inputs,
                 results=named_outputs)
-        bind_processor = _make_bind_processor(self, self._magma_defn_or_decl)
-        bind_processor.preprocess()
         op = hw.ModuleOp(
             name=name,
             operands=inputs,
@@ -1297,11 +1259,10 @@ class HardwareModule:
                 visitor.visit(self._magma_defn_or_decl)
             except ModuleVisitor.VisitError:
                 raise MlirCompilerInternalError(visitor)
-            bind_processor.process()
             output_values = new_values(self.get_or_make_mapped_value, i)
             if named_outputs:
                 hw.OutputOp(operands=output_values)
-        bind_processor.postprocess()
+        _process_bound_modules(self._magma_defn_or_decl, self)
         return op
 
     def _add_module_parameters(self, hw_module: hw.ModuleOpBase):
