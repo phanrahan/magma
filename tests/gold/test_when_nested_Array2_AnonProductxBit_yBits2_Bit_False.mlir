@@ -22,18 +22,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         sv.assign %13, %4 : !hw.array<2x!hw.struct<x: i1, y: i2>>
         %12 = sv.read_inout %13 : !hw.inout<!hw.array<2x!hw.struct<x: i1, y: i2>>>
         %14 = hw.array_get %12[%1] : !hw.array<2x!hw.struct<x: i1, y: i2>>, i1
-        %15 = hw.struct_extract %14["y"] : !hw.struct<x: i1, y: i2>
-        %16 = hw.struct_extract %14["x"] : !hw.struct<x: i1, y: i2>
-        %17 = hw.array_get %12[%3] : !hw.array<2x!hw.struct<x: i1, y: i2>>, i1
-        %18 = hw.struct_extract %17["y"] : !hw.struct<x: i1, y: i2>
-        %19 = hw.struct_extract %17["x"] : !hw.struct<x: i1, y: i2>
-        %20 = hw.array_get %2[%1] : !hw.array<2x!hw.struct<x: i1, y: i2>>, i1
-        %21 = hw.struct_extract %20["y"] : !hw.struct<x: i1, y: i2>
-        %22 = hw.struct_extract %20["x"] : !hw.struct<x: i1, y: i2>
-        %23 = hw.array_get %2[%3] : !hw.array<2x!hw.struct<x: i1, y: i2>>, i1
-        %24 = hw.struct_extract %23["y"] : !hw.struct<x: i1, y: i2>
-        %25 = hw.struct_extract %23["x"] : !hw.struct<x: i1, y: i2>
-        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{{{1}}, {{2}}}, {{{3}}, {{4}}}} == {{{{5}}, {{6}}}, {{{7}}, {{8}}}}));" (%S, %15, %16, %18, %19, %21, %22, %24, %25) : i1, i2, i1, i2, i1, i2, i1, i2, i1
+        %15 = hw.array_get %12[%3] : !hw.array<2x!hw.struct<x: i1, y: i2>>, i1
+        %16 = hw.array_get %2[%1] : !hw.array<2x!hw.struct<x: i1, y: i2>>, i1
+        %17 = hw.array_get %2[%3] : !hw.array<2x!hw.struct<x: i1, y: i2>>, i1
+        sv.verbatim "WHEN_ASSERT_0: assert property (({{0}}) |-> ({{{1}}, {{2}}} == {{{3}}, {{4}}}));" (%S, %14, %15, %16, %17) : i1, !hw.struct<x: i1, y: i2>, !hw.struct<x: i1, y: i2>, !hw.struct<x: i1, y: i2>, !hw.struct<x: i1, y: i2>
         hw.output %4 : !hw.array<2x!hw.struct<x: i1, y: i2>>
     }
 }
