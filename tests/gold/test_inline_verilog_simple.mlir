@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @inline_verilog2_simple(in %I: i1, in %arr: i2, in %CLK: i1, out O: i1) {
+    hw.module @inline_verilog_simple(in %I: i1, in %arr: i2, in %CLK: i1, out O: i1) {
         %1 = sv.reg name "Register_inst0" : !hw.inout<i1>
         sv.alwaysff(posedge %CLK) {
             sv.passign %1, %I : i1

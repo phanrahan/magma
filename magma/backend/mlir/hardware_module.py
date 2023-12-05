@@ -55,7 +55,7 @@ from magma.common import filter_by_key, assert_false
 from magma.compile_guard import get_compile_guard_data
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
-from magma.inline_verilog2 import InlineVerilog2
+from magma.inline_verilog import InlineVerilog
 from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
 from magma.linking import (
@@ -759,7 +759,7 @@ class ModuleVisitor:
                 expr=defn.expr,
             )
             return True
-        if isinstance(defn, InlineVerilog2):
+        if isinstance(defn, InlineVerilog):
             sv.VerbatimOp(string=defn.expr, operands=module.operands)
             return True
         if iswhen(defn):

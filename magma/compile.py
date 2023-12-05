@@ -7,7 +7,6 @@ from magma.backend.mlir.mlir_compiler import MlirCompiler
 from magma.bind import bind_generators
 from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
-from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.is_definition import isdefinition
 from magma.passes.drive_undriven import drive_undriven
 from magma.passes.instance_callback_pass import instance_callback_pass
@@ -81,10 +80,6 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     compiler.run_pre_uniquification_passes()
     # Default behavior is to perform uniquification, but can be overriden.
     original_names = uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
-
-    # Steps to process inline verilog generation. Required to be run after
-    # uniquification.
-    ProcessInlineVerilogPass(main).run()
 
     # Bind after uniquification so the bind logic works on unique modules.
     # NOTE(rsetaluri): This is a hack to use packed arrays when the compilation

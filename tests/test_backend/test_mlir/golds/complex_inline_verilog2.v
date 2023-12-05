@@ -1,4 +1,4 @@
-module complex_inline_verilog2(
+module complex_inline_verilog(
   input  [11:0] I,
   input         CLK,
   output [11:0] O

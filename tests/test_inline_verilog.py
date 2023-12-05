@@ -2,7 +2,7 @@ import pytest
 
 import magma as m
 import magma.testing
-from magma.inline_verilog2 import InlineVerilogError
+from magma.inline_verilog import InlineVerilogError
 
 
 def _compile_and_check(top: m.DefineCircuitKind, **opts):
@@ -20,16 +20,16 @@ def _compile_and_check(top: m.DefineCircuitKind, **opts):
 def test_simple():
 
     class _Top(m.Circuit):
-        name = "inline_verilog2_simple"
+        name = "inline_verilog_simple"
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), arr=m.In(m.Bits[2]))
         io += m.ClockIO()
         io.O <= m.register(io.I)
-        m.inline_verilog2(
+        m.inline_verilog(
             "assert property (@(posedge CLK) {I} |-> ##1 {O});\n",
             O=io.O,
             I=io.I,
         )
-        m.inline_verilog2(
+        m.inline_verilog(
             "assert property (@(posedge CLK) {io.arr[0]} |-> ##1 {io.arr[1]});\n",
         )
 
@@ -70,7 +70,7 @@ def test_tuple(flatten_all_tuples):
 
     class _Top(m.Circuit):
         io = m.IO(I=RVDATAIN, O=m.Flip(RVDATAIN)) + m.ClockIO()
-        name = "inline_verilog2_tuple"
+        name = "inline_verilog_tuple"
 
         delay = DelayUnit()
         delay.INPUT[0] <= io.I[1]
@@ -82,28 +82,28 @@ def test_tuple(flatten_all_tuples):
             "assert property (@(posedge CLK) {valid_out} |-> ##3 {ready_out});"
         )
 
-        m.inline_verilog2(
+        m.inline_verilog(
             assertion,
             valid_out=io.I[0].valid,
             ready_out=io.O[1].ready,
         )
 
         # Test inst ref.
-        m.inline_verilog2(
+        m.inline_verilog(
             assertion,
             valid_out=delay.OUTPUT[1].valid,
             ready_out=delay.INPUT[0].ready,
         )
 
         # Test recursive ref.
-        m.inline_verilog2(
+        m.inline_verilog(
             assertion,
             valid_out=delay.inner_delay.OUTPUT[0].valid,
             ready_out=delay.inner_delay.INPUT[1].ready,
         )
 
         # Test double recursive ref.
-        m.inline_verilog2(
+        m.inline_verilog(
             assertion,
             valid_out=delay.inner_delay.inner_inner_delay.OUTPUT[0].valid,
             ready_out=delay.inner_delay.inner_inner_delay.INPUT[1].ready,
@@ -119,7 +119,7 @@ def test_undriven_port_error():
         class _(m.Circuit):
             io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), arr=m.In(m.Bits[2])) + m.ClockIO()
             # Expect an error because io.O is undriven.
-            m.inline_verilog2(
+            m.inline_verilog(
                 "assert property (@(posedge CLK) {I} |-> ##1 {O});",
                 O=io.O, I=io.I,
             )
@@ -136,16 +136,16 @@ def test_uniquification():
 
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit))
-        m.inline_verilog2("always @(*) $display(\"%d\\n\", {io.I});")
+        m.inline_verilog("always @(*) $display(\"%d\\n\", {io.I});")
 
     Bar = Foo
 
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit))
-        m.inline_verilog2("always @(*) $display(\"%x\\n\", {io.I});")
+        m.inline_verilog("always @(*) $display(\"%x\\n\", {io.I});")
 
     class _Top(m.Circuit):
-        name = "inline_verilog2_uniquification"
+        name = "inline_verilog_uniquification"
         io = m.IO(I=m.In(m.Bit))
         Bar()(io.I)
         Foo()(io.I)
@@ -156,16 +156,16 @@ def test_uniquification():
 def test_share_default_clocks():
 
     class _Top(m.Circuit):
-        name = "inline_verilog2_share_default_clocks"
+        name = "inline_verilog_share_default_clocks"
         io = m.IO(x=m.In(m.Bit), y=m.In(m.Bit)) + m.ClockIO(has_reset=True)
 
         clk = m.Clock()
         rst = m.Reset()
-        m.inline_verilog2(
+        m.inline_verilog(
             "assert property (@(posedge {clk}) "
             "disable iff (! {rst}) {io.x} |-> ##1 {io.y});"
         )
-        m.inline_verilog2(
+        m.inline_verilog(
             "assert property (@(posedge {clk}) "
             "disable iff (! {rst}) {io.x} |-> ##1 {io.y});"
         )
@@ -176,13 +176,13 @@ def test_share_default_clocks():
 def test_passthrough_wire():
 
     class _Top(m.Circuit):
-        name = "test_inline_verilog2_passthrough_wire"
+        name = "test_inline_verilog_passthrough_wire"
         T = m.AnonProduct[dict(x=m.Bit, y=m.Bits[4])]
         io = m.IO(I=m.In(T), O=m.Out(T))
         io.O @= io.I
 
-        m.inline_verilog2("assert {io.I.y[0]} == {io.I.y[1]}")
-        m.inline_verilog2("assert {io.I.y[1:3]} == {io.I.y[2:4]}")
+        m.inline_verilog("assert {io.I.y[0]} == {io.I.y[1]}")
+        m.inline_verilog("assert {io.I.y[1:3]} == {io.I.y[2:4]}")
 
     _compile_and_check(_Top)
 
@@ -190,9 +190,9 @@ def test_passthrough_wire():
 def test_clock_output():
 
     class _Top(m.Circuit):
-        name = "test_inline_verilog2_clock_output"
+        name = "test_inline_verilog_clock_output"
         io = m.IO(x=m.In(m.Clock), y=m.In(m.Clock))
-        m.inline_verilog2("Foo bar (.x({io.x}), .y({io.y}))")
+        m.inline_verilog("Foo bar (.x({io.x}), .y({io.y}))")
 
     _compile_and_check(_Top)
 
@@ -201,11 +201,11 @@ def test_wire_insertion_bad_verilog():
     # See #1133 (https://github.com/phanrahan/magma/issues/1133).
 
     class _Top(m.Circuit):
-        name = "test_inline_verilog2_wire_insertion_bad_verilog"
+        name = "test_inline_verilog_wire_insertion_bad_verilog"
         io = m.IO(I=m.In(m.Bits[32]), O=m.Out(m.Bit))
-        m.inline_verilog2("`ifdef LOGGING_ON")
-        m.inline_verilog2("$display(\"%x\", {io.I[0]});")
-        m.inline_verilog2("`endif LOGGING_ON")
+        m.inline_verilog("`ifdef LOGGING_ON")
+        m.inline_verilog("$display(\"%x\", {io.I[0]});")
+        m.inline_verilog("`endif LOGGING_ON")
         io.O @= io.I[0]
 
     _compile_and_check(_Top)

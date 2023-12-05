@@ -131,11 +131,7 @@ from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
                          is_producer, is_consumer, CreditValid)
 import magma.smart
 from magma.compile_guard import compile_guard, compile_guard_select
-# NOTE(rsetaluri): inline_verilog2 is still used internally, but is no longer a
-# part of the external API as of magma v3.0.0. See
-# https://github.com/phanrahan/magma/pull/1342 for more.
-from magma.inline_verilog2 import inline_verilog2
-inline_verilog = inline_verilog2
+from magma.inline_verilog import inline_verilog
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.set_name import set_name
 from magma.stubify import (

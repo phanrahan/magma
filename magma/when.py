@@ -38,10 +38,10 @@ def _contains_tuple(T):
     return contains_tuple(T)
 
 
-def _inline_verilog2(*args, **kwargs):
+def _inline_verilog(*args, **kwargs):
     # NOTE(leonardt): Circular dependency.
-    from magma.inline_verilog2 import inline_verilog2
-    inline_verilog2(*args, **kwargs)
+    from magma.inline_verilog import inline_verilog
+    inline_verilog(*args, **kwargs)
 
 
 class WhenSyntaxError(SyntaxError):
@@ -584,7 +584,7 @@ def _emit_when_assert(
     # Track the conditions a value is assigned in for the default driver logic.
     assignment_map[port].append(cond)
     port = builder.get_when_assert_wire(port)
-    _inline_verilog2(
+    _inline_verilog(
         _ASSERT_TEMPLATE,
         cond=cond,
         drivee=port,
