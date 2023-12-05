@@ -4,7 +4,7 @@ import magma as m
 from riscv_mini.control import IMM_I, IMM_S, IMM_B, IMM_U, IMM_J, IMM_Z
 
 
-class ImmGen(m.Generator2):
+class ImmGen(m.Generator):
     def __init__(self, x_len):
         self.io = m.IO(
             inst=m.In(m.UInt[x_len]),
