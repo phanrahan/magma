@@ -128,7 +128,7 @@ always @({event_str}) begin
     {cond_str}{display_str}\"{self.display_str}\"{display_args_str});
 end
 """
-        return format_str, format_args, {}
+        return format_str, format_args
 
 
 def display(display_str, *args, file=None):
