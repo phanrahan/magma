@@ -15,7 +15,7 @@ from magma.debug import get_debug_info
 
 
 def _make_key(cls, *args, **kwargs):
-    _SECRET_KEY = "__magma_generator2_secret_key__"
+    _SECRET_KEY = "__magma_generator_secret_key__"
     dct = {f"{_SECRET_KEY}{i}": v for i, v in enumerate(args)}
     dct.update(kwargs)
     for k, v in dct.items():
