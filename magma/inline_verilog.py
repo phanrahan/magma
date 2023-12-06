@@ -88,7 +88,6 @@ def _process_expr(
     expr = _process_fstring_syntax(
         expr, format_args, value_map, symbol_table
     )
-    # TODO(rsetaluri): Reuse this from magma/inline_verilog.py.
     format_args = format_args.copy()
     for key, arg in format_args.items():
         if isinstance(arg, (Type, PortView)):
