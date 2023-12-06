@@ -31,7 +31,10 @@ def test_assert():
             count = m.Register(m.UInt[2], has_enable=True)()
             count.I @= count.O + 1
             count.CE @= io.I.valid
-            f.assert_immediate((count.O != 3) | (io.O.value() == 3))
+            m.inline_verilog(
+                "always @(*) begin\n\nassert ({cond});\nend\n",
+                cond=((count.O != 3) | (io.O.value() == 3))
+            )
 
     m.compile("build/test_compile_guard_assert", _Top, output="mlir")
     assert m.testing.check_files_equal(
