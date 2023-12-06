@@ -18,7 +18,7 @@ import hwtypes as ht
 from magma.array import Array
 from magma.circuit import coreir_port_mapping
 from magma.common import is_int, Finalizable, lca_of_types, deprecated
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 
 

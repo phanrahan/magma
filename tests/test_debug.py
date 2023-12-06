@@ -126,7 +126,7 @@ def test_wire():
 
 def test_generator_instance():
 
-    class MyGen(m.Generator2):
+    class MyGen(m.Generator):
         def __init__(self, w: int):
             self.io = io = m.IO(I=m.In(m.Bits[w]), O=m.Out(m.Bits[w]))
             io.O @= io.I

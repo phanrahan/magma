@@ -22,7 +22,7 @@ from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.logging import root_logger
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.debug import debug_wire
 from magma.operator_utils import output_only
 from magma.protocol_type import magma_type, magma_value
@@ -909,7 +909,7 @@ class SInt(Int):
 
 
 def _reduce_factory(coreir_name, operator):
-    class Reduce(Generator2):
+    class Reduce(Generator):
         def __init__(self, width: int):
             self.io = IO(I=In(Bits[width]), O=Out(Bit))
             self.coreir_lib = "coreir"

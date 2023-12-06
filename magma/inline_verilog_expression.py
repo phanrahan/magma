@@ -1,11 +1,11 @@
 from magma.common import hash_expr
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.t import Kind, In, Out
 from magma.type_utils import type_to_sanitized_string
 
 
-class _InlineVerilogExpression(Generator2):
+class _InlineVerilogExpression(Generator):
     def __init__(self, expr: str, T: Kind):
         self.expr = expr
         self.io = IO(O=Out(T.undirected_t))

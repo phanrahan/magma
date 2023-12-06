@@ -136,9 +136,9 @@ sum_ = my_module.O
 
 **Wiring**: wire an output to an input using `@=` operator (statically typed)
 
-**Metaprogramming**: abstract over parameters by using a Generator2
+**Metaprogramming**: abstract over parameters by using a Generator
 ```python
-class Accum(m.Generator2):
+class Accum(m.Generator):
    def __init__(self, width: int):
         self.io = m.IO(I=m.In(m.UInt[width]), O=m.Out(m.UInt[width])) + m.ClockIO()
 

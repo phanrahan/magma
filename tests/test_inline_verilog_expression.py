@@ -6,7 +6,7 @@ from magma.passes.passes import CircuitPass
 import magma.testing
 
 
-class _MyWrapperGen(m.Generator2):
+class _MyWrapperGen(m.Generator):
     def __init__(self, width: Optional[int]):
         T = m.Bits[width] if width is not None else m.Bit
         self.io = io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO()

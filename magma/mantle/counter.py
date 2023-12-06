@@ -3,7 +3,7 @@ from typing import Optional
 from magma.bit import Bit
 from magma.bits import UInt
 from magma.clock_io import gen_clock_io
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.mantle.util import ispow2
 from magma.primitives.mux import mux
@@ -11,7 +11,7 @@ from magma.primitives.register import Register
 from magma.t import Type, Out
 
 
-class Counter(Generator2):
+class Counter(Generator):
     """Counts to `n` (0 to n - 1) repeatedly.
     """
 

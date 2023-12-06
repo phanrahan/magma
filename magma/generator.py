@@ -1,7 +1,3 @@
-from abc import abstractmethod, ABCMeta
-import collections
-import functools
-import warnings
 import weakref
 
 from hwtypes import BitVector
@@ -13,58 +9,13 @@ from magma.circuit import (
     DebugDefineCircuitKind,
     NamerDict,
 )
-from . import cache_definition
 from magma.common import ParamDict
 from magma.config import config
 from magma.debug import get_debug_info
 
 
-class GeneratorMeta(type):
-    def __new__(mcs, name, bases, attrs):
-        warnings.warn(
-            "m.Generator is deprecated. Use m.Generator2 instead",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-
-        cls = super().__new__(mcs, name, bases, attrs)
-        old_generate = cls.generate
-
-        def generate_wrapper(*args, **kwargs):
-            result = old_generate(*args, **kwargs)
-            if hasattr(result, "circuit_definition"):
-                result = result.circuit_definition
-            return result
-
-        cls.generate = generate_wrapper
-        if cls.cache:
-            cls.generate = cache_definition(cls.generate)
-        return cls
-
-    def __call__(cls, *args, name=None, **kwargs):
-        """
-        name is reserved kwarg for naming instances
-
-        TODO: Generalize handling of instance parameters
-        """
-        inst_kwargs = {}
-        if name is not None:
-            inst_kwargs["name"] = name
-        return cls.generate(*args, **kwargs)(**inst_kwargs)
-
-
-class Generator(metaclass=GeneratorMeta):
-    # User can disable cacheing by setting this attribute to False
-    cache = True
-
-    @staticmethod
-    @abstractmethod
-    def generate(*args, **kwargs):
-        raise NotImplementedError()
-
-
 def _make_key(cls, *args, **kwargs):
-    _SECRET_KEY = "__magma_generator2_secret_key__"
+    _SECRET_KEY = "__magma_generator_secret_key__"
     dct = {f"{_SECRET_KEY}{i}": v for i, v in enumerate(args)}
     dct.update(kwargs)
     for k, v in dct.items():
@@ -92,7 +43,7 @@ def _make_type(cls, *args, **kwargs):
     return ckt
 
 
-class _Generator2Meta(type):
+class _GeneratorMeta(type):
     _cache = weakref.WeakValueDictionary()
     _base_cls_ = Circuit
     _base_metacls_ = DefineCircuitKind
@@ -123,18 +74,18 @@ class _Generator2Meta(type):
             return _make_type(cls, *args, **kwargs)
         key = _make_key(cls, *args, **kwargs)
         try:
-            return _Generator2Meta._cache[key]
+            return _GeneratorMeta._cache[key]
         except KeyError:
             pass
         this = _make_type(cls, *args, **kwargs)
-        _Generator2Meta._cache[key] = this
+        _GeneratorMeta._cache[key] = this
         return this
 
 
-Generator2Kind = _Generator2Meta
+GeneratorKind = _GeneratorMeta
 
 
-class Generator2(metaclass=_Generator2Meta):
+class Generator(metaclass=_GeneratorMeta):
     def __new__(metacls, name, bases, dct):
         return type.__new__(metacls, name, bases, dct)
 
@@ -149,14 +100,14 @@ class Generator2(metaclass=_Generator2Meta):
         super().__setattr__(key, value)
 
 
-class _DebugGeneratorMeta(_Generator2Meta):
+class _DebugGeneratorMeta(_GeneratorMeta):
     _base_cls_ = DebugCircuit
     _base_metacls_ = DebugDefineCircuitKind
 
 
-class DebugGenerator2(Generator2, metaclass=_DebugGeneratorMeta):
+class DebugGenerator(Generator, metaclass=_DebugGeneratorMeta):
     pass
 
 
 def reset_generator_cache():
-    _Generator2Meta._cache = weakref.WeakValueDictionary()
+    _GeneratorMeta._cache = weakref.WeakValueDictionary()

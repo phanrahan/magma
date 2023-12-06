@@ -35,7 +35,7 @@ def make_DatapathIO(x_len):
     )
 
 
-class Datapath(m.Generator2):
+class Datapath(m.Generator):
     def __init__(self, x_len, ALU=ALUArea, ImmGen=ImmGenWire,
                  BrCond=BrCondArea):
         self.io = make_DatapathIO(x_len) + m.ClockIO(has_reset=True)

@@ -78,12 +78,7 @@ from hwtypes.bit_vector_abc import TypeFamily
 from magma.family import get_family
 _Family_ = get_family()
 
-# NOTE(rsetaluri): Generator2 is still used internally, but is no longer a part
-# of the external API as of magma v3.0.0. See
-# https://github.com/phanrahan/magma/pull/1342 for more.
-from .generator import Generator2, DebugGenerator2
-Generator = Generator2
-DebugGenerator = DebugGenerator2
+from magma.generator import Generator, DebugGenerator
 
 from .monitor import MonitorIO, MonitorGenerator, make_monitor_ports
 from .display import display, posedge, negedge, File, time

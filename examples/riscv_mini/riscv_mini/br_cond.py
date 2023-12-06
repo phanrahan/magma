@@ -4,7 +4,7 @@ import magma as m
 from riscv_mini.control import BR_EQ, BR_NE, BR_LT, BR_GE, BR_LTU, BR_GEU
 
 
-class BrCond(m.Generator2):
+class BrCond(m.Generator):
     def __init__(self, x_len):
         self.io = m.IO(
             rs1=m.In(m.UInt[x_len]),

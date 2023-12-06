@@ -125,13 +125,13 @@ def test_xmr(backend, flatten_all_tuples, inst_attr):
 
 def test_generator():
 
-    class Logic(m.Generator2):
+    class Logic(m.Generator):
         def __init__(self, width=None):
             T = m.Bit if width is None else m.Bits[width]
             self.io = io = m.IO(I=m.In(T), O=m.Out(T))
             io.O @= ~io.I
 
-    class LogicAsserts(m.Generator2):
+    class LogicAsserts(m.Generator):
         def __init__(self, dut, width=None):
             T = m.Bit if width is None else m.Bits[width]
             self.width = width
@@ -208,13 +208,13 @@ def test_compile_guard(backend, split_verilog):
 )
 def test_compile_guard_generator(backend, split_verilog):
 
-    class Logic(m.Generator2):
+    class Logic(m.Generator):
         def __init__(self, width=None):
             T = m.Bit if width is None else m.Bits[width]
             self.io = io = m.IO(I=m.In(T), O=m.Out(T))
             io.O @= ~io.I
 
-    class LogicAsserts(m.Generator2):
+    class LogicAsserts(m.Generator):
         def __init__(self, dut, width=None):
             T = m.Bit if width is None else m.Bits[width]
             self.width = width

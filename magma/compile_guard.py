@@ -8,7 +8,7 @@ from magma.clock import ClockTypes
 from magma.circuit import CircuitKind, AnonymousCircuitType, CircuitBuilder
 from magma.common import Stack
 from magma.digital import DigitalMeta
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.logging import root_logger
 from magma.passes.group import GrouperBase, InstanceCollection
@@ -171,7 +171,7 @@ def _is_simple_type(T: Kind) -> bool:
     return isinstance(T, (DigitalMeta, BitsMeta))
 
 
-class _CompileGuardSelect(Generator2):
+class _CompileGuardSelect(Generator):
     def __init__(self, T: Kind, keys: Tuple[str]):
         # NOTE(rsetaluri): We need to add this check because the implementation
         # of this generator emits verilog directly, and thereby requires that no

@@ -30,7 +30,7 @@ def make_Cause(x_len):
     return Cause
 
 
-class CSRGen(m.Generator2):
+class CSRGen(m.Generator):
     def __init__(self, x_len):
         Cause = make_Cause(x_len)
 
