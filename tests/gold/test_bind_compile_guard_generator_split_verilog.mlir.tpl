@@ -1,8 +1,8 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @LogicAsserts(in %I: i1, in %O: i1, in %other: i1) attributes {output_file = #hw.output_file<"$cwd/build/LogicAsserts.v">, output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_compile_guard_generator_split_verilog_bind_files.list">} {
+    hw.module @LogicAsserts(in %I: i1, in %O: i1, in %other: i1) attributes {output_file = #hw.output_file<"$cwd/build/LogicAsserts.v">, output_filelist = #hw.output_filelist<"$cwd/build/test_bind_compile_guard_generator_split_verilog_bind_files.list">} {
         sv.verbatim "{{0}} {{1}} {{2}}" (%I, %O, %other) : i1, i1, i1
     }
-    hw.module @Logic(in %I: i1, out O: i1) attributes {output_file = #hw.output_file<"$cwd/build/test_bind2_compile_guard_generator_split_verilog.v">} {
+    hw.module @Logic(in %I: i1, out O: i1) attributes {output_file = #hw.output_file<"$cwd/build/test_bind_compile_guard_generator_split_verilog.v">} {
         %1 = hw.constant -1 : i1
         %0 = comb.xor %1, %I : i1
         hw.instance "LogicAsserts_inst0" sym @Logic.LogicAsserts_inst0 @LogicAsserts(I: %I: i1, O: %0: i1, other: %I: i1) -> () {doNotPrint = true}
@@ -11,10 +11,10 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
     sv.ifdef "ASSERT_ON" {
         sv.bind #hw.innerNameRef<@Logic::@Logic.LogicAsserts_inst0> {output_file = #hw.output_file<"$cwd/build/LogicAsserts.v">}
     } {output_file = #hw.output_file<"$cwd/build/LogicAsserts.v">}
-    hw.module @LogicAsserts_unq1(in %I: i2, in %O: i2, in %other: i1) attributes {output_file = #hw.output_file<"$cwd/build/LogicAsserts_unq1.v">, output_filelist = #hw.output_filelist<"$cwd/build/test_bind2_compile_guard_generator_split_verilog_bind_files.list">} {
+    hw.module @LogicAsserts_unq1(in %I: i2, in %O: i2, in %other: i1) attributes {output_file = #hw.output_file<"$cwd/build/LogicAsserts_unq1.v">, output_filelist = #hw.output_filelist<"$cwd/build/test_bind_compile_guard_generator_split_verilog_bind_files.list">} {
         sv.verbatim "{{0}} {{1}} {{2}}" (%I, %O, %other) : i2, i2, i1
     }
-    hw.module @Logic_unq1(in %I: i2, out O: i2) attributes {output_file = #hw.output_file<"$cwd/build/test_bind2_compile_guard_generator_split_verilog.v">} {
+    hw.module @Logic_unq1(in %I: i2, out O: i2) attributes {output_file = #hw.output_file<"$cwd/build/test_bind_compile_guard_generator_split_verilog.v">} {
         %1 = hw.constant -1 : i2
         %0 = comb.xor %1, %I : i2
         %2 = comb.extract %I from 0 : (i2) -> i1
@@ -24,7 +24,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
     sv.ifdef "ASSERT_ON" {
         sv.bind #hw.innerNameRef<@Logic_unq1::@Logic_unq1.LogicAsserts_inst0> {output_file = #hw.output_file<"$cwd/build/LogicAsserts_unq1.v">}
     } {output_file = #hw.output_file<"$cwd/build/LogicAsserts_unq1.v">}
-    hw.module @Top(in %I: i2, out O: i2) attributes {output_file = #hw.output_file<"$cwd/build/test_bind2_compile_guard_generator_split_verilog.v">} {
+    hw.module @Top(in %I: i2, out O: i2) attributes {output_file = #hw.output_file<"$cwd/build/test_bind_compile_guard_generator_split_verilog.v">} {
         %0 = comb.extract %I from 0 : (i2) -> i1
         %1 = hw.instance "Logic_inst0" @Logic(I: %0: i1) -> (O: i1)
         %2 = comb.extract %I from 1 : (i2) -> i1

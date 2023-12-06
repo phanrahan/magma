@@ -1,6 +1,6 @@
 # split_verilog option
 
-## Bind2 example
+## Bind example
 
 ### Python code
 ---
@@ -20,7 +20,7 @@ class FooMonitor(m.Circuit):
     m.inline_verilog("assert I;")
 
 
-m.bind2(Foo, FooMonitor)
+m.bind(Foo, FooMonitor)
 
 
 class Bar(m.Circuit):
@@ -33,7 +33,7 @@ class BarMonitor(m.Circuit):
     m.inline_verilog("assert I;")
 
 
-m.bind2(Bar, BarMonitor)
+m.bind(Bar, BarMonitor)
 
 
 class Top(m.Circuit):
@@ -42,7 +42,6 @@ class Top(m.Circuit):
 
 
 opts = {
-    "use_native_bind_processor": True,
     "split_verilog": True,
     "sv": True,
 }

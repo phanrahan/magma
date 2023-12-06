@@ -152,11 +152,7 @@ from magma.linking import link_module, link_default_module, clear_link_info
 import magma.math
 from magma.when import when, elsewhen, otherwise
 from magma.value_utils import fill
-# NOTE(rsetaluri): bind2 is still used internally, but is no longer a part of
-# the external API as of magma v3.0.0. See
-# https://github.com/phanrahan/magma/pull/1342 for more.
-from magma.bind2 import bind2, make_bind_ports
-bind = bind2
+from magma.bind import bind, make_bind_ports
 from magma.debug import magma_helper_function
 import magma.mantle
 
