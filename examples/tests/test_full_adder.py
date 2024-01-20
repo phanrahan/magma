@@ -1,4 +1,4 @@
-from full_adder import FullAdder
+from ..full_adder import FullAdder
 import fault as f
 from hwtypes import BitVector
 
