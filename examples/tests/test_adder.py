@@ -5,13 +5,13 @@ import fault as f
 from hwtypes import BitVector
 
 
-from ..adder import Adder
+from ..adder import Adder, Adder2
 
 
 @pytest.mark.parametrize("N", [random.randint(1, 16) for _ in range(4)])
-def test_adder(N):
-
-    tester = f.Tester(Adder(N))
+@pytest.mark.parametrize("_Adder", [Adder, Adder2])
+def test_adder(N, _Adder):
+    tester = f.Tester(_Adder(N))
     tester.circuit.A = A = BitVector.random(N)
     tester.circuit.B = B = BitVector.random(N)
     tester.circuit.CIN = CIN = BitVector.random(1)
