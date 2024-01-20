@@ -1,5 +1,4 @@
 import random
-import tempfile
 import pytest
 
 import fault as f
