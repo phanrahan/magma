@@ -48,6 +48,13 @@ jobs:
         python -c "import magma"
         popd
 
+    - name: Test examples
+      run: |
+        cd examples
+        # TODO(leonardt): Merge with top-level coverage
+        pytest --pycodestyle tests/ . --ignore=riscv_mini
+        cd -
+
     - name: Test riscv_mini
       run: |
         cd examples/riscv_mini
