@@ -122,7 +122,7 @@ $ brew install verilator gmp mpfr libmpc
 
 ### Ubuntu
 ```
-$ sudo apt-get install make gcc g++ verilator libgmp-dev libmpfr-dev libmpc-dev
+$ sudo apt-get install make gcc g++ verilator libgmp-dev libmpfr-dev libmpc-dev cmake
 ```
 
 ## Arch
