@@ -150,7 +150,7 @@ $ pip install -e .
 
 Install testing infrastructure and run tests to validate the setup
 ```
-$ pip install pytest fault
+$ pip install pytest fault  # you may need to add $HOME/.local/bin to your $PATH
 $ pytest tests
 ```
 
