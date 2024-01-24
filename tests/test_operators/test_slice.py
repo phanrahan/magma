@@ -68,3 +68,52 @@ def test_set_slice_fixed_range():
     )
     tester.compile_and_run("verilator", skip_compile=True, directory=build_dir,
                            flags=["-Wno-unused"])
+
+
+def test_get_slice_int():
+    class TestSliceInt(m.Circuit):
+        io = m.IO(
+            I=m.In(m.Bits[10]),
+            O=m.Out(m.Bits[6])
+        )
+
+        io.O @= m.get_slice(io.I, start=2, width=6)
+
+    m.compile("build/TestSliceInt", TestSliceInt, output="mlir")
+    assert check_files_equal(__file__,
+                             "build/TestSliceInt.mlir",
+                             "gold/TestSliceInt.mlir")
+
+
+def test_set_slice_int():
+    class TestSetSliceInt(m.Circuit):
+        io = m.IO(
+            I=m.In(m.Bits[6]),
+            O=m.Out(m.Bits[12])
+        )
+
+        # default value
+        O = m.Bits[12](0xFFF)
+        io.O @= m.set_slice(O, io.I, start=2, width=6)
+
+    m.compile("build/TestSetSliceInt", TestSetSliceInt, output="mlir")
+    assert check_files_equal(__file__, "build/TestSetSliceInt.mlir",
+                             "gold/TestSetSliceInt.mlir")
+
+
+def test_set_slice_width_one():
+    class TestSetSliceWidthOne(m.Circuit):
+        io = m.IO(
+            I=m.In(m.Bits[1]),
+            x=m.In(m.UInt[2]),
+            O=m.Out(m.Bits[12])
+        )
+
+        # default value
+        O = m.Bits[12](0xFFF)
+        io.O @= m.set_slice(O, io.I, start=io.x, width=1)
+
+    m.compile("build/TestSetSliceWidthOne", TestSetSliceWidthOne,
+              output="mlir")
+    assert check_files_equal(__file__, "build/TestSetSliceWidthOne.mlir",
+                             "gold/TestSetSliceWidthOne.mlir")

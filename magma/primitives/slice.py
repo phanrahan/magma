@@ -1,3 +1,5 @@
+from typing import Union
+
 from magma.bit import Bit
 from magma.bits import Bits, UInt
 from magma.bitutils import clog2
@@ -40,15 +42,18 @@ def slice(*args, **kwargs):
     return get_slice(*args, **kwargs)
 
 
-def set_slice(target: Bits, value: Bits, start: UInt, width: int):
+def set_slice(target: Bits, value: Bits, start: Union[UInt, int], width: int):
     """
     target: the output with a dynamic slice range replaced by value
     value: the output driving a slice of target
     start: dynamic start index of the slice
     width: constant slice width
     """
-    if not isinstance(start, UInt):
-        raise TypeError("start should be a UInt")
+    if not isinstance(start, (UInt, int)):
+        raise TypeError("start should be a UInt or int")
+    if isinstance(start, int):
+        start = uint(start)
+
     T = magma_type(type(target))
     output = T.qualify(Direction.Undirected)()
     orig_start_len = len(start)
@@ -61,8 +66,13 @@ def set_slice(target: Bits, value: Bits, start: UInt, width: int):
             in_slice_range &= start <= i
         if i > 0:
             in_slice_range &= i <= (start + width - 1)
-        value_idx = (uint(i, clog2(len(target))) - start)[:clog2(len(value))]
-        if len(value_idx) == 1:
-            value_idx = value_idx[0]
-        output[i] @= in_slice_range.ite(value[value_idx], target[i])
+        if width == 1:
+            curr_value = value[0]
+        else:
+            value_idx = uint(i, clog2(len(target))) - start
+            value_idx = value_idx[:clog2(len(value))]
+            if len(value_idx) == 1:
+                value_idx = value_idx[0]
+            curr_value = value[value_idx]
+        output[i] @= in_slice_range.ite(curr_value, target[i])
     return output
