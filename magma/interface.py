@@ -438,7 +438,7 @@ class IO(IOInterface):
         self._ports = {}
         self._bound = False
         for name, typ in kwargs.items():
-            self._add(name, typ)
+            self.add(name, typ)
 
     @property
     def ports(self):
@@ -498,7 +498,7 @@ class IO(IOInterface):
         self._ports.update(other._ports)
         return self
 
-    def _add(self, name, typ):
+    def add(self, name, typ):
         if self._bound:
             raise RuntimeError("Can not add to a bound IO")
         # Definition port.
@@ -564,8 +564,8 @@ class SingletonInstanceIO(IO):
         }
         return InterfaceKind(name, (_DeclareSingletonInstanceInterface,), dct)
 
-    def _add(self, name, typ):
-        super()._add(name, typ)
+    def add(self, name, typ):
+        super().add(name, typ)
         # Instance port.
         inst_ref = LazyInstRef(name=name)
         inst_port = _make_port(typ, inst_ref, flip=False)
