@@ -417,9 +417,9 @@ class IOInterface(ABC):
     def __add__(self, other):
         raise NotImplementedError()
 
+    @abstractmethod
     def __iadd__(self, other):
-        # __iadd__ is explicitly overriden to enforce that it is non-mutating.
-        return self + other
+        raise NotImplementedError()
 
     def flip(self) -> "IOInterface":
         raise NotImplementedError()
@@ -436,11 +436,9 @@ class IO(IOInterface):
     # https://www.python.org/dev/peps/pep-0468/.
     def __init__(self, **kwargs):
         self._ports = {}
-        self._decl = []
         self._bound = False
         for name, typ in kwargs.items():
-            self.add(name, typ)
-            self._decl.extend((name, typ))
+            self._add(name, typ)
 
     @property
     def ports(self):
@@ -454,7 +452,9 @@ class IO(IOInterface):
         self._bound = True
 
     def decl(self):
-        return self._decl
+        return _flatten(
+            (name, type(port).flip()) for name, port in self._ports.items()
+        )
 
     def make_interface(self):
         decl = self.decl()
@@ -462,28 +462,42 @@ class IO(IOInterface):
         dct = dict(_io=self, _decl=decl, _initialized=False)
         return InterfaceKind(name, (_DeclareSingletonInterface,), dct)
 
-    def __add__(self, other):
-        """
-        Attempts to combine this IO and @other. Returns a new IO object with the
-        combined ports, unless:
-          * @other is not of type IOInterface, in which case a TypeError is
-            raised
+    def __add__(self, other: 'IO') -> 'IO':
+        """Attempts to combine this IO and @other. Returns a new IO object with
+        the combined ports, unless:
+          * @other is not of type IO, in which case a TypeError is raised
           * this or @other has already been bound, in which case an Exception is
             raised
           * this and @other have common port names, in which case an Exception
             is raised
         """
-        if not isinstance(other, IOInterface):
-            raise TypeError(f"unsupported operand type(s) for +: 'IO' and "
-                            f"'{type(other).__name__}'")
+        if not isinstance(other, IO):
+            raise TypeError(
+                f"unsupported operand type(s) for +: 'IO' and "
+                f"'{type(other).__name__}'"
+            )
         if self._bound or other._bound:
             raise Exception("Adding bound IO not allowed")
         if self._ports.keys() & other._ports.keys():
             raise Exception("Adding IO with duplicate port names not allowed")
-        decl = self._decl + other._decl
-        return IO(**_dict_from_decl(decl))
+        return IO(**_dict_from_decl(self.decl() + other.decl()))
 
-    def add(self, name, typ):
+    def __iadd__(self, other: 'IO') -> 'IO':
+        """Attempts to combine this @IO and other in place, with the same
+        caveats as __add__.
+        """
+        if not isinstance(other, IO):
+            raise TypeError(
+                f"unsupported operand type(s) for +: 'IO' and "
+                f"'{type(other).__name__}'"
+            )
+        if self._bound or other._bound:
+            raise Exception("Adding bound IO not allowed")
+        if self._ports.keys() & other._ports.keys():
+            raise Exception("Adding IO with duplicate port names not allowed")
+        self._ports.update(other._ports)
+
+    def _add(self, name, typ):
         if self._bound:
             raise RuntimeError("Can not add to a bound IO")
         # Definition port.
@@ -505,7 +519,7 @@ class IO(IOInterface):
         return super().__getattribute__(key)
 
     def fields(self):
-        return _dict_from_decl(self._decl)
+        return _dict_from_decl(self.decl())
 
     def flip(self):
         return IO(**{name: T.flip() for name, T in self.fields().items()})
@@ -534,26 +548,32 @@ class SingletonInstanceIO(IO):
         return self._inst_ports.copy()
 
     def decl(self):
-        return _flatten((name, type(port))
-                        for name, port in self._ports.items())
+        return _flatten(
+            (name, type(port)) for name, port in self._ports.items()
+        )
 
     def make_interface(self):
         decl = self.decl()
         name = _make_interface_name(decl)
-        dct = dict(_io=self, _decl=decl, _initialized=False,
-                   _initialized_inst=False)
+        dct = {
+            "_io": self,
+            "_decl": decl,
+            "_initialized": False,
+            "_initialized_inst": False,
+        }
         return InterfaceKind(name, (_DeclareSingletonInstanceInterface,), dct)
 
-    def add(self, name, typ):
-        super().add(name, typ)
+    def _add(self, name, typ):
+        super()._add(name, typ)
         # Instance port.
         inst_ref = LazyInstRef(name=name)
         inst_port = _make_port(typ, inst_ref, flip=False)
         self._inst_ports[name] = inst_port
 
     def __add__(self, other):
-        raise NotImplementedError(f"Addition operator disallowed on "
-                                  f"{cls.__name__}")
+        raise NotImplementedError(
+            f"Addition operator disallowed on {cls.__name__}"
+        )
 
     def flip(self):
         raise NotImplementedError()
