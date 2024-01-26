@@ -2,7 +2,7 @@ import magma as m
 
 
 class RegisterFile(m.Generator):
-    def _make_io(self, n, T, has_read_enable):
+    def __init__(self, n: int, T: m.Type, has_read_enable: bool = False):
         addr_len = m.bitutils.clog2(n)
         self.io = m.IO(
             raddr=m.In(m.Bits[addr_len]),
@@ -17,7 +17,7 @@ class RegisterFile(m.Generator):
 
 class RegisterFileWhen(RegisterFile):
     def __init__(self, n: int, T: m.Type, has_read_enable: bool = False):
-        self._make_io(n, T, has_read_enable)
+        super().__init__(n, T, has_read_enable)
 
         regs = [m.Register(T)() for _ in range(n)]
 
@@ -38,7 +38,7 @@ class RegisterFileWhen(RegisterFile):
 
 class RegisterFileComprehension(RegisterFile):
     def __init__(self, n: int, T: m.Type, has_read_enable: bool = False):
-        self._make_io(n, T, has_read_enable)
+        super().__init__(n, T, has_read_enable)
 
         regs = [
             m.Register(T, has_enable=True)()(
@@ -61,7 +61,7 @@ class RegisterFileComprehension(RegisterFile):
 
 class RegisterFileBraid(RegisterFile):
     def __init__(self, n: int, T: m.Type, has_read_enable: bool = False):
-        self._make_io(n, T, has_read_enable)
+        super().__init__(n, T, has_read_enable)
 
         enables = m.array(
             [(self.io.waddr == i) & self.io.wen for i in range(n)]

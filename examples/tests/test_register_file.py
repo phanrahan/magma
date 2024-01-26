@@ -1,3 +1,4 @@
+import tempfile
 import pytest
 import random
 
@@ -36,4 +37,9 @@ def test_register_file(RegisterFile, has_read_enable):
             tester.circuit.ren = 0
             tester.advance_cycle()
             tester.circuit.rdata.expect(last)
-    tester.compile_and_run("verilator", magma_output="mlir-verilog")
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tester.compile_and_run(
+            "verilator",
+            directory=tmp_dir,
+            magma_output="mlir-verilog"
+        )
