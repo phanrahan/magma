@@ -496,6 +496,7 @@ class IO(IOInterface):
         if self._ports.keys() & other._ports.keys():
             raise Exception("Adding IO with duplicate port names not allowed")
         self._ports.update(other._ports)
+        return self
 
     def _add(self, name, typ):
         if self._bound:
