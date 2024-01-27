@@ -30,7 +30,7 @@ EndCircuit()"""
 
 def test_generator():
 
-    class Gen(m.Generator2):
+    class Gen(m.Generator):
         def __init__(self):
             self.io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
             self.primitive = True

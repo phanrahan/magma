@@ -4,11 +4,9 @@ from pathlib import PurePath
 from magma.backend import verilog, blif, firrtl, dot
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.backend.mlir.mlir_compiler import MlirCompiler
-from magma.bind import BindPass
-from magma.bind2 import bind_generators
+from magma.bind import bind_generators
 from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
-from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.is_definition import isdefinition
 from magma.passes.drive_undriven import drive_undriven
 from magma.passes.instance_callback_pass import instance_callback_pass
@@ -83,16 +81,10 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     # Default behavior is to perform uniquification, but can be overriden.
     original_names = uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
 
-    # Steps to process inline verilog generation. Required to be run after
-    # uniquification.
-    ProcessInlineVerilogPass(main).run()
-
     # Bind after uniquification so the bind logic works on unique modules.
     # NOTE(rsetaluri): This is a hack to use packed arrays when the compilation
     # goes through MLIR.
     compile_fn = _make_bind_compile_fn(output)
-    BindPass(main, compile_fn, opts.get("user_namespace"),
-             opts.get("verilog_prefix")).run()
 
     if opts.get("drive_undriven", False):
         drive_undriven(main)

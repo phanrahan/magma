@@ -7,7 +7,6 @@ class CompileToMlirOpts:
     flatten_all_tuples: bool = False
     basename: Optional[str] = None
     sv: bool = False
-    use_native_bind_processor: bool = False
     verilog_prefix: Optional[str] = None
     user_namespace: Optional[str] = None
     disable_initial_blocks: bool = False
@@ -18,5 +17,7 @@ class CompileToMlirOpts:
     explicit_bitcast: bool = False
     disallow_expression_inlining_in_ports: bool = False
     disallow_local_variables: bool = False
+    disallow_packed_struct_assignments: bool = False
     split_verilog: bool = False
     omit_version_comment: bool = True
+    emit_when_assertions: bool = False

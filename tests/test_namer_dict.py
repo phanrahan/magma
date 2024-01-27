@@ -118,7 +118,7 @@ def test_namer_dict_already_named():
 
 def test_namer_dict_generator():
 
-    class Foo(m.Generator2):
+    class Foo(m.Generator):
         def __init__(self, n):
             self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
             self.x = m.Bits[n]()

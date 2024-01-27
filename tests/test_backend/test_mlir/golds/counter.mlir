@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @counter(%CLK: i1) -> (y: i16) {
+    hw.module @counter(in %CLK: i1, out y: i16) {
         %0 = hw.constant 1 : i16
         %2 = comb.add %1, %0 : i16
         %3 = sv.reg name "Register_inst0" : !hw.inout<i16>

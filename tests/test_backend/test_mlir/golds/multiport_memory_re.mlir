@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @multiport_memory_re(%raddr_0: i2, %raddr_1: i2, %waddr_0: i2, %wdata_0: i5, %we_0: i1, %waddr_1: i2, %wdata_1: i5, %we_1: i1, %clk: i1, %re_0: i1, %re_1: i1) -> (rdata_0: i5, rdata_1: i5) {
+    hw.module @multiport_memory_re(in %raddr_0: i2, in %raddr_1: i2, in %waddr_0: i2, in %wdata_0: i5, in %we_0: i1, in %waddr_1: i2, in %wdata_1: i5, in %we_1: i1, in %clk: i1, in %re_0: i1, in %re_1: i1, out rdata_0: i5, out rdata_1: i5) {
         %2 = sv.reg name "MultiportMemory_inst0" : !hw.inout<!hw.array<4xi5>>
         %3 = sv.array_index_inout %2[%raddr_0] : !hw.inout<!hw.array<4xi5>>, i2
         %4 = sv.array_index_inout %2[%raddr_1] : !hw.inout<!hw.array<4xi5>>, i2

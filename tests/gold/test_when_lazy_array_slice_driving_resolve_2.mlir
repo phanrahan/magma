@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_lazy_array_slice_driving_resolve_2(%I: i4, %S: i1) -> (O: i4) {
+    hw.module @test_when_lazy_array_slice_driving_resolve_2(in %I: i4, in %S: i1, out O: i4) {
         %0 = hw.constant 4 : i4
         %1 = hw.constant 0 : i1
         %2 = hw.constant 1 : i1

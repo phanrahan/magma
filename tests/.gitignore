@@ -1,2 +1,2 @@
 test_coreir/build
-gold/test_bind2_*.mlir
+gold/test_bind_*.mlir

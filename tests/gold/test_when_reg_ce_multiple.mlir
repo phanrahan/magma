@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_reg_ce_multiple(%I: i8, %CE: i2, %CLK: i1) -> (O: i8) {
+    hw.module @test_when_reg_ce_multiple(in %I: i8, in %CE: i2, in %CLK: i1, out O: i8) {
         %0 = comb.extract %CE from 0 : (i2) -> i1
         %1 = hw.constant 1 : i1
         %2 = comb.extract %CE from 1 : (i2) -> i1

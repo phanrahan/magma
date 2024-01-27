@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_elsewhen(%I: i3, %S: i2) -> (O: i1) {
+    hw.module @test_when_elsewhen(in %I: i3, in %S: i2, out O: i1) {
         %0 = comb.extract %S from 0 : (i2) -> i1
         %1 = comb.extract %I from 0 : (i3) -> i1
         %2 = comb.extract %S from 1 : (i2) -> i1

@@ -5,7 +5,7 @@ https://github.com/chipsalliance/chisel3/blob/master/src/main/scala/chisel3/util
 """
 from magma.clock_io import ClockIO
 from magma.conversions import enable
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.mantle.counter import Counter
 from magma.primitives.memory import Memory
@@ -14,7 +14,7 @@ from magma.types.handshake import DeqIO, EnqIO
 from magma.t import Kind
 
 
-class Queue(Generator2):
+class Queue(Generator):
     """
     Queue implementation using a magma Memory primitive as a register file.
     Write (enqueue) and read (dequeue) counters point to the approriate

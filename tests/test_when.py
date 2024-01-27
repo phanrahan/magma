@@ -5,10 +5,24 @@ import pytest
 import fault as f
 
 import magma as m
+from magma.config import config, EnvConfig
 from magma.primitives.when import InferredLatchError
 from magma.testing.utils import check_gold, update_gold, SimpleMagmaProtocol
 from magma.type_utils import type_to_sanitized_string
 from magma.backend.mlir.errors import MlirWhenCycleError
+
+
+config.register(
+    test_when_check_verilog=EnvConfig(
+        "TEST_WHEN_CHECK_VERILOG", False, bool
+    )
+)
+
+
+def _get_output_type() -> str:
+    if config.test_when_check_verilog:
+        return "mlir-verilog"
+    return "mlir"
 
 
 @functools.lru_cache(maxsize=None)
@@ -37,7 +51,7 @@ def test_with_default():
             io.O @= io.I[0]
 
     m.compile("build/test_when_with_default", test_when_with_default,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     if check_gold(__file__, "test_when_with_default.mlir"):
         return
@@ -71,7 +85,7 @@ def test_nested_with_default():
                 io.O @= io.I[0]
 
     m.compile("build/test_when_nested_with_default",
-              test_when_nested_with_default, output="mlir",
+              test_when_nested_with_default, output=_get_output_type(),
               emit_when_assertions=True)
 
     if check_gold(__file__, "test_when_nested_with_default.mlir"):
@@ -114,7 +128,7 @@ def test_override(caplog):
         io.I[0].unused()
 
     m.compile("build/test_when_override", test_when_override,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     if check_gold(__file__, "test_when_override.mlir"):
         return
@@ -149,7 +163,7 @@ def test_else():
         with m.otherwise():
             io.O @= io.I[1]
 
-    m.compile("build/test_when_else", test_when_else, output="mlir",
+    m.compile("build/test_when_else", test_when_else, output=_get_output_type(),
               emit_when_assertions=True)
 
     if check_gold(__file__, "test_when_else.mlir"):
@@ -187,7 +201,7 @@ def test_elsewhen():
             io.O @= io.I[2]
 
     m.compile("build/test_when_elsewhen", test_when_elsewhen,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     if check_gold(__file__, "test_when_elsewhen.mlir"):
         return
@@ -285,7 +299,7 @@ def test_multiple_drivers():
                 io.O1 @= io.I[1]
 
     m.compile("build/test_when_multiple_drivers", test_when_multiple_drivers,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     if check_gold(__file__, "test_when_multiple_drivers.mlir"):
         return
@@ -321,18 +335,24 @@ def test_multiple_drivers():
     update_gold(__file__, "test_when_multiple_drivers.mlir")
 
 
-@pytest.mark.parametrize('T, bits_to_fault_value', [
-    (m.Bits[8], lambda x: x),
+@pytest.mark.parametrize('T, bits_to_fault_value, flatten_all_tuples', [
+    (m.Bits[8], lambda x: x, True),
     (
         m.AnonProduct[{"x": m.Bit, "y": m.Bits[7]}],
         lambda x: (bool(x[7]), int(x[:7])),
-    )
+        False
+    ),
+    (
+        m.AnonProduct[{"x": m.Bit, "y": m.Bits[7]}],
+        lambda x: (bool(x[7]), int(x[:7])),
+        True
+    ),
 ])
-def test_memory(T, bits_to_fault_value):
+def test_memory(T, bits_to_fault_value, flatten_all_tuples):
     T_str = type_to_sanitized_string(T)
 
     class test_when_memory(m.Circuit):
-        name = f"test_when_memory_{T_str}"
+        name = f"test_when_memory_{T_str}_{flatten_all_tuples}"
         io = m.IO(
             data0=m.In(T), addr0=m.In(m.Bits[5]), en0=m.In(m.Bit),
             data1=m.In(T), addr1=m.In(m.Bits[5]), en1=m.In(m.Bit),
@@ -349,10 +369,24 @@ def test_memory(T, bits_to_fault_value):
         with m.otherwise():
             io.out @= m.from_bits(T, m.Bits[8](0xFF))
 
-    m.compile(f"build/test_when_memory_{T_str}", test_when_memory,
-              output="mlir", flatten_all_tuples=True, emit_when_assertions=True)
+    m.compile(
+        f"build/test_when_memory_{T_str}_{flatten_all_tuples}",
+        test_when_memory,
+        flatten_all_tuples=flatten_all_tuples,
+        emit_when_assertions=True,
+        output=_get_output_type()
+    )
 
-    if check_gold(__file__, f"test_when_memory_{T_str}.mlir"):
+    if not flatten_all_tuples:
+        # TODO(leonardt): fault does not support unflattened tuples
+        assert check_gold(
+            __file__, f"test_when_memory_{T_str}_{flatten_all_tuples}.mlir"
+        )
+        return
+
+    if check_gold(
+            __file__, f"test_when_memory_{T_str}_{flatten_all_tuples}.mlir"
+    ):
         return
 
     tester = f.SynchronousTester(test_when_memory, clock=test_when_memory.CLK)
@@ -382,14 +416,17 @@ def test_memory(T, bits_to_fault_value):
 
     tester.expect(test_when_memory.out, bits_to_fault_value(m.Bits[8](0xDE)))
 
-    tester.compile_and_run("verilator", magma_output="mlir-verilog",
-                           directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           magma_opts={"flatten_all_tuples": True,
-                                       "emit_when_assertions": True},
-                           flags=['-Wno-UNUSED'])
+    tester.compile_and_run(
+        "verilator", magma_output="mlir-verilog",
+        directory=os.path.join(os.path.dirname(__file__), "build"),
+        magma_opts={
+            "flatten_all_tuples": flatten_all_tuples,
+            "emit_when_assertions": True
+        },
+        flags=['-Wno-UNUSED']
+    )
 
-    update_gold(__file__, f"test_when_memory_{T_str}.mlir")
+    update_gold(__file__, f"test_when_memory_{T_str}_{flatten_all_tuples}.mlir")
 
 
 @pytest.mark.parametrize(
@@ -401,11 +438,12 @@ def test_memory(T, bits_to_fault_value):
          [(0b10, 0b1), (0b01, 0b0)])
     ]
 )
-def test_nested(T, x):
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_nested(T, x, flatten_all_tuples):
     T_str = type_to_sanitized_string(T)
 
     class test_when_nested(m.Circuit):
-        name = f"test_when_nested_{T_str}"
+        name = f"test_when_nested_{T_str}_{flatten_all_tuples}"
         io = m.IO(I=m.In(m.Array[2, T]),
                   S=m.In(m.Bit),
                   O=m.Out(T))
@@ -414,10 +452,24 @@ def test_nested(T, x):
         with m.when(io.S):
             io.O @= io.I[0]
 
-    m.compile(f"build/test_when_nested_{T_str}", test_when_nested,
-              output="mlir", flatten_all_tuples=True, emit_when_assertions=True)
+    m.compile(
+        f"build/test_when_nested_{T_str}_{flatten_all_tuples}",
+        test_when_nested,
+        output=_get_output_type(),
+        flatten_all_tuples=flatten_all_tuples,
+        emit_when_assertions=True
+    )
 
-    if check_gold(__file__, f"test_when_nested_{T_str}.mlir"):
+    if not flatten_all_tuples:
+        # TODO(leonardt): fault does not support unflattened tuples.
+        assert check_gold(
+            __file__, f"test_when_nested_{T_str}_{flatten_all_tuples}.mlir"
+        )
+        return
+
+    if check_gold(
+        __file__, f"test_when_nested_{T_str}_{flatten_all_tuples}.mlir"
+    ):
         return
 
     tester = f.Tester(test_when_nested)
@@ -429,12 +481,16 @@ def test_nested(T, x):
     tester.eval()
     tester.expect(test_when_nested.O, x[0])
 
-    tester.compile_and_run("verilator", magma_output="mlir-verilog",
-                           directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           magma_opts={"flatten_all_tuples": True,
-                                       "emit_when_assertions": True})
-    update_gold(__file__, f"test_when_nested_{T_str}.mlir")
+    tester.compile_and_run(
+        "verilator",
+        magma_output="mlir-verilog",
+        directory=os.path.join(os.path.dirname(__file__), "build"),
+        magma_opts={
+            "flatten_all_tuples": flatten_all_tuples,
+            "emit_when_assertions": True
+        }
+    )
+    update_gold(__file__, f"test_when_nested_{T_str}_{flatten_all_tuples}.mlir")
 
 
 def test_non_port():
@@ -454,7 +510,7 @@ def test_non_port():
     m.compile(
         f"build/{basename}",
         _Test,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
     assert check_gold(__file__, f"{basename}.mlir")
@@ -500,7 +556,7 @@ def test_internal_instantiation():
     m.compile(
         f"build/{basename}",
         _Test,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
     assert check_gold(__file__, f"{basename}.mlir")
@@ -527,7 +583,7 @@ def test_internal_instantiation_complex():
     m.compile(
         f"build/{basename}",
         _Test,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
     assert check_gold(__file__, f"{basename}.mlir")
@@ -550,7 +606,7 @@ def test_register_default():
     m.compile(
         f"build/{basename}",
         _Test,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
     assert check_gold(__file__, f"{basename}.mlir")
@@ -575,7 +631,7 @@ def test_register_no_default():
     m.compile(
         f"build/{basename}",
         _Test,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
     assert check_gold(__file__, f"{basename}.mlir")
@@ -590,7 +646,7 @@ def test_latch_error_simple():
         with m.when(io.S):
             io.O @= io.I[0]
 
-    m.compile("build/_Test", _Test, output="mlir")
+    m.compile("build/_Test", _Test, output=_get_output_type())
 
 
 @_expects_error(InferredLatchError)
@@ -604,7 +660,7 @@ def test_latch_error_elsewhen():
         with m.elsewhen(io.S ^ 1):
             io.O @= 1
 
-    m.compile("build/_Test", _Test, output="mlir")
+    m.compile("build/_Test", _Test, output=_get_output_type())
 
 
 @_expects_error(InferredLatchError)
@@ -617,7 +673,7 @@ def test_latch_error_nested():
             with m.when(io.S[1]):
                 io.O @= io.I[0]
 
-    m.compile("build/_Test", _Test, output="mlir")
+    m.compile("build/_Test", _Test, output=_get_output_type())
 
 
 def test_latch_no_error_nested():
@@ -632,7 +688,7 @@ def test_latch_no_error_nested():
         with m.otherwise():
             io.O @= 1
 
-    m.compile("build/_Test", _Test, output="mlir")
+    m.compile("build/_Test", _Test, output=_get_output_type())
 
 
 def test_latch_no_error_nested2():
@@ -648,7 +704,7 @@ def test_latch_no_error_nested2():
         with m.otherwise():
             io.O @= 1
 
-    m.compile("build/_Test", _Test, output="mlir")
+    m.compile("build/_Test", _Test, output=_get_output_type())
 
 
 def test_double_elsewhen():
@@ -670,7 +726,7 @@ def test_double_elsewhen():
     m.compile(
         f"build/{basename}",
         _Test,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
     assert check_gold(__file__, f"{basename}.mlir")
@@ -689,9 +745,12 @@ def test_nested_otherwise():
             with m.otherwise():
                 io.O @= io.I
 
-    m.compile("build/test_when_nested_otherwise",
-              test_when_nested_otherwise, output="mlir",
-              flatten_all_tuples=True, emit_when_assertions=True)
+    m.compile(
+        "build/test_when_nested_otherwise",
+        test_when_nested_otherwise,
+        output=_get_output_type(),
+        emit_when_assertions=True
+    )
 
     assert check_gold(__file__, "test_when_nested_otherwise.mlir")
 
@@ -706,7 +765,7 @@ def test_lazy_array_resolve(caplog):
         with m.otherwise():
             io.O @= m.sint(m.uint(io.I) >> 1)
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -732,7 +791,7 @@ def test_lazy_array(caplog):
     m.compile(
         f"build/{basename}",
         _Test,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
     assert check_gold(__file__, f"{basename}.mlir")
@@ -755,7 +814,7 @@ def test_lazy_array_slice(caplog):
 
         io.O @= x
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -783,7 +842,7 @@ def test_lazy_array_nested(caplog):
 
         io.O @= x
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -807,7 +866,7 @@ def test_lazy_array_protocol(caplog):
 
         io.O @= x
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -829,7 +888,7 @@ def test_lazy_array_slice_driving_resolve(caplog):
         x.value()[0]  # triggers driving bulk wire logic
         x[0] @= 1
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -851,7 +910,7 @@ def test_lazy_array_slice_driving_resolve_2(caplog):
         io.I[0]  # triggers driving bulk wire logic
         x[-1] @= io.I[0]  # triggers driving bulk wire logic
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -868,7 +927,7 @@ def test_lazy_array_slice_overlap(caplog):
             io.O[:2] @= io.I[2:]
             io.O[2:] @= io.I[:2]
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -888,7 +947,7 @@ def test_lazy_array_multiple_whens(caplog):
         with m.when(~io.S):
             io.O @= io.I
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -905,7 +964,7 @@ def test_reg_ce():
             x.I @= io.I
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -925,7 +984,7 @@ def test_reg_ce_multiple():
 
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -973,7 +1032,7 @@ def test_reg_ce_already_wired():
             x.I @= io.I
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -991,7 +1050,7 @@ def test_reg_ce_explicit_wire():
             x.CE @= io.x
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -1010,7 +1069,7 @@ def test_reg_ce_explicit_wire_with_default():
             x.CE @= io.x
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -1029,7 +1088,7 @@ def test_reg_ce_implicit_wire_twice():
             x.I @= ~io.I
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -1049,7 +1108,7 @@ def test_reg_ce_explicit_wire_twice():
             x.I @= ~io.I
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -1079,7 +1138,7 @@ assign O = x;
 
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -1114,7 +1173,7 @@ def test_user_reg_enable():
 
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -1139,7 +1198,7 @@ def test_when_output_resolve():
         io.O1[1] @= io.O0.value()[0]  # direct reference to when builder output
         io.O1[0] @= io.O0.value()[1]  # direct reference to when builder output
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
@@ -1161,12 +1220,13 @@ def test_when_output_resolve2():
         io.O1 @= io.O0.value()  # direct reference to when builder output
         io.O1[0]  # force resolve
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_spurious_assign():
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_spurious_assign(flatten_all_tuples):
 
     class U(m.Product):
         x = m.Bits[8]
@@ -1177,7 +1237,7 @@ def test_when_spurious_assign():
         y = U
 
     class _Test(m.Circuit):
-        name = "test_when_spurious_assign"
+        name = f"test_when_spurious_assign_{flatten_all_tuples}"
         io = m.IO(x=m.In(m.Bits[8]),
                   y=m.In(m.Bit),
                   z=m.In(m.Bits[2]),
@@ -1199,10 +1259,15 @@ def test_when_spurious_assign():
             reg.I.y.y @= ~io.y
 
         reg.I.x @= io.x
-        reg.CE.rewire(io.z[0])
+        reg.CE @= io.z[0]
 
-    m.compile(f"build/{_Test.name}", _Test,
-              output="mlir", flatten_all_tuples=True, emit_when_assertions=True)
+    m.compile(
+        f"build/{_Test.name}",
+        _Test,
+        output=_get_output_type(),
+        flatten_all_tuples=flatten_all_tuples,
+        emit_when_assertions=True
+    )
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
@@ -1219,12 +1284,13 @@ def test_reg_ce_implicit_override():
         x.CE @= io.x
         io.O @= x.O
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
+    m.compile(f"build/{_Test.name}", _Test, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
-def test_when_tuple_bulk_resolve(caplog):
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_tuple_bulk_resolve(caplog, flatten_all_tuples):
 
     class V(m.Product):
         x = m.Bits[8]
@@ -1239,7 +1305,7 @@ def test_when_tuple_bulk_resolve(caplog):
         y = U
 
     class _Test(m.Circuit):
-        name = "test_when_tuple_bulk_resolve"
+        name = f"test_when_tuple_bulk_resolve_{flatten_all_tuples}"
         io = m.IO(I=m.In(T), S=m.In(m.Bits[2]), O=m.Out(T))
 
         x = m.Register(T)(name="x")
@@ -1257,8 +1323,13 @@ def test_when_tuple_bulk_resolve(caplog):
         io.O @= x.O
 
     assert not caplog.messages
-    m.compile(f"build/{_Test.name}", _Test, output="mlir",
-              flatten_all_tuples=True, emit_when_assertions=True)
+    m.compile(
+        f"build/{_Test.name}",
+        _Test,
+        output=_get_output_type(),
+        flatten_all_tuples=flatten_all_tuples,
+        emit_when_assertions=True
+    )
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
@@ -1290,7 +1361,7 @@ def test_when_partial_array_assign():
             io.O[1] @= io.I[1]
 
     m.compile("build/test_when_partial_array_assign",
-              test_when_partial_array_assign, output="mlir",
+              test_when_partial_array_assign, output=_get_output_type(),
               emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_partial_array_assign.mlir")
@@ -1310,19 +1381,21 @@ def test_when_2d_array_assign():
     m.compile(
         "build/test_when_2d_array_assign",
         test_when_2d_array_assign,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
 
     assert check_gold(__file__, "test_when_2d_array_assign.mlir")
 
 
-def test_when_nested_array_assign():
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_nested_array_assign(flatten_all_tuples):
     class T(m.Product):
         x = m.Bit
         y = m.Tuple[m.Bit, m.Bits[8]]
 
     class test_when_nested_array_assign(m.Circuit):
+        name = f"test_when_nested_array_assign_{flatten_all_tuples}"
         io = m.IO(I=m.In(T), S=m.In(m.Bit),
                   O=m.Out(T))
         io.O.x @= io.I.x
@@ -1333,11 +1406,16 @@ def test_when_nested_array_assign():
         with m.otherwise():
             io.O.y[1] @= io.I.y[1][::-1]
 
-    m.compile("build/test_when_nested_array_assign",
-              test_when_nested_array_assign, output="mlir",
-              flatten_all_tuples=True, emit_when_assertions=True)
+    m.compile(
+        f"build/test_when_nested_array_assign_{flatten_all_tuples}",
+        test_when_nested_array_assign, output=_get_output_type(),
+        flatten_all_tuples=flatten_all_tuples,
+        emit_when_assertions=True
+    )
 
-    assert check_gold(__file__, "test_when_nested_array_assign.mlir")
+    assert check_gold(
+        __file__, f"test_when_nested_array_assign_{flatten_all_tuples}.mlir"
+    )
 
 
 def test_when_partial_assign_order():
@@ -1359,7 +1437,7 @@ def test_when_partial_assign_order():
             io.O2 @= ~io.I
 
     m.compile("build/test_when_partial_assign_order",
-              test_when_partial_assign_order, output="mlir",
+              test_when_partial_assign_order, output=_get_output_type(),
               emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_partial_assign_order.mlir")
@@ -1381,7 +1459,7 @@ def test_when_3d_array_assign():
     m.compile(
         "build/test_when_3d_array_assign",
         test_when_3d_array_assign,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
 
@@ -1403,7 +1481,7 @@ def test_when_array_resolved_after():
     m.compile(
         "build/test_when_array_resolved_after",
         test_when_array_resolved_after,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
 
@@ -1424,7 +1502,7 @@ def test_when_array_3d_bulk_child():
     m.compile(
         "build/test_when_array_3d_bulk_child",
         test_when_array_3d_bulk_child,
-        output="mlir",
+        output=_get_output_type(),
         emit_when_assertions=True
     )
 
@@ -1457,7 +1535,7 @@ def test_when_temporary_resolved():
         io.O @= countNext
 
     m.compile("build/test_when_temporary_resolved",
-              test_when_temporary_resolved, output="mlir",
+              test_when_temporary_resolved, output=_get_output_type(),
               disallow_local_variables=True, emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_temporary_resolved.mlir")
@@ -1475,7 +1553,7 @@ def test_when_2d_array_assign_slice():
             io.O[2:] @= io.I[:2]
 
     m.compile("build/test_when_2d_array_assign_slice",
-              test_when_2d_array_assign_slice, output="mlir",
+              test_when_2d_array_assign_slice, output=_get_output_type(),
               emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_2d_array_assign_slice.mlir")
@@ -1483,7 +1561,7 @@ def test_when_2d_array_assign_slice():
 
 def test_when_unique():
 
-    class Gen(m.Generator2):
+    class Gen(m.Generator):
         def __init__(self, width: int):
             self.io = io = m.IO(
                 a=m.In(m.Bits[8]),
@@ -1501,12 +1579,13 @@ def test_when_unique():
         )
         io.y @= Gen(2)()(io.a) | Gen(4)()(io.a)
 
-    m.compile("build/test_when_unique", test_when_unique, output="mlir",
+    m.compile("build/test_when_unique", test_when_unique, output=_get_output_type(),
               emit_when_assertions=True)
     assert check_gold(__file__, "test_when_unique.mlir")
 
 
-def test_when_tuple_as_bits_resolve():
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_tuple_as_bits_resolve(flatten_all_tuples):
 
     class V(m.Product):
         x = m.Bits[8]
@@ -1522,6 +1601,7 @@ def test_when_tuple_as_bits_resolve():
         y = m.Bits[8]
 
     class test_when_tuple_as_bits_resolve(m.Circuit):
+        name = f"test_when_tuple_as_bits_resolve_{flatten_all_tuples}"
         io = m.IO(I=m.In(U), S=m.In(m.Bit),
                   O=m.Out(U), X=m.Out(m.Bits[U.flat_length()]))
         io.O.y @= io.I.y
@@ -1536,11 +1616,17 @@ def test_when_tuple_as_bits_resolve():
             io.O @= io.I
         io.X @= m.as_bits(io.O.value())
 
-    m.compile("build/test_when_tuple_as_bits_resolve",
-              test_when_tuple_as_bits_resolve, output="mlir",
-              flatten_all_tuples=True, disallow_local_variables=True,
-              emit_when_assertions=True)
-    assert check_gold(__file__, "test_when_tuple_as_bits_resolve.mlir")
+    m.compile(
+        f"build/test_when_tuple_as_bits_resolve_{flatten_all_tuples}",
+        test_when_tuple_as_bits_resolve,
+        output=_get_output_type(),
+        flatten_all_tuples=flatten_all_tuples,
+        disallow_local_variables=True,
+        emit_when_assertions=True
+    )
+    assert check_gold(
+        __file__, f"test_when_tuple_as_bits_resolve_{flatten_all_tuples}.mlir"
+    )
 
 
 def test_when_emit_asserts_basic():
@@ -1554,7 +1640,7 @@ def test_when_emit_asserts_basic():
 
     m.compile("build/test_when_emit_asserts_basic",
               test_when_emit_asserts_basic,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
     assert check_gold(__file__, "test_when_emit_asserts_basic.mlir")
 
 
@@ -1572,7 +1658,7 @@ def test_when_emit_asserts_tuple():
     m.compile("build/test_when_emit_asserts_tuple",
               test_when_emit_asserts_tuple,
               flatten_all_tuples=True,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_emit_asserts_tuple.mlir")
 
@@ -1589,7 +1675,7 @@ def test_when_emit_asserts_otherwise():
 
     m.compile("build/test_when_emit_asserts_otherwise",
               test_when_emit_asserts_otherwise,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_emit_asserts_otherwise.mlir")
 
@@ -1607,7 +1693,7 @@ def test_when_emit_asserts_elsewhen():
 
     m.compile("build/test_when_emit_asserts_elsewhen",
               test_when_emit_asserts_elsewhen,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_emit_asserts_elsewhen.mlir")
 
@@ -1626,7 +1712,7 @@ def test_when_emit_asserts_elsewhen_otherwise():
 
     m.compile("build/test_when_emit_asserts_elsewhen_otherwise",
               test_when_emit_asserts_elsewhen_otherwise,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     assert check_gold(
         __file__, "test_when_emit_asserts_elsewhen_otherwise.mlir"
@@ -1647,7 +1733,7 @@ def test_when_emit_asserts_nesting():
 
     m.compile("build/test_when_emit_asserts_nesting",
               test_when_emit_asserts_nesting,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_emit_asserts_nesting.mlir")
 
@@ -1669,7 +1755,7 @@ def test_when_emit_asserts_chained():
 
     m.compile("build/test_when_emit_asserts_chained",
               test_when_emit_asserts_chained,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_emit_asserts_chained.mlir")
 
@@ -1700,16 +1786,18 @@ def test_when_emit_asserts_value():
     m.compile("build/test_when_emit_asserts_value",
               test_when_emit_asserts_value,
               flatten_all_tuples=True,
-              output="mlir", emit_when_assertions=True)
+              output=_get_output_type(), emit_when_assertions=True)
 
     assert check_gold(__file__, "test_when_emit_asserts_value.mlir")
 
 
-def test_when_emit_asserts_tuple_elab():
+@pytest.mark.parametrize('flatten_all_tuples', [True, False])
+def test_when_emit_asserts_tuple_elab(flatten_all_tuples):
 
     T = m.Tuple[m.Bits[8], m.Bit]
 
     class test_when_emit_asserts_tuple_elab(m.Circuit):
+        name = f"test_when_emit_asserts_tuple_elab_{flatten_all_tuples}"
         io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
 
         x = m.Register(T)()
@@ -1719,12 +1807,17 @@ def test_when_emit_asserts_tuple_elab():
         with m.elsewhen(io.I[0][1]):
             x.I @= io.O.value()
 
-    m.compile("build/test_when_emit_asserts_tuple_elab",
-              test_when_emit_asserts_tuple_elab,
-              flatten_all_tuples=True,
-              output="mlir", emit_when_assertions=True)
+    m.compile(
+        f"build/{test_when_emit_asserts_tuple_elab.name}",
+        test_when_emit_asserts_tuple_elab,
+        flatten_all_tuples=flatten_all_tuples,
+        output=_get_output_type(),
+        emit_when_assertions=True
+    )
 
-    assert check_gold(__file__, "test_when_emit_asserts_tuple_elab.mlir")
+    assert check_gold(
+        __file__, f"{test_when_emit_asserts_tuple_elab.name}.mlir"
+    )
 
 
 def _check_or_update(circ):

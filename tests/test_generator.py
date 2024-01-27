@@ -1,93 +1,104 @@
 import magma as m
-from magma.generator import Generator, ParamDict
 from magma.testing import check_files_equal
 
 
-def test_add_gen():
-    class Add(Generator):
-        @staticmethod
-        def generate(width):
-            """
-            Define and return magma circuit
-            """
-            class AddPrim(m.Circuit):
-                io = m.IO(
-                    I0=m.In(m.Bits[width]),
-                    I1=m.In(m.Bits[width]),
-                    O=m.Out(m.Bits[width]),
-                )
+class _MyMux(m.Generator):
+    cls_level_var = "I like being a mux"
 
-            class _Add(m.Circuit):
-                io = m.IO(
-                    I0=m.In(m.Bits[width]),
-                    I1=m.In(m.Bits[width]),
-                    O=m.Out(m.Bits[width]),
-                )
-                io.O <= AddPrim()(io.I0, io.I1)
-            return _Add
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        sel_bits = m.bitutils.clog2(height)
+        self.name = f"MyMux{width}x{height}"
+        args = {f"I{i}": m.In(m.Bits[width]) for i in range(height)}
+        args["O"] = m.Out(m.Bits[width])
+        args["S"] = m.In(m.Bits[sel_bits])
+        self.io = m.IO(**args)
 
-    # Reference the generated circuit definition using generate method
-    m.compile("build/AddGen8", Add.generate(8))
-    assert check_files_equal(__file__, f"build/AddGen8.v", f"gold/AddGen8.v")
-
-    class Top(m.Circuit):
-        io = m.IO(
-            I0=m.In(m.Bits[8]),
-            I1=m.In(m.Bits[8]),
-            O=m.Out(m.Bits[8]),
-        )
-
-        # Define and instance circuit by instancing the generator class
-        io.O <= Add(8, name='add8')(io.I0, io.I1)
-
-    m.compile("build/AddGen8Top", Top)
-    assert check_files_equal(__file__, f"build/AddGen8Top.v",
-                             f"gold/AddGen8Top.v")
+    def to_string(self):
+        return f"{_MyMux.cls_level_var} of {self.width}x{self.height}"
 
 
-def test_gen_cache():
-    class Add(Generator):
-        @staticmethod
-        def generate(params: ParamDict):
-            class AddPrim(m.Circuit):
-                io = m.IO(
-                    I0=m.In(m.Bits[params["width"]]),
-                    I1=m.In(m.Bits[params["width"]]),
-                    O=m.Out(m.Bits[params["width"]]),
-                )
+def test_type_relations():
+    assert issubclass(_MyMux, m.Generator)
+    assert issubclass(_MyMux, m.DefineCircuitKind)
+    MyMux4x4 = _MyMux(4, 4)  # circuit defn.
+    assert isinstance(MyMux4x4, m.DefineCircuitKind)
+    assert isinstance(MyMux4x4, _MyMux)
+    assert issubclass(MyMux4x4, m.Circuit)
 
-            class _Add(m.Circuit):
-                io = m.IO(
-                    I0=m.In(m.Bits[params["width"]]),
-                    I1=m.In(m.Bits[params["width"]]),
-                    O=m.Out(m.Bits[params["width"]]),
-                )
-                io.O <= AddPrim()(io.I0, io.I1)
-            return _Add
+    insts = []
 
-    assert Add.generate(ParamDict(width=8)) is Add.generate(ParamDict(width=8))
+    class _(m.Circuit):
+        mux = MyMux4x4()
+        insts.append(mux)
 
-    class AddNoCache(Generator):
-        cache = False
+    mux = insts[0]
+    assert isinstance(mux, MyMux4x4)
+    assert isinstance(mux, m.Circuit)
 
-        @staticmethod
-        def generate(params: ParamDict):
-            class AddPrim(m.Circuit):
-                io = m.IO(
-                    I0=m.In(m.Bits[params["width"]]),
-                    I1=m.In(m.Bits[params["width"]]),
-                    O=m.Out(m.Bits[params["width"]]),
-                )
 
-            class _Add(m.Circuit):
-                io = m.IO(
-                    I0=m.In(m.Bits[params["width"]]),
-                    I1=m.In(m.Bits[params["width"]]),
-                    O=m.Out(m.Bits[params["width"]]),
-                )
+def test_properties():
+    MyMux4x4 = _MyMux(4, 4)
+    assert MyMux4x4.name == "MyMux4x4"
+    assert MyMux4x4.width == 4
+    assert MyMux4x4.height == 4
+    assert MyMux4x4.to_string() == "I like being a mux of 4x4"
 
-                io.O <= AddPrim()(io.I0, io.I1)
-            return _Add
 
-    assert AddNoCache.generate(ParamDict(width=8)) is not \
-        AddNoCache.generate(ParamDict(width=8))
+def test_compilation():
+
+    class _Top(m.Circuit):
+        io = m.IO(x=m.In(m.Bit), y=m.In(m.Bit), z=m.Out(m.Bit))
+        mux = _MyMux(1, 2)()
+        mux.I0[0] @= io.x
+        mux.I1[0] @= io.y
+        mux.S @= 0
+        io.z @= mux.O[0]
+
+    m.compile("build/TopGen", _Top, output="coreir")
+    assert check_files_equal(__file__, "build/TopGen.json", "gold/TopGen.json")
+
+
+def test_cache():
+    MyMux4x8 = _MyMux(4, 8)
+    MyMux4x8_other = _MyMux(4, 8)
+    assert MyMux4x8 is MyMux4x8_other
+    MyMux4x16 = _MyMux(4, 16)
+    assert MyMux4x16 is not MyMux4x8
+
+
+def test_cache_miss():
+
+    # Different class, with same parameters; internals don't matter.
+    class _MyOtherMux(m.Generator):
+        def __init__(self, width, height):
+            pass
+
+    MyMux4x8 = _MyMux(4, 8)
+    MyOtherMux4x8 = _MyOtherMux(4, 8)
+    assert MyMux4x8 is not MyOtherMux4x8
+
+
+def test_no_cache():
+
+    class _MyGen(m.Generator):
+        _cache_ = False
+
+        def __init__(self):
+            self.io = m.IO(x=m.In(m.Bit))
+
+    my_gen = _MyGen()
+    my_gen_other = _MyGen()
+    assert my_gen is not my_gen_other
+    assert repr(my_gen) == repr(my_gen_other)
+
+
+def test_subclass_generator_instance():
+    Base = m.Register(m.Bit)
+
+    class MyRegister(Base):
+        io = Base.io
+        verilog = "Foo"
+
+    assert isinstance(MyRegister, m.Register)

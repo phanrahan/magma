@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @simple_array_of_bit(%I: i8) -> (O: i8) {
+    hw.module @simple_array_of_bit(in %I: i8, out O: i8) {
         %0 = comb.extract %I from 7 : (i8) -> i1
         %1 = comb.extract %I from 6 : (i8) -> i1
         %2 = comb.extract %I from 5 : (i8) -> i1

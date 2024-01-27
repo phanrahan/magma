@@ -10,10 +10,10 @@ from magma.circuit import coreir_port_mapping
 from magma.conversions import from_bits, as_bits
 from magma.interface import IO
 from magma.t import Kind, In, Out
-from magma.generator import Generator2
+from magma.generator import Generator
 
 
-class _CoreIRLUT(Generator2):
+class _CoreIRLUT(Generator):
     """
     Internally used generator for CoreIR LUT primitive
     """
@@ -45,7 +45,7 @@ def _to_int(value):
     return int(value)
 
 
-class LUT(Generator2):
+class LUT(Generator):
     """
     Generate a LUT containing entries of a generic Type
     """

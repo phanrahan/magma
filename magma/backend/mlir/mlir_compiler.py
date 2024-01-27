@@ -38,14 +38,18 @@ class MlirCompiler(Compiler):
         return "mlir"
 
     def run_pre_uniquification_passes(self):
-        if self.opts.get("flatten_all_tuples", False):
+        if self._compile_to_mlir_opts.flatten_all_tuples:
             elaborate_tuples(self.main)
         # NOTE(leonardt): when passes must happen after any
         # passes that modify the circuit.  This is because passes
         # could introduce more conditional logic, or they could
         # trigger elaboration on values used in existing coditiona
         # logic (which modifies the when builder).
-        run_when_passes(self.main, self.opts.get("emit_when_assertions", False))
+        run_when_passes(
+            self.main,
+            self._compile_to_mlir_opts.flatten_all_tuples,
+            self._compile_to_mlir_opts.emit_when_assertions,
+        )
 
     def _run_passes(self):
         raise_logs_as_exceptions_pass(self.main)

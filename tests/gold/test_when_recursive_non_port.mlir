@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_recursive_non_port(%I: i2, %S: i1) -> (O0: i1, O1: i1) {
+    hw.module @test_recursive_non_port(in %I: i2, in %S: i1, out O0: i1, out O1: i1) {
         %0 = comb.extract %I from 0 : (i2) -> i1
         %1 = comb.extract %I from 1 : (i2) -> i1
         %3 = sv.reg : !hw.inout<i1>

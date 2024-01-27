@@ -1,11 +1,11 @@
 from magma.bits import Bits
 from magma.conversions import bits, zext_to
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.t import In, Out
 
 
-class Decoder(Generator2):
+class Decoder(Generator):
     """Decodes n-bit value into a one hot encoding (2^n bits).
     """
 

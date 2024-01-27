@@ -45,7 +45,7 @@ from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
 from magma.backend.mlir.when_utils import WhenCompiler
 from magma.backend.mlir.xmr_utils import get_xmr_paths
-from magma.bind2 import maybe_get_bound_instance_info, is_bound_instance
+from magma.bind import maybe_get_bound_instance_info, is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2, clog2safe
@@ -55,7 +55,7 @@ from magma.common import filter_by_key, assert_false
 from magma.compile_guard import get_compile_guard_data
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
-from magma.inline_verilog2 import InlineVerilog2
+from magma.inline_verilog import InlineVerilog
 from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
 from magma.linking import (
@@ -308,7 +308,7 @@ class ModuleVisitor:
             hw.ArrayCreateOp(operands=operands, results=[result])
             return result
         if isinstance(T, TupleMeta):
-            fields = T.field_dict.items()
+            fields = list(T.field_dict.items())
             value = value if value is not None else {k: None for k, _ in fields}
             operands = [self.make_constant(t, value[k]) for k, t in fields]
             hw.StructCreateOp(operands=operands, results=[result])
@@ -340,6 +340,18 @@ class ModuleVisitor:
 
         operand = self.ctx.new_value(arr.type.T)
         hw.ArrayGetOp(operands=[arr, start], results=[operand])
+        return operand
+
+    @functools.lru_cache()
+    def make_struct_ref(
+        self,
+        struct: MlirValue,
+        key: Union[int, str]
+    ) -> MlirValue:
+        if isinstance(key, int):
+            key = f"_{key}"
+        operand = self.ctx.new_value(struct.type.get_field(key))
+        hw.StructExtractOp(field=key, operands=[struct], results=[operand])
         return operand
 
     def make_concat(self, operands, result):
@@ -747,7 +759,7 @@ class ModuleVisitor:
                 expr=defn.expr,
             )
             return True
-        if isinstance(defn, InlineVerilog2):
+        if isinstance(defn, InlineVerilog):
             sv.VerbatimOp(string=defn.expr, operands=module.operands)
             return True
         if iswhen(defn):
@@ -860,7 +872,6 @@ class ModuleVisitor:
         else:
             return True
         paths = get_xmr_paths(self._ctx, xmr)
-        assert len(paths) == len(module.operands)
         self._ctx.parent.xmr_paths[xmr] = paths
         return True
 
@@ -871,7 +882,6 @@ class ModuleVisitor:
         assert isinstance(defn, XMRSource)
         xmr = defn.value
         paths = self._ctx.parent.xmr_paths[xmr]
-        assert len(paths) == len(module.results)
         base = defn.value.parent_view.path()
         for result, path in zip(module.results, paths):
             in_out = self.ctx.new_value(hw.InOutType(result.type))
@@ -1064,112 +1074,21 @@ def treat_as_definition(defn_or_decl: CircuitKind) -> bool:
     return True
 
 
-class BindProcessorInterface(abc.ABC):
-    def __init__(self, ctx: 'HardwareModule', defn: CircuitKind):
-        self._ctx = ctx
-        self._defn = defn
-
-    @abc.abstractmethod
-    def preprocess(self):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def process(self):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def postprocess(self):
-        raise NotImplementedError()
-
-
-class NativeBindProcessor(BindProcessorInterface):
-    def preprocess(self):
-        for bind_module in self._defn.bind_modules:
-            # TODO(rsetaluri): Here we should check if @bind_module has already
-            # been compiled, in the case that the bound module is either used
-            # multiple times or is also a "normal" module that was compiled
-            # elsewhere. Currently, the `set_hardware_module` call will raise an
-            # error if @bind_module has been compiled already.
-            hardware_module = self._ctx.parent.new_hardware_module(bind_module)
-            hardware_module.compile()
-            assert hardware_module.hw_module is not None
-            self._ctx.parent.set_hardware_module(bind_module, hardware_module)
-
-    @wrap_with_not_implemented_error
-    def _resolve_arg(self, arg) -> MlirValue:
-        if isinstance(arg, Type):
-            return self._ctx.get_mapped_value(arg)
-        if isinstance(arg, PortView):
-            return resolve_xmr(self._ctx, arg)
-
-    def process(self):
-        self._syms = []
-        for bind_module, (args, _) in self._defn.bind_modules.items():
-            operands = []
-            for port in self._defn.interface.ports.values():
-                port = get_magma_value(port)
-                visit_magma_value_or_value_wrapper_by_direction(
-                    port,
-                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
-                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
-                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+def _process_bound_modules(defn: CircuitKind, ctx: 'HardwareModule'):
+    defn_sym = ctx.parent.get_mapped_symbol(defn)
+    for instance in defn.instances:
+        bound_instance_info = maybe_get_bound_instance_info(instance)
+        if bound_instance_info is None:
+            continue
+        inst_sym = ctx.parent.get_mapped_symbol(instance)
+        ref = hw.InnerRefAttr(defn_sym, inst_sym)
+        with contextlib.ExitStack() as stack:
+            for compile_guard_info in bound_instance_info.compile_guards:
+                block = _make_compile_guard_block(
+                    dataclasses.asdict(compile_guard_info)
                 )
-            operands += list(map(self._resolve_arg, args))
-            inst_name = f"{bind_module.name}_inst"
-            sym = self._ctx.parent.get_or_make_mapped_symbol(
-                (self._defn, bind_module),
-                name=f"{self._defn.name}.{inst_name}",
-                force=True)
-            module = self._ctx.parent.get_hardware_module(bind_module)
-            inst = hw.InstanceOp(
-                name=inst_name,
-                module=module.hw_module,
-                operands=operands,
-                results=[],
-                sym=sym)
-            inst.attr_dict["doNotPrint"] = builtin.BoolAttr(True)
-            self._syms.append(sym)
-
-    def postprocess(self):
-        defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
-        for sym in self._syms:
-            instance = hw.InnerRefAttr(defn_sym, sym)
-            sv.BindOp(instance=instance)
-        for instance in self._defn.instances:
-            bound_instance_info = maybe_get_bound_instance_info(instance)
-            if bound_instance_info is None:
-                continue
-            inst_sym = self._ctx.parent.get_mapped_symbol(instance)
-            ref = hw.InnerRefAttr(defn_sym, inst_sym)
-            with contextlib.ExitStack() as stack:
-                for compile_guard_info in bound_instance_info.compile_guards:
-                    block = _make_compile_guard_block(
-                        dataclasses.asdict(compile_guard_info)
-                    )
-                    stack.enter_context(push_block(block))
-                sv.BindOp(instance=ref)
-
-
-class CoreIRBindProcessor(BindProcessorInterface):
-    def preprocess(self):
-        return
-
-    def process(self):
-        for name, content in self._defn.compiled_bind_modules.items():
-            path = pathlib.Path(self._ctx.opts.basename).parent
-            filename = path / f"{name}.sv"
-            with open(filename, "w") as f:
-                f.write(content)
-            self._ctx.parent.add_external_bind_file(filename.name)
-
-    def postprocess(self):
-        return
-
-
-def _make_bind_processor(ctx: 'HardwareModule', defn: CircuitKind):
-    if ctx.opts.use_native_bind_processor:
-        return NativeBindProcessor(ctx, defn)
-    return CoreIRBindProcessor(ctx, defn)
+                stack.enter_context(push_block(block))
+            sv.BindOp(instance=ref)
 
 
 def _visit_linked_module(
@@ -1326,8 +1245,6 @@ class HardwareModule:
                 name=name,
                 operands=inputs,
                 results=named_outputs)
-        bind_processor = _make_bind_processor(self, self._magma_defn_or_decl)
-        bind_processor.preprocess()
         op = hw.ModuleOp(
             name=name,
             operands=inputs,
@@ -1342,11 +1259,10 @@ class HardwareModule:
                 visitor.visit(self._magma_defn_or_decl)
             except ModuleVisitor.VisitError:
                 raise MlirCompilerInternalError(visitor)
-            bind_processor.process()
             output_values = new_values(self.get_or_make_mapped_value, i)
             if named_outputs:
                 hw.OutputOp(operands=output_values)
-        bind_processor.postprocess()
+        _process_bound_modules(self._magma_defn_or_decl, self)
         return op
 
     def _add_module_parameters(self, hw_module: hw.ModuleOpBase):

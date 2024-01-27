@@ -5,7 +5,7 @@ from riscv_mini.data_path import Datapath, make_HostIO
 from riscv_mini.control import Control
 
 
-class Core(m.Generator2):
+class Core(m.Generator):
     def __init__(self, x_len: int, data_path_kwargs=None, control_kwargs=None):
         self.io = m.IO(
             host=make_HostIO(x_len),

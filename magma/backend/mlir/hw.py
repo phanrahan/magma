@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, ClassVar, List, Mapping, Optional, Tuple
+from typing import ClassVar, Iterable, List, Optional, Tuple
 
 from magma.backend.mlir.common import default_field
 from magma.backend.mlir.mlir import (
@@ -15,7 +15,6 @@ from magma.backend.mlir.mlir import (
 from magma.backend.mlir.mlir_printer_utils import (
     print_attr_dict,
     print_names,
-    print_signature,
     print_types,
 )
 from magma.backend.mlir.print_opts import PrintOpts
@@ -43,6 +42,12 @@ class StructType(MlirType):
     def emit(self) -> str:
         field_str = ", ".join(f"{k}: {t.emit()}" for k, t in self.fields)
         return f"!hw.struct<{field_str}>"
+
+    def get_field(self, field: str) -> MlirType:
+        for key, value in self.fields:
+            if key == field:
+                return value
+        raise KeyError(f"Could not find struct key {field} in {self.fields}")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -105,6 +110,29 @@ class ModuleOpBase(MlirOp):
     name: MlirSymbol
     parameters: List[ParamDeclAttr] = default_field(list)
 
+    @staticmethod
+    def _get_signature_term(
+            qualifier: str,
+            value: MlirValue,
+            raw_name: bool,
+            print_locations: bool,
+    ) -> str:
+        name = value.raw_name if raw_name else value.name
+        term = f"{qualifier} {name}: {value.type.emit()}"
+        if print_locations:
+            return f"{term} {value.location.emit()}"
+        return term
+
+    def _get_signature_terms(self, print_locations: bool) -> Iterable[str]:
+        for value in self.operands:
+            yield ModuleOpBase._get_signature_term(
+                "in", value, False, print_locations
+            )
+        for value in self.results:
+            yield ModuleOpBase._get_signature_term(
+                "out", value, True, print_locations
+            )
+
     def print_op(self, printer: PrinterBase, print_opts: PrintOpts):
         printer.print(f"hw.{self.op_name} {self.name.name}")
         if self.parameters:
@@ -112,9 +140,9 @@ class ModuleOpBase(MlirOp):
             printer.print(", ".join(param.emit() for param in self.parameters))
             printer.print(">")
         printer.print("(")
-        print_signature(self.operands, printer, print_opts)
-        printer.print(") -> (")
-        print_signature(self.results, printer, print_opts, raw_names=True)
+        printer.print(
+            ", ".join(self._get_signature_terms(print_opts.print_locations))
+        )
         printer.print(")")
         if self.attr_dict:
             printer.print(" attributes ")

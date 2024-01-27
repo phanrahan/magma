@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_namer_dict_smart_bits_lazy(%I0: i8, %I1: i8) -> (O: i9) {
+    hw.module @test_namer_dict_smart_bits_lazy(in %I0: i8, in %I1: i8, out O: i9) {
         %0 = comb.extract %I0 from 0 : (i8) -> i1
         %1 = comb.extract %I0 from 1 : (i8) -> i1
         %2 = comb.extract %I0 from 2 : (i8) -> i1

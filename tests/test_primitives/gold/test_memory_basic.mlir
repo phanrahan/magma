@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @Memory(%RADDR: i2, %CLK: i1, %WADDR: i2, %WDATA: i5, %WE: i1) -> (RDATA: i5) {
+    hw.module @Memory(in %RADDR: i2, in %CLK: i1, in %WADDR: i2, in %WDATA: i5, in %WE: i1, out RDATA: i5) {
         %1 = sv.reg name "coreir_mem4x5_inst0" : !hw.inout<!hw.array<4xi5>>
         %2 = sv.array_index_inout %1[%RADDR] : !hw.inout<!hw.array<4xi5>>, i2
         %0 = sv.read_inout %2 : !hw.inout<i5>
@@ -11,7 +11,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         }
         hw.output %0 : i5
     }
-    hw.module @test_memory_basic(%raddr: i2, %waddr: i2, %wdata: i5, %clk: i1, %wen: i1) -> (rdata: i5) {
+    hw.module @test_memory_basic(in %raddr: i2, in %waddr: i2, in %wdata: i5, in %clk: i1, in %wen: i1, out rdata: i5) {
         %0 = hw.constant 1 : i1
         %1 = hw.constant 0 : i2
         %2 = hw.constant 0 : i5

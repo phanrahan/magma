@@ -11,7 +11,7 @@ from magma.backend.mlir.mlir import MlirOp, MlirSymbol, push_block
 from magma.backend.mlir.mlir_passes import CollectMlirOpsPass
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
-from magma.bind2 import is_bound_module
+from magma.bind import is_bound_module
 from magma.circuit import CircuitKind, DefineCircuitKind
 from magma.common import find_by_value, only
 from magma.passes import dependencies
@@ -30,6 +30,8 @@ def _set_module_attrs(mlir_module: builtin.ModuleOp, opts: CompileToMlirOpts):
         lowering_options.append("disallowLocalVariables")
     if opts.omit_version_comment:
         lowering_options.append("omitVersionComment")
+    if opts.disallow_packed_struct_assignments:
+        lowering_options.append("disallowPackedStructAssignments")
     if lowering_options:
         mlir_module.attr_dict["circt.loweringOptions"] = builtin.StringAttr(
             f"{','.join(lowering_options)}"

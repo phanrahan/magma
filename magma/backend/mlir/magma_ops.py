@@ -5,7 +5,7 @@ from magma.backend.mlir.magma_common import (
     InstanceWrapper, value_or_type_to_string)
 from magma.bits import BitsMeta
 from magma.digital import DigitalMeta
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.t import In, Out
 from magma.tuple import TupleMeta, AnonymousProductMeta
@@ -75,8 +75,7 @@ def MagmaTupleCreateOp(T: TupleMeta):
     assert isinstance(T, TupleMeta)
     T = T.undirected_t
     name = f"magma_tuple_create_op_{value_or_type_to_string(T)}"
-    fields = T.field_dict
-    ports = {f"I{k}": In(t) for k, t in fields.items()}
+    ports = {f"I{k}": In(t) for k, t in T.field_dict.items()}
     ports.update(dict(O=Out(T)))
     return InstanceWrapper(name, ports, {})
 

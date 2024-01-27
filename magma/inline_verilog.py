@@ -1,43 +1,37 @@
-import contextlib
-import hashlib
 import string
-from typing import Mapping, Optional, Union
+from typing import Iterable, Mapping, Tuple, Union
 
-from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
+from ast_tools.stack import get_symbol_table
 
 from magma.array import Array
-from magma.bit import Bit
 from magma.circuit import Circuit
-from magma.clock import ClockTypes
-from magma.definition_context import DefinitionContext, get_definition_context
+from magma.common import hash_expr
 from magma.digital import Digital
+from magma.generator import Generator
 from magma.interface import IO
-from magma.passes.passes import CircuitPass
-from magma.primitives.wire import Wire
-from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
-from magma.t import Type, Direction, In
-from magma.tuple import Tuple
-from magma.view import PortView, InstView
+from magma.t import In, Kind, Type
+from magma.view import PortView
 from magma.wire_utils import wire_value_or_port_view, WiringError
 
 
 ValueLike = Union[Type, PortView]
+ValueLikeMap = Mapping[str, ValueLike]
 
 
 class InlineVerilogError(RuntimeError):
     pass
 
 
-def _get_view_inst_parent(view):
-    while not isinstance(view, InstView):
-        assert isinstance(view, PortView), type(view)
-        return _get_view_inst_parent(view.parent_view)
-    return view
-
-
 def _make_inline_value(
-        inline_value_map: Mapping[str, ValueLike], value: ValueLike) -> str:
-    if isinstance(value, Array) and not issubclass(value.T, Digital):
+        inline_value_map: Mapping[str, ValueLike], value: ValueLike
+) -> str:
+    if (
+            (
+                isinstance(value, Array)
+                and not issubclass(value.T, Digital)
+            )
+            or isinstance(value, Tuple)
+    ):
         key = ", ".join(
             _make_inline_value(inline_value_map, t)
             for t in reversed(value)
@@ -50,81 +44,9 @@ def _make_inline_value(
         # the user can insert it one if it is inlining a value into a wire
         # assignment or instance port statement.
         return f"{{{key}}}"
-    if isinstance(value, Tuple):
-        raise NotImplementedError(value)
     key = f"__magma_inline_value_{len(inline_value_map)}"
     inline_value_map[key] = value
     return f"{{{key}}}"
-
-
-def _build_io(inline_value_map: Mapping[str, ValueLike]) -> IO:
-    if not inline_value_map:
-        # Add dummy port so IO is not empty.
-        io = IO(I=In(Bit))
-        io.I.unused()
-        return io
-    io = IO()
-    for key, value in inline_value_map.items():
-        if isinstance(value, PortView):
-            T = value.T
-        else:
-            T = type(value)
-        io += IO(**{key: In(T)})
-    return io
-
-
-def _inline_verilog(
-        context: DefinitionContext,
-        format_str: str,
-        format_args: Mapping[str, ValueLike],
-        inline_value_map: Mapping[str, ValueLike],
-        inline_wire_prefix: str):
-    inline_verilog_modules = context.set_default_metadata(
-        "inline_verilog_modules", [])
-    format_args = format_args.copy()
-    for key, arg in format_args.items():
-        if isinstance(arg, (Type, PortView)):
-            arg = _make_inline_value(inline_value_map, arg)
-        format_args[key] = arg
-    inline_str = format_str.format(**format_args)
-
-    # Because modules/instances are sorted lexigraphically in the generated
-    # verilog, in order for the inline verilog in the output to be in
-    # statement-order, we need to generate a lexicographically increasing string
-    # based on the order of the inline verilog statement in the python. A trick
-    # to do this with numbers is, for every 10 modules, to insert a prefix 9 so
-    # that it comes after the previous 1-9 digits.
-    i = len(inline_verilog_modules)
-    prefix = "9" * (i // 10)
-    suffix = i % 10
-
-    class _InlineVerilog(Circuit):
-        name = f"{context.placer.name}_inline_verilog_{prefix}{suffix}"
-        io = _build_io(inline_value_map)
-        # Since each inline value (key) maps to a port, we populate the
-        # connect_references dictionary with a map from key to port.
-        connect_references = {}
-        for key in inline_value_map:
-            port = getattr(io, key)
-            port.unused()  # these are needed so CoreIR knows it's a definition
-            connect_references[key] = port
-        inline_verilog_strs = [(inline_str, connect_references)]
-
-    inline_verilog_modules.append(_InlineVerilog)
-    inst_name = f"{context.placer.name}_inline_verilog_inst_{prefix}{suffix}"
-    inst = _InlineVerilog(name=inst_name)
-    # If there no interpolated values, _build_io adds a dummy port to avoid an
-    # empty IO. We drive that with 0 here to avoid a hanging input.
-    if not inline_value_map:
-        inst.I @= 0
-
-    for key, value in inline_value_map.items():
-        try:
-            wire_value_or_port_view(getattr(inst, key), value)
-        except WiringError:
-            raise InlineVerilogError(
-                f"Found reference to undriven input port: {repr(value)}"
-            ) from None
 
 
 def _process_fstring_syntax(
@@ -157,41 +79,63 @@ def _process_fstring_syntax(
     return format_str
 
 
-def _process_inline_verilog(
-        context: DefinitionContext,
-        format_str: str,
-        format_args: Mapping[str, ValueLike],
-        symbol_table: Mapping,
-        inline_wire_prefix: str):
-    inline_value_map = {}
-    if symbol_table is not None:
-        format_str = _process_fstring_syntax(
-            format_str, format_args, inline_value_map, symbol_table)
-    _inline_verilog(
-        context, format_str, format_args, inline_value_map, inline_wire_prefix)
-
-
-def inline_verilog_impl(
-        format_str: str,
-        format_args: Mapping[str, ValueLike],
-        symbol_table: Mapping,
-        inline_wire_prefix: str):
-    context = get_definition_context()
-    _process_inline_verilog(
-        context, format_str, format_args, symbol_table, inline_wire_prefix)
-
-
-def inline_verilog(
-        format_str: str,
-        inline_wire_prefix: str = "_magma_inline_wire",
-        **kwargs):
-    exec(_SKIP_FRAME_DEBUG_STMT)
-    format_args = kwargs
+def _process_expr(
+        expr: str,
+        format_args: ValueLikeMap,
+) -> Tuple[str, ValueLikeMap]:
     symbol_table = get_symbol_table([inline_verilog], copy_locals=True)
-    inline_verilog_impl(
-        format_str, format_args, symbol_table, inline_wire_prefix)
+    value_map = {}
+    expr = _process_fstring_syntax(
+        expr, format_args, value_map, symbol_table
+    )
+    format_args = format_args.copy()
+    for key, arg in format_args.items():
+        if isinstance(arg, (Type, PortView)):
+            arg = _make_inline_value(value_map, arg)
+        format_args[key] = arg
+    expr = expr.format(**format_args)
+    # Replace all __magma_inline_value_x with x. Note that the value_map is
+    # assumed to be ordered, specifically, in the order of the arguments. We
+    # need to iterate in reverse fashion to avoid clobbering later keys,
+    # e.g. 's/__magma_inline_value_1/{1}/g' would convert
+    # '__magma_inline_value_14' to '14'. It is sufficient to iterate in reverse
+    # order.
+    for i, key in reversed(list(enumerate(value_map.keys()))):
+        expr = expr.replace(key, f"{{{str(i)}}}")
+    return expr, value_map
 
 
-class ProcessInlineVerilogPass(CircuitPass):
-    def __call__(self, _):
-        pass
+def _get_arg_type(value: ValueLike) -> Kind:
+    if isinstance(value, PortView):
+        return value.T
+    return type(value)
+
+
+def _wire_ports(value_map: ValueLikeMap, inst: Circuit):
+    for i, value in enumerate(value_map.values()):
+        try:
+            wire_value_or_port_view(getattr(inst, f"I{i}"), value)
+        except WiringError:
+            raise InlineVerilogError(
+                f"Found reference to undriven input port: {repr(value)}"
+            ) from None
+
+
+class _InlineVerilog(Generator):
+    def __init__(self, expr: str, arg_types: Iterable[Kind]):
+        self.expr = expr
+        self.io = IO(**{
+            f"I{i}": In(T)
+            for i, T in enumerate(arg_types)
+        })
+        self.primitive = True
+        self.name = f"InlineVerilog_{hash_expr(expr)}"
+
+
+InlineVerilog = _InlineVerilog
+
+
+def inline_verilog(expr, **kwargs):
+    expr, value_map = _process_expr(expr, kwargs)
+    inst = _InlineVerilog(expr, map(_get_arg_type, value_map.values()))()
+    _wire_ports(value_map, inst)

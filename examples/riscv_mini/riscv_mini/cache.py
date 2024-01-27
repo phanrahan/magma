@@ -35,7 +35,7 @@ def make_cache_ports(x_len, nasti_params):
     }
 
 
-class ArrayMaskMem(m.Generator2):
+class ArrayMaskMem(m.Generator):
     """
     Wrapper around a memory to store entries containing an array of values that
     can be written using a write mask for each array index
@@ -88,7 +88,7 @@ class ArrayMaskMem(m.Generator2):
         self.write = write
 
 
-class Cache(m.Generator2):
+class Cache(m.Generator):
     def __init__(self, x_len, n_ways: int, n_sets: int, b_bytes: int):
         b_bits = b_bytes << 3
         b_len = m.bitutils.clog2(b_bytes)

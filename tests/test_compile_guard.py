@@ -31,12 +31,15 @@ def test_assert():
             count = m.Register(m.UInt[2], has_enable=True)()
             count.I @= count.O + 1
             count.CE @= io.I.valid
-            f.assert_immediate((count.O != 3) | (io.O.value() == 3))
+            m.inline_verilog(
+                "always @(*) begin\n\nassert ({cond});\nend\n",
+                cond=((count.O != 3) | (io.O.value() == 3))
+            )
 
-    m.compile("build/test_compile_guard_assert", _Top, inline=True)
+    m.compile("build/test_compile_guard_assert", _Top, output="mlir")
     assert m.testing.check_files_equal(
-        __file__, f"build/test_compile_guard_assert.json",
-        f"gold/test_compile_guard_assert.json")
+        __file__, f"build/test_compile_guard_assert.mlir",
+        f"gold/test_compile_guard_assert.mlir")
 
 
 def test_array():
@@ -295,9 +298,10 @@ def test_contained_inline_verilog():
             m.inline_verilog("assert ~{reg.O};")
 
     basename = "test_compile_guard_contained_inline_verilog"
-    m.compile(f"build/{basename}", Top)
+    m.compile(f"build/{basename}", Top, output="mlir-verilog")
     assert m.testing.check_files_equal(
-        __file__, f"build/{basename}.v", f"gold/{basename}.v")
+        __file__, f"build/{basename}.v", f"gold/{basename}.v"
+    )
 
 
 def test_compile_guard_anon_driven_internal():

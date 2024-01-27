@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_partial_array_assign(%I: i2, %S: i1) -> (O: i2) {
+    hw.module @test_when_partial_array_assign(in %I: i2, in %S: i1, out O: i2) {
         %0 = comb.extract %I from 1 : (i2) -> i1
         %1 = comb.extract %I from 0 : (i2) -> i1
         %3 = sv.reg : !hw.inout<i1>

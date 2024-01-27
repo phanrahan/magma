@@ -14,7 +14,7 @@ def test_debug_circuit():
 def test_debug_generator():
     assert m.config.get_debug_mode() is False
 
-    class Foo(m.DebugGenerator2):
+    class Foo(m.DebugGenerator):
         def __init__(self, n: int):
             assert m.config.get_debug_mode() is True
             self.io = m.IO(I=m.In(m.Bits[n]))
