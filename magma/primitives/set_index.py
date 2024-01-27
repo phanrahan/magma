@@ -1,12 +1,12 @@
 from magma.array import Array
 from collections.abc import Sequence
-from typing import Union
+from typing import Union, Sequence as Sequnce_T
 
 from magma.bits import UInt
 from magma.bitutils import clog2
 from magma.primitives import mux
 
-def set_index(target: Array, value, idx: Union[UInt, Sequence[UInt]]):
+def set_index(target: Array, value, idx: Union[UInt, Sequnce_T[UInt]]):
     """
     Returns a new value where index `idx` of `target` is set to `value`
     * `target` - a value of type `Array[N, T]` or `Array[(N, M, L, ...), T]`
