@@ -77,11 +77,11 @@ def test_set_ndindex_array():
                                 ]
                                ]
         tester.circuit.val = val = BitVector.random(4)
+        tester.circuit.idx_z = idx_z = BitVector.random(1)
+        tester.circuit.idx_y = idx_y = BitVector.random(1)
+        tester.circuit.idx_x = idx_x = BitVector.random(1)
+        I[int(idx_z)][int(idx_y)][int(idx_x)] = val
         tester.eval()
-        tester.circuit.idx = idx_z = BitVector.random(1)
-        tester.circuit.idx = idx_y = BitVector.random(1)
-        tester.circuit.idx = idx_x = BitVector.random(1)
-        I[int(idx_z), int(idx_y), int(idx_x)] = val
         tester.circuit.O.expect(I)
 
     m.compile("build/test_set_ndindex_array", test_set_ndindex_array)
