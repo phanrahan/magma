@@ -249,9 +249,9 @@ Slice function interfaces:
    * width: constant slice width
 
 
-### set_bit
+### set_index
 Similar to set_slice/get_slice, this function allows you to dynamically set the
-value of a bit in a Bits value.  Here's an example:
+value of an index in an Array value.  Here's an example:
 
 ```python
 class SetBit(m.Circuit):
@@ -259,13 +259,16 @@ class SetBit(m.Circuit):
               val=m.In(m.Bit),
               idx=m.In(m.Bits[2]),
               O=m.Out(m.Bits[4]))
-    io.O @= m.set_bit(io.I, io.val, io.idx)
+    io.O @= m.set_index(io.I, io.val, io.idx)
 ```
 
 Interface:
 ```python
-def set_bit(target: Bits, value: Bit, idx: UInt):
+def set_index(target: Array, value: Type, idx: UInt):
     """
     Returns a new value where index `idx` of value `target` is set to `value`
+    * `target` - a value of type `Array[N, T]`
+    * `value` - a value of type `T`
+    * `idx` - a value of type `UInt[clog2(N)]`
     """
 ```
