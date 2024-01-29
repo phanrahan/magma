@@ -60,6 +60,11 @@ class ArrayMeta(ABCMeta, Kind):
 
         return type_
 
+    def _make_ndarray(cls, Ns, T):
+        for N in reversed(Ns):
+            T = Array[N, T]
+        return T
+
     def __getitem__(cls, index: tuple) -> 'ArrayMeta':
         mcs = type(cls)
 
@@ -104,14 +109,11 @@ class ArrayMeta(ABCMeta, Kind):
                 if len(index[0]) == 0:
                     raise ValueError("Cannot create array with length 0 tuple "
                                      "for N")
-                if len(index[0]) > 1:
-                    T = index[1]
-                    # ND Array
-                    for N in index[0]:
-                        T = Array[N, T]
-                    return T
-                # len(index[0]) == 1, Treat as normal Array
-                index = index[0]
+                elif len(index[0]) > 1:
+                    return cls._make_ndarray(*index)
+                else:
+                    # len(index[0]) == 1, Treat as normal Array
+                    index = index[0]
 
             if (not isinstance(index[0], int) or index[0] <= 0):
                 raise TypeError(
@@ -771,19 +773,19 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
 
         if len(key) == 1:
             return self[key[0]]
-        if not isinstance(key[-1], slice):
-            return self[key[-1]][key[:-1]]
-        if not self._is_whole_slice(key[-1]):
+        if not isinstance(key[0], slice):
+            return self[key[0]][key[1:]]
+        if not self._is_whole_slice(key[0]):
             # If it's not a slice of the whole array, first slice the
             # current array (self), then replace with a slice of the whole
             # array (this is how we determine that we're ready to traverse
             # into the children)
-            this_key = key[-1]
-            result = self[this_key][key[:-1] + (slice(None), )]
+            this_key = key[0]
+            result = self[this_key][(slice(None), ) + key[1:]]
             return result
         # Last index is selecting the whole array, recurse into the
         # children and slice off the inner indices
-        inner_ts = [t[key[:-1]] for t in self.ts]
+        inner_ts = [t[key[1:]] for t in self.ts]
         # Get the type from the children and return the final value
         return type(self)[len(self), type(inner_ts[0])](inner_ts)
 
