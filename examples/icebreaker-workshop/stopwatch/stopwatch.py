@@ -130,8 +130,11 @@ class top(m.Circuit):
     io.LED5 @= ~io.BTN_N | io.BTN1 | io.BTN2 | io.BTN3
 
     display_value_inc @= bcd8_increment()(display_value.O)
-    # TODO: .ite() on Bits type doesn't work with mlir, have to do truth check explicitly
-    # seven_segment @= seven_seg_ctrl()(lap_timeout.O.ite(lap_value.O[:8], display_value.O[:8]), CLK=io.CLK)
+    # TODO: .ite() on Bits type doesn't work with mlir, have to do truth check
+    # explicitly
+    # seven_segment @= seven_seg_ctrl()(lap_timeout.O.ite(lap_value.O[:8],
+    #                                                     display_value.O[:8]),
+    #                                   CLK=io.CLK)
     seven_segment @= seven_seg_ctrl()(
         (lap_timeout.O != 0).ite(lap_value.O[:8], display_value.O[:8]),
         CLK=io.CLK
