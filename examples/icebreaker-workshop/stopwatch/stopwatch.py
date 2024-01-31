@@ -3,9 +3,9 @@ import magma as m
 
 class bcd8_increment(m.Circuit):
     io = m.IO(din=m.In(m.UInt[8]), dout=m.Out(m.UInt[8]))
-    with m.when(io.din == 99):
+    with m.when(io.din == 0x99):
         io.dout @= 0
-    with m.elsewhen(io.din[:4] == 9):
+    with m.elsewhen(io.din[:4] == 0x9):
         io.dout @= m.concat(m.UInt[4](0), io.din[4:] + 1)
     with m.otherwise():
         io.dout @= m.concat(io.din[:4] + 1, io.din[4:])
