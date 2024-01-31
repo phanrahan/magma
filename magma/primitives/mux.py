@@ -205,15 +205,18 @@ def dict_lookup(dict_, select, default=0):
 
 
 @magma_helper_function
-def list_lookup(list_, select, default=0):
+def seq_lookup(seq: Sequence, select, default=0):
     """
-    Use `select` as an index into `list` (similar to a case statement)
+    Use `select` as an index into `seq` (similar to a case statement)
 
     `default` is used when `select` does not match any of the indices (e.g.
-    when the select width is longer than the list) and has a default value of
-    0.
+    when the select width is longer than the sequence) and has a default value
+    of 0.
     """
     output = default
-    for i, elem in enumerate(list_):
+    for i, elem in enumerate(seq):
         output = mux([output, elem], i == select)
     return output
+
+
+list_lookup = seq_lookup
