@@ -774,7 +774,8 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         if len(key) == 1:
             return self[key[0]]
         if not isinstance(key[0], slice):
-            return self[key[0]][key[1:]]
+            next_key = next_key = key[1:] if len(key) > 2 else key[1]
+            return self[key[0]][next_key]
         if not self._is_whole_slice(key[0]):
             # If it's not a slice of the whole array, first slice the
             # current array (self), then replace with a slice of the whole
