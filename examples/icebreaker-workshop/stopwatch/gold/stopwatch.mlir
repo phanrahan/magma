@@ -21,7 +21,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         hw.output %1, %11 : i21, i1
     }
     hw.module @bcd8_increment(in %din: i8, out dout: i8) {
-        %0 = hw.constant 99 : i8
+        %0 = hw.constant 153 : i8
         %1 = comb.icmp eq %din, %0 : i8
         %2 = hw.constant 0 : i8
         %3 = comb.extract %din from 0 : (i8) -> i4
