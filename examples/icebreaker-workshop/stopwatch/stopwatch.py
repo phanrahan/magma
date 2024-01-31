@@ -50,7 +50,6 @@ class seven_seg_ctrl(m.Circuit):
     clkdiv_pulse.I @= clkdiv.O.reduce_and()
     msb_not_lsb.I @= msb_not_lsb.O ^ clkdiv_pulse.O
 
-    # TODO: Double check synchronous logic here
     with m.when(clkdiv_pulse.O):
         with m.when(msb_not_lsb.O):
             dout_reg.I[:7] @= ~msb_digit
