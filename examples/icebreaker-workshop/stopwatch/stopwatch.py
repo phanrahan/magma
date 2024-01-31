@@ -13,26 +13,24 @@ class bcd8_increment(m.Circuit):
 
 class seven_seg_hex(m.Circuit):
     io = m.IO(din=m.In(m.Bits[4]), dout=m.Out(m.Bits[7]))
-    # TODO: Could add T arg to dict lookup or magma dict constructor for T to
-    # avoid T literal here
-    io.dout @= m.list_lookup([
-        m.Bits[7](0b0111111),
-        m.Bits[7](0b0000110),
-        m.Bits[7](0b1011011),
-        m.Bits[7](0b1001111),
-        m.Bits[7](0b1100110),
-        m.Bits[7](0b1101101),
-        m.Bits[7](0b1111101),
-        m.Bits[7](0b0000111),
-        m.Bits[7](0b1111111),
-        m.Bits[7](0b1101111),
-        m.Bits[7](0b1110111),
-        m.Bits[7](0b1111100),
-        m.Bits[7](0b0111001),
-        m.Bits[7](0b1011110),
-        m.Bits[7](0b1111001),
-        m.Bits[7](0b1110001)
-    ], io.din, default=0b1000000)
+    io.dout @= m.list_lookup(map(m.Bits[7], (
+        0b0111111,
+        0b0000110,
+        0b1011011,
+        0b1001111,
+        0b1100110,
+        0b1101101,
+        0b1111101,
+        0b0000111,
+        0b1111111,
+        0b1101111,
+        0b1110111,
+        0b1111100,
+        0b0111001,
+        0b1011110,
+        0b1111001,
+        0b1110001
+    )), io.din, default=0b1000000)
 
 
 class seven_seg_ctrl(m.Circuit):
