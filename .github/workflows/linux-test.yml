@@ -55,6 +55,13 @@ jobs:
         pytest --pycodestyle tests/ . --ignore=riscv_mini
         cd -
 
+    - name: Test icebreaker
+      run: |
+        cd examples/icebreaker-workshop/stopwatch
+        # TODO(leonardt): Merge with top-level coverage
+        pytest --pycodestyle stopwatch.py test_stopwatch.py
+        cd -
+
     - name: Test riscv_mini
       run: |
         cd examples/riscv_mini

@@ -177,6 +177,7 @@ def mux(I: Union[Sequence, Array], S, **kwargs):
 
 # Monkey patch for ite impl without circular dependency
 Bit._mux = staticmethod(mux)
+Bits._mux = staticmethod(mux)
 
 
 # NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular
