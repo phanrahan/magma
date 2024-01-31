@@ -485,8 +485,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         type_ = type(t_branch)
         if type_ != type(f_branch):
             raise TypeError("ite expects same type for both branches")
-        return type(self).undirected_t._declare_ite(type_)()(
-            t_branch, f_branch, self != self.make_constant(0))
+        return self._mux([f_branch, t_branch], self != self.make_constant(0))
 
     @magma_helper_function
     @bits_cast

@@ -35,16 +35,57 @@ module corebit_not (
   assign out = ~in;
 endmodule
 
+module commonlib_muxn__N2__width1 (
+    input [0:0] in_data [1:0],
+    input [0:0] in_sel,
+    output [0:0] out
+);
+wire [0:0] _join_out;
+coreir_mux #(
+    .width(1)
+) _join (
+    .in0(in_data[0]),
+    .in1(in_data[1]),
+    .sel(in_sel[0]),
+    .out(_join_out)
+);
+assign out = _join_out;
+endmodule
+
+module Mux2xBits1 (
+    input [0:0] I0,
+    input [0:0] I1,
+    input S,
+    output [0:0] O
+);
+wire [0:0] coreir_commonlib_mux2x1_inst0_out;
+wire [0:0] coreir_commonlib_mux2x1_inst0_in_data [1:0];
+assign coreir_commonlib_mux2x1_inst0_in_data[1] = I1;
+assign coreir_commonlib_mux2x1_inst0_in_data[0] = I0;
+commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
+    .in_data(coreir_commonlib_mux2x1_inst0_in_data),
+    .in_sel(S),
+    .out(coreir_commonlib_mux2x1_inst0_out)
+);
+assign O = coreir_commonlib_mux2x1_inst0_out;
+endmodule
+
 module TestITE (
     input [0:0] I0,
     input [0:0] I1,
     input [0:0] S,
     output [0:0] O
 );
+wire [0:0] Mux2xBits1_inst0_O;
 wire [0:0] const_0_1_out;
 wire magma_Bit_not_inst0_out;
 wire magma_Bits_1_eq_inst0_out;
-wire [0:0] magma_Bits_1_ite_Out_Bits_1_inst0_out;
+Mux2xBits1 Mux2xBits1_inst0 (
+    .I0(I1),
+    .I1(I0),
+    .S(magma_Bit_not_inst0_out),
+    .O(Mux2xBits1_inst0_O)
+);
 coreir_const #(
     .value(1'h0),
     .width(1)
@@ -62,14 +103,6 @@ coreir_eq #(
     .in1(const_0_1_out),
     .out(magma_Bits_1_eq_inst0_out)
 );
-coreir_mux #(
-    .width(1)
-) magma_Bits_1_ite_Out_Bits_1_inst0 (
-    .in0(I0),
-    .in1(I1),
-    .sel(magma_Bit_not_inst0_out),
-    .out(magma_Bits_1_ite_Out_Bits_1_inst0_out)
-);
-assign O = magma_Bits_1_ite_Out_Bits_1_inst0_out;
+assign O = Mux2xBits1_inst0_O;
 endmodule
 
