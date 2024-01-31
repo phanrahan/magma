@@ -116,3 +116,9 @@ def test_ndarray_get_slice():
     m.compile("build/test_ndarray_get_slice", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_ndarray_get_slice.v",
                              f"gold/test_ndarray_get_slice.v")
+
+
+def test_ndarray_constant():
+    class Foo(m.Circuit):
+        arr_m = m.Array[(3, 2), m.Bits[4]]([[1] * 2] * 3)
+        assert arr_m[0, 0] == 1
