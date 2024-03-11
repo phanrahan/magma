@@ -122,7 +122,7 @@ $ brew install verilator gmp mpfr libmpc
 
 ### Ubuntu
 ```
-$ sudo apt-get install make gcc g++ verilator libgmp-dev libmpfr-dev libmpc-dev
+$ sudo apt-get install make gcc g++ verilator libgmp-dev libmpfr-dev libmpc-dev cmake
 ```
 
 ## Arch
@@ -150,9 +150,7 @@ $ pip install -e .
 
 Install testing infrastructure and run tests to validate the setup
 ```
-$ pip install pytest  # note that magma requires pytest version 3.3 or later
-$ pip install fault 
-$ pip install kratos
+$ pip install pytest fault  # you may need to add $HOME/.local/bin to your $PATH
 $ pytest tests
 ```
 

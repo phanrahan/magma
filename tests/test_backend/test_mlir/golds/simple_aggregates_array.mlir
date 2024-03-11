@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @simple_aggregates_array(%a: !hw.array<8xi16>) -> (y: !hw.array<8xi16>, z: !hw.array<4xi16>) {
+    hw.module @simple_aggregates_array(in %a: !hw.array<8xi16>, out y: !hw.array<8xi16>, out z: !hw.array<4xi16>) {
         %1 = hw.constant 4 : i3
         %0 = hw.array_slice %a[%1] : (!hw.array<8xi16>) -> !hw.array<4xi16>
         %3 = hw.constant 0 : i3

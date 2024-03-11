@@ -33,13 +33,11 @@ def _inline_verilog(
         context: 'DefinitionContext',
         format_str: str,
         format_args: Mapping,
-        symbol_table: Mapping,
-        inline_wire_prefix: str = "_magma_inline_wire"):
-    # NOTE(rsetaluri): These are hacks to avoid a circular dependency.
-    from magma.inline_verilog import inline_verilog_impl
+):
+    # NOTE(rsetaluri): This is a hack to avoid a circular dependency.
+    from magma.inline_verilog import inline_verilog
     with definition_context_manager(context):
-        inline_verilog_impl(
-            format_str, format_args, symbol_table, inline_wire_prefix)
+        inline_verilog(format_str, **format_args)
 
 
 class VerilogDisplayManager(Finalizable):
@@ -64,18 +62,18 @@ class VerilogDisplayManager(Finalizable):
 
     def finalize(self):
         if self._insert_default_log_level:
-            _inline_verilog(self.context, _DEFAULT_VERILOG_LOG_STR, {}, {})
+            _inline_verilog(self.context, _DEFAULT_VERILOG_LOG_STR, {})
         # Finalization needs to finalize (i) opens, (ii) displays, and (iii)
         # closes, in that order.
         for file in self._files:
             string = _VERILOG_FILE_OPEN.format(
                 filename=file.filename, mode=file.mode)
-            _inline_verilog(self.context, string, {}, {})
+            _inline_verilog(self.context, string, {})
         for display in self._displays:
             _inline_verilog(self.context, *display.get_inline_verilog())
         for file in self._files:
             string = _VERILOG_FILE_CLOSE.format(filename=file.filename)
-            _inline_verilog(self.context, string, {}, {})
+            _inline_verilog(self.context, string, {})
 
 
 _definition_context_stack = Stack()

@@ -5,7 +5,7 @@ from magma.backend.mlir.magma_common import (
     InstanceWrapper, value_or_type_to_string)
 from magma.bits import BitsMeta
 from magma.digital import DigitalMeta
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.t import In, Out
 from magma.tuple import TupleMeta, AnonymousProductMeta

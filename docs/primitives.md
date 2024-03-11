@@ -111,9 +111,10 @@ for the 1st input, `I1` for the second...).  The select input will select
 the input value in ascending order (`S == 0` will select `I0`, `S == 1` will
 select `I1`, ...).
 
-## Dict and List Lookup
-`magma` provides the helper functions `dict_lookup` and `list_lookup` to
-facilitate mux generation for looking up values stored in a dictionary or list.
+## Dict and Seq Lookup
+`magma` provides the helper functions `dict_lookup` and `seq_lookup` to
+facilitate mux generation for looking up values stored in a dictionary or
+sequence.
 
 Here are the interfaces to the functions:
 ```python
@@ -125,13 +126,13 @@ def dict_lookup(dict_, select, default=0):
     default value of 0
     """
 
-def list_lookup(list_, select, default=0):
+def seq_lookup(seq: Sequence, select, default=0):
     """
-    Use `select` as an index into `list` (similar to a case statement)
+    Use `select` as an index into `seq` (similar to a case statement)
 
     `default` is used when `select` does not match any of the indices (e.g.
-    when the select width is longer than the list) and has a default value of
-    0.
+    when the select width is longer than the sequence) and has a default value
+    of 0.
     """
 ```
 
@@ -152,7 +153,7 @@ class ListLookup(m.Circuit):
     io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
 
     list_ = [BitVector[5](0), BitVector[5](1), BitVector[5](2)]
-    io.O @= m.list_lookup(list_, io.S, default=BitVector[5](3))
+    io.O @= m.seq_lookup(list_, io.S, default=BitVector[5](3))
 ```
 
 
@@ -249,9 +250,9 @@ Slice function interfaces:
    * width: constant slice width
 
 
-### set_bit
+### set_index
 Similar to set_slice/get_slice, this function allows you to dynamically set the
-value of a bit in a Bits value.  Here's an example:
+value of an index in an Array value.  Here's an example:
 
 ```python
 class SetBit(m.Circuit):
@@ -259,13 +260,16 @@ class SetBit(m.Circuit):
               val=m.In(m.Bit),
               idx=m.In(m.Bits[2]),
               O=m.Out(m.Bits[4]))
-    io.O @= m.set_bit(io.I, io.val, io.idx)
+    io.O @= m.set_index(io.I, io.val, io.idx)
 ```
 
 Interface:
 ```python
-def set_bit(target: Bits, value: Bit, idx: UInt):
+def set_index(target: Array, value: Type, idx: UInt):
     """
     Returns a new value where index `idx` of value `target` is set to `value`
+    * `target` - a value of type `Array[N, T]`
+    * `value` - a value of type `T`
+    * `idx` - a value of type `UInt[clog2(N)]`
     """
 ```

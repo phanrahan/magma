@@ -1,7 +1,7 @@
 import magma as m
 
 
-class RegFile(m.Generator2):
+class RegFile(m.Generator):
     """
     Basic two read port, one write port register file
 

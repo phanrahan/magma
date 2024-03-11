@@ -11,7 +11,7 @@ from magma.circuit import coreir_port_mapping, Circuit
 from magma.conversions import as_bits, from_bits, bit
 from magma.debug import magma_helper_function
 from magma.interface import IO
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.t import Type, Kind, In, Out, Direction
 from magma.tuple import Tuple
 from magma.clock import (
@@ -30,7 +30,7 @@ def _make_bit_vector_t(width, init):
     return coreir.type.BitVector[width](init)
 
 
-class _CoreIRRegister(Generator2):
+class _CoreIRRegister(Generator):
     """
     Internally used generator for CoreIR register primitive
     """
@@ -140,7 +140,7 @@ def _check_init_T(init, T):
     return init_T.is_wireable(T)
 
 
-class AbstractRegister(Generator2):
+class AbstractRegister(Generator):
     """Abstract base class for all Register circuits. User-defined register
     types should implement this interface.
     """

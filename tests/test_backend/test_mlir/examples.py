@@ -1,7 +1,6 @@
 import itertools
 
 import magma as m
-from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.passes.drive_undriven import drive_undriven
 from magma.testing.utils import SimpleMagmaProtocol
 
@@ -387,16 +386,16 @@ class complex_inline_verilog(m.Circuit):
     m.inline_verilog("// A fun{{k}}y comment with {I}", I=io.I)
 
 
-class simple_inline_verilog2(m.Circuit):
+class simple_inline_verilog(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     io.O @= io.I
-    m.inline_verilog2(
+    m.inline_verilog(
 """
 	// This is 'a' "comment".
 """)
 
 
-class complex_inline_verilog2(m.Circuit):
+class complex_inline_verilog(m.Circuit):
     io = m.IO(I=m.In(m.Bits[12]), O=m.Out(m.Bits[12]))
     io.O @= m.register(io.I)
     string = "\n".join(
@@ -407,8 +406,8 @@ class complex_inline_verilog2(m.Circuit):
     for i in range(12):
         refs[f"I{i}"] = io.I[i]
         refs[f"O{i}"] = io.O[i]
-    m.inline_verilog2(string, **refs)
-    m.inline_verilog2("// A fun{{k}}y comment with {I}", I=io.I)
+    m.inline_verilog(string, **refs)
+    m.inline_verilog("// A fun{{k}}y comment with {I}", I=io.I)
 
 
 class simple_bind(m.Circuit):
@@ -424,8 +423,7 @@ class simple_bind_asserts(m.Circuit):
     )
 
 
-ProcessInlineVerilogPass(simple_bind_asserts).run()
-simple_bind.bind(simple_bind_asserts)
+m.bind(simple_bind, simple_bind_asserts)
 m.passes.clock.WireClockPass(simple_bind).run()
 m.passes.clock.WireClockPass(simple_bind_asserts).run()
 
@@ -447,8 +445,7 @@ class complex_bind_asserts(m.Circuit):
     )
 
 
-ProcessInlineVerilogPass(complex_bind_asserts).run()
-complex_bind.bind(complex_bind_asserts, complex_bind.not_I)
+m.bind(complex_bind, complex_bind_asserts, complex_bind.not_I)
 m.passes.clock.WireClockPass(complex_bind).run()
 m.passes.clock.WireClockPass(complex_bind_asserts).run()
 
@@ -481,8 +478,7 @@ class xmr_bind_asserts(m.Circuit):
     m.inline_verilog("assert property ({other} == 0);", other=io.other)
 
 
-ProcessInlineVerilogPass(xmr_bind_asserts).run()
-xmr_bind.bind(xmr_bind_asserts, xmr_bind.inst.xmr_bind_grandchild_inst0.y)
+m.bind(xmr_bind, xmr_bind_asserts, xmr_bind.inst.xmr_bind_grandchild_inst0.y)
 
 
 class simple_compile_guard(m.Circuit):

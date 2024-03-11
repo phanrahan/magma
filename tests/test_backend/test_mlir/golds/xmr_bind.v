@@ -42,7 +42,7 @@ endmodule
 
 // ----- 8< ----- FILE "bindfile.sv" ----- 8< -----
 
-bind xmr_bind xmr_bind_asserts xmr_bind_asserts_inst (
+bind xmr_bind xmr_bind_asserts xmr_bind_asserts_inst0 (
   .a     (a),
   .y     (_xmr_bind_child_inst0_y),
   .other (xmr_bind_child_inst0.xmr_bind_grandchild_inst0.y)

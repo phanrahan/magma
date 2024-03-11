@@ -1,15 +1,15 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @MyWrapperGen_1(%I: i1, %CLK: i1) -> (O: i1) {
+    hw.module @MyWrapperGen_1(in %I: i1, in %CLK: i1, out O: i1) {
         %0 = sv.verbatim.expr "R | I" () : () -> (i1)
         sv.verbatim "reg [0:0] R;\nasssign R <= {{0}};\n" (%I) : i1
         hw.output %0 : i1
     }
-    hw.module @MyWrapperGen_2(%I: i2, %CLK: i1) -> (O: i2) {
+    hw.module @MyWrapperGen_2(in %I: i2, in %CLK: i1, out O: i2) {
         %0 = sv.verbatim.expr "R | I" () : () -> (i2)
         sv.verbatim "reg [1:0] R;\nasssign R <= {{0}};\n" (%I) : i2
         hw.output %0 : i2
     }
-    hw.module @Top(%I: i2, %CLK: i1) -> (O: i2) {
+    hw.module @Top(in %I: i2, in %CLK: i1, out O: i2) {
         %0 = comb.extract %I from 0 : (i2) -> i1
         %1 = comb.concat %0 : i1
         %2 = hw.instance "MyWrapperGen_1_inst0" @MyWrapperGen_1(I: %1: i1, CLK: %CLK: i1) -> (O: i1)

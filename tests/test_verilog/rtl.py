@@ -1,7 +1,7 @@
 import magma as m
 
 
-class RTL(m.Generator2):
+class RTL(m.Generator):
     def __init__(self, width):
         orr, andr, logical_and = m.define_from_verilog(f"""
 module orr_{width} (input [{width - 1}:0] I, output O);

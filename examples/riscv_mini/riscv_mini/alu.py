@@ -17,7 +17,7 @@ class ALUOP(m.Enum):
     XXX = 15
 
 
-class ALUBase(m.Generator2):
+class ALUBase(m.Generator):
     def __init__(self, x_len: int):
         self.io = m.IO(A=m.In(m.UInt[x_len]), B=m.In(m.UInt[x_len]),
                        op=m.In(ALUOP), O=m.Out(m.UInt[x_len]),

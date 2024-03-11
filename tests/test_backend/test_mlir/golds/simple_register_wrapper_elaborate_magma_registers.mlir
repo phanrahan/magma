@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @Register(%I: i8, %CLK: i1) -> (O: i8) {
+    hw.module @Register(in %I: i8, in %CLK: i1, out O: i8) {
         %1 = sv.reg name "reg_P8_inst0" : !hw.inout<i8>
         sv.alwaysff(posedge %CLK) {
             sv.passign %1, %I : i8
@@ -11,7 +11,7 @@ module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionCo
         %0 = sv.read_inout %1 : !hw.inout<i8>
         hw.output %0 : i8
     }
-    hw.module @simple_register_wrapper(%a: i8, %CLK: i1) -> (y: i8) {
+    hw.module @simple_register_wrapper(in %a: i8, in %CLK: i1, out y: i8) {
         %0 = hw.instance "reg0" @Register(I: %a: i8, CLK: %CLK: i1) -> (O: i8)
         hw.output %0 : i8
     }

@@ -292,8 +292,6 @@ class CircuitKind(type):
         dct.setdefault("inline_verilog_strs", [])
         dct.setdefault("coreir_metadata", {})
         dct["inline_verilog_generated"] = False
-        dct["bind_modules"] = {}
-        dct["compiled_bind_modules"] = {}
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -788,10 +786,6 @@ class DefineCircuitKind(CircuitKind):
     def place(cls, inst):
         """Place a circuit instance in this definition"""
         cls._context_.placer.place(inst)
-
-    @deprecated(msg="Circuit.bind() is deprecated. Use m.bind2() instead")
-    def bind(cls, monitor, *args, compile_guard=None):
-        cls.bind_modules[monitor] = (args, compile_guard)
 
 
 class Circuit(CircuitType, metaclass=DefineCircuitKind):

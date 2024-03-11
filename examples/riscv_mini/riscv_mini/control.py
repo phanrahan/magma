@@ -208,7 +208,7 @@ inst_map = {
 }
 
 
-class Control(m.Generator2):
+class Control(m.Generator):
     def __init__(self, x_len):
         self.io = io = make_ControlIO(x_len)
 

@@ -22,7 +22,7 @@ from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.logging import root_logger
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.debug import debug_wire
 from magma.operator_utils import output_only
 from magma.protocol_type import magma_type, magma_value
@@ -485,8 +485,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         type_ = type(t_branch)
         if type_ != type(f_branch):
             raise TypeError("ite expects same type for both branches")
-        return type(self).undirected_t._declare_ite(type_)()(
-            t_branch, f_branch, self != self.make_constant(0))
+        return self._mux([f_branch, t_branch], self != self.make_constant(0))
 
     @magma_helper_function
     @bits_cast
@@ -909,7 +908,7 @@ class SInt(Int):
 
 
 def _reduce_factory(coreir_name, operator):
-    class Reduce(Generator2):
+    class Reduce(Generator):
         def __init__(self, width: int):
             self.io = IO(I=In(Bits[width]), O=Out(Bit))
             self.coreir_lib = "coreir"

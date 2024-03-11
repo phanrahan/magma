@@ -5,7 +5,7 @@ from magma.clock import AsyncReset, AsyncResetN, Clock, _ClockType
 from magma.conversions import as_bits, from_bits, bit, convertbit, convertbits
 from magma.debug import maybe_get_debug_info
 from magma.digital import Digital
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.wire import Wire
 from magma.ref import NamedRef, ArrayRef, PortViewRef, InstRef

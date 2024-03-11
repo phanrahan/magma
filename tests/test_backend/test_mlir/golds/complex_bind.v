@@ -25,7 +25,7 @@ endmodule
 
 // ----- 8< ----- FILE "bindfile.sv" ----- 8< -----
 
-bind complex_bind complex_bind_asserts complex_bind_asserts_inst (
+bind complex_bind complex_bind_asserts complex_bind_asserts_inst0 (
   .I   (I),
   .O   (Register_inst0),
   .CLK (CLK),

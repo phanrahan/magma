@@ -33,7 +33,9 @@ jobs:
         python -m pip install py
         # END: Temp fix
         python -m pip install .
-        python -m pip install flake8 pytest pytest-cov pytest-pycodestyle
+        python -m pip install flake8 pytest pytest-cov pytest-pycodestyle fault>=3.1.1
+        python -m pip install importlib-resources
+        python -m pip install kratos  # test optional dependency
 
     - name: Test without optional dependencies
       run: |
@@ -54,6 +56,21 @@ jobs:
         pushd /tmp
         python -c "import magma"
         popd
+
+    - name: Test examples
+      run: |
+        cd examples
+        # TODO(leonardt): Merge with top-level coverage
+        pip install pylfsr
+        pytest --pycodestyle tests/ . --ignore=riscv_mini
+        cd -
+
+    - name: Test icebreaker
+      run: |
+        cd examples/icebreaker-workshop/stopwatch
+        # TODO(leonardt): Merge with top-level coverage
+        pytest --pycodestyle stopwatch.py test_stopwatch.py
+        cd -
 
     - name: Test riscv_mini
       run: |

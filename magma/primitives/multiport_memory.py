@@ -2,12 +2,12 @@ from magma.bits import Bits
 from magma.bitutils import clog2
 from magma.clock import Enable
 from magma.clock_io import ClockIO
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.t import In, Out, Kind
 
 
-class MultiportMemory(Generator2):
+class MultiportMemory(Generator):
     def __init__(
             self,
             height: int,

@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @aggregate_mux_wrapper(%a: !hw.struct<x: i8, y: i1>, %s: i1) -> (y: !hw.struct<x: i8, y: i1>) {
+    hw.module @aggregate_mux_wrapper(in %a: !hw.struct<x: i8, y: i1>, in %s: i1, out y: !hw.struct<x: i8, y: i1>) {
         %0 = hw.struct_extract %a["x"] : !hw.struct<x: i8, y: i1>
         %2 = hw.constant -1 : i8
         %1 = comb.xor %2, %0 : i8

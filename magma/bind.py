@@ -1,145 +1,145 @@
-import os
-from magma.bit import Bit
-from magma.bits import Bits
-from magma.array import Array
-from magma.config import get_compile_dir, set_compile_dir
-from magma.digital import Digital
-from magma.passes.passes import CircuitPass
-from magma.primitives.wire import Wire
-from magma.tuple import Tuple
-from magma.verilog_utils import value_to_verilog_name, is_nd_array
-from magma.ref import TempNamedRef, AnonRef
-from magma.t import Direction
-from magma.conversions import from_bits, as_bits
-from magma.view import PortView, InstView
-from magma.wire import wire
-from magma.inline_verilog import _get_view_inst_parent
+import dataclasses
+from typing import Dict, List, Optional, Union
+
+from magma.circuit import DefineCircuitKind, CircuitKind, CircuitType
+from magma.compile_guard import get_active_compile_guard_info, CompileGuardInfo
+from magma.generator import GeneratorKind, Generator
+from magma.passes.passes import DefinitionPass, pass_lambda
+from magma.view import PortView
+from magma.wire_utils import wire_value_or_port_view
+from magma.t import Type, In
 
 
-def _should_disable_ndarray(mon_arg, bind_arg):
-    if isinstance(bind_arg, PortView):
-        bind_arg = bind_arg.port
+_BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
+_BOUND_GENERATOR_INFO_KEY = "_bound_generator_info_"
+_IS_BOUND_MODULE_KEY = "_is_bound_module_"
 
-    if (isinstance(mon_arg, Array) and
-            isinstance(bind_arg.name.root(), (TempNamedRef, AnonRef))):
-
-        # Disable NDArray logic for temporary since CoreIR Wire primitive (used
-        # for temporaries) does not support ndarrays yet (root() is not None
-        # for Named temporary values)
-        return True
-    return False
+DutType = Union[DefineCircuitKind, GeneratorKind]
+BindModuleType = Union[CircuitKind, GeneratorKind]
+ArgumentType = Union[Type, PortView]
 
 
-def _gen_bind_port(cls, mon_arg, bind_arg):
-    if (isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and not
-            is_nd_array(type(mon_arg))):
-        result = []
-        for child1, child2 in zip(mon_arg, bind_arg):
-            result += _gen_bind_port(cls, child1, child2)
-        return result
-    port = value_to_verilog_name(mon_arg, False)
-    arg = value_to_verilog_name(
-        bind_arg, _should_disable_ndarray(mon_arg, bind_arg))
-    return [(f".{port}({arg})")]
+@dataclasses.dataclass(frozen=True)
+class BoundInstanceInfo:
+    args: List[ArgumentType]
+    compile_guards: List[CompileGuardInfo]
 
 
-def _wire_temp(bind_arg, temp):
-    if bind_arg.is_mixed():
-        for x, y in zip(bind_arg, temp):
-            _wire_temp(x, y)
+@dataclasses.dataclass(frozen=True)
+class BoundGeneratorInfo:
+    bind_generator: GeneratorKind
+    compile_guards: List[CompileGuardInfo]
+
+
+def set_bound_instance_info(inst: CircuitType, info: BoundInstanceInfo):
+    global _BOUND_INSTANCE_INFO_KEY
+    setattr(inst, _BOUND_INSTANCE_INFO_KEY, info)
+
+
+def maybe_get_bound_instance_info(
+        inst: CircuitType
+) -> Optional[BoundInstanceInfo]:
+    global _BOUND_INSTANCE_INFO_KEY
+    return getattr(inst, _BOUND_INSTANCE_INFO_KEY, None)
+
+
+def is_bound_instance(inst: CircuitType) -> bool:
+    return maybe_get_bound_instance_info(inst) is not None
+
+
+def set_is_bound_module(defn: CircuitKind, value: bool = True):
+    global _IS_BOUND_MODULE_KEY
+    setattr(defn, _IS_BOUND_MODULE_KEY, value)
+
+
+def is_bound_module(defn: CircuitKind) -> bool:
+    global _IS_BOUND_MODULE_KEY
+    return getattr(defn, _IS_BOUND_MODULE_KEY, False)
+
+
+def get_bound_generator_infos(inst: CircuitType) -> List[BoundGeneratorInfo]:
+    global _BOUND_GENERATOR_INFO_KEY
+    try:
+        info = getattr(inst, _BOUND_GENERATOR_INFO_KEY)
+    except AttributeError:
+        info = list()
+        setattr(inst, _BOUND_GENERATOR_INFO_KEY, info)
+    return info
+
+
+class BindGenerators(DefinitionPass):
+    def __call__(self, defn):
+        if not isinstance(defn, Generator):
+            return
+        gen = type(defn)
+        for info in get_bound_generator_infos(type(defn)):
+            bind_module = info.bind_generator(
+                defn, *defn._args_, **defn._kwargs_
+            )
+            bind_args = getattr(bind_module, "bind_args", list())
+            _bind_impl(defn, bind_module, bind_args, info.compile_guards)
+
+
+bind_generators = pass_lambda(BindGenerators)
+
+
+def make_bind_ports(defn_or_decl: CircuitKind) -> Dict[str, Type]:
+    return {
+        name: In(type(port))
+        for name, port in defn_or_decl.interface.ports.items()
+    }
+
+
+def _bind_generator_impl(
+        dut: GeneratorKind,
+        bind_generator: GeneratorKind,
+        compile_guards: List[CompileGuardInfo],
+):
+    infos = get_bound_generator_infos(dut)
+    info = BoundGeneratorInfo(bind_generator, compile_guards)
+    infos.append(info)
+
+
+def _bind_impl(
+        dut: DefineCircuitKind,
+        bind_module: CircuitKind,
+        args: List[ArgumentType],
+        compile_guards: List[CompileGuardInfo],
+):
+    arguments = list(dut.interface.ports.values()) + args
+    with dut.open():
+        inst = bind_module()
+        for param, arg in zip(inst.interface.ports.values(), arguments):
+            wire_value_or_port_view(param, arg)
+        info = BoundInstanceInfo(args, compile_guards)
+        set_bound_instance_info(inst, info)
+        set_is_bound_module(bind_module, True)
+
+
+def bind(
+        dut: DutType,
+        bind_module: BindModuleType,
+        *args,
+):
+    args = list(args)
+    compile_guards = list(get_active_compile_guard_info())
+    are_generators = (
+        isinstance(dut, GeneratorKind) and
+        isinstance(bind_module, GeneratorKind)
+    )
+    if are_generators:
+        if args:
+            raise ValueError(
+                "Expected no arguments for binding generators. "
+                "Implement bind_arguments() instead."
+            )
+        _bind_generator_impl(dut, bind_module, compile_guards)
         return
-    if bind_arg.is_input():
-        bind_arg = bind_arg.value()
-        if bind_arg is None:
-            raise ValueError("Cannot bind undriven input")
-    wire(bind_arg, temp)
-
-
-def _bind(cls, monitor, compile_fn, user_namespace, verilog_prefix,
-          compile_output, compile_guard, *args):
-    bind_str = monitor.verilogFile
-    ports = []
-    for mon_arg, cls_arg in zip(monitor.interface.ports.values(),
-                                cls.interface.ports.values()):
-        if str(mon_arg.name) != str(cls_arg.name):
-            error_str = f"""
-Bind monitor interface does not match circuit interface
-    Monitor Ports: {list(monitor.interface.ports)}
-    Circuit Ports: {list(cls.interface.ports)}
-"""
-            raise TypeError(error_str)
-        ports += _gen_bind_port(cls, mon_arg, cls_arg)
-    extra_mon_args = list(
-        monitor.interface.ports.values()
-    )[len(cls.interface):]
-    for mon_arg, bind_arg in zip(extra_mon_args, args):
-        if isinstance(bind_arg, PortView):
-            T = type(bind_arg.port)
-            parent = _get_view_inst_parent(bind_arg).parent_view
-            if isinstance(parent, InstView):
-                defn = parent.circuit
-            else:
-                assert isinstance(parent, Circuit)
-                defn = type(parent)
-            driver = bind_arg.port
-        else:
-            T = type(bind_arg)
-            defn = cls
-            driver = bind_arg
-        with defn.open():
-            if not hasattr(defn, "num_bind_wires"):
-                defn.num_bind_wires = 0
-            name = f"_magma_bind_wire_{defn.num_bind_wires}"
-            defn.num_bind_wires += 1
-            temp = T.qualify(Direction.Undirected)(name=name)
-            _wire_temp(driver, temp)
-            temp.unused()
-        if isinstance(bind_arg, PortView):
-            temp = PortView[type(temp)](temp, bind_arg.parent_view.parent_view)
-        bind_arg = temp
-        ports += _gen_bind_port(cls, mon_arg, bind_arg)
-    ports_str = ",\n    ".join(ports)
-    cls_name = cls.name
-    monitor_name = monitor.name
-    if user_namespace is not None:
-        cls_name = user_namespace + "_" + cls_name
-        monitor_name = user_namespace + "_" + monitor_name
-    if verilog_prefix is not None:
-        cls_name = verilog_prefix + cls_name
-        monitor_name = verilog_prefix + monitor_name
-    bind_str = f"bind {cls_name} {monitor_name} {monitor_name}_inst (\n    {ports_str}\n);"  # noqa
-    if compile_guard is not None:
-        bind_str = f"""
-`ifdef {compile_guard}
-{bind_str}
-`endif
-"""
-    if not os.path.isdir(".magma"):
-        os.mkdir(".magma")
-    curr_compile_dir = get_compile_dir()
-    set_compile_dir("normal")
-    # Circular dependency, need coreir backend to compile, backend imports
-    # circuit (for wrap casts logic, we might be able to factor that out).
-    compile_fn(f".magma/{monitor.name}", monitor, inline=True,
-               output=compile_output, user_namespace=user_namespace,
-               verilog_prefix=verilog_prefix)
-    set_compile_dir(curr_compile_dir)
-    with open(f".magma/{monitor.name}.v", "r") as f:
-        content = "\n".join((f.read(), bind_str))
-    cls.compiled_bind_modules[monitor.name] = content
-
-
-class BindPass(CircuitPass):
-    def __init__(self, main, compile_fn, user_namespace, verilog_prefix,
-                 compile_output):
-        super().__init__(main)
-        self._compile_fn = compile_fn
-        self.user_namespace = user_namespace
-        self.verilog_prefix = verilog_prefix
-        self.compile_output = compile_output
-
-    def __call__(self, cls):
-        for monitor, (args, compile_guard) in cls.bind_modules.items():
-            _bind(cls, monitor, self._compile_fn, self.user_namespace,
-                  self.verilog_prefix, self.compile_output, compile_guard,
-                  *args)
+    are_modules = (
+        isinstance(dut, DefineCircuitKind) and
+        isinstance(dut, CircuitKind)
+    )
+    if are_modules:
+        _bind_impl(dut, bind_module, args, compile_guards)
+        return
+    raise TypeError(dut, bind_module)

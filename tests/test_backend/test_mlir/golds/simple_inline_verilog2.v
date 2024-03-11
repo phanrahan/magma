@@ -1,4 +1,4 @@
-module simple_inline_verilog2(
+module simple_inline_verilog(
   input  I,
   output O
 );

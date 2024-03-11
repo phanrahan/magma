@@ -47,7 +47,7 @@ def test_location_info_style(style):
     ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle={style}"}} {{
-          hw.module @M() -> () {{}}
+          hw.module @M() {{}}
         }}
         """
     )
@@ -70,7 +70,7 @@ def test_explicit_bitcast(explicit_bitcast):
     ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle=none{explicit_bitcast_attr}"}} {{
-            hw.module @M(%a: i8, %b: i8) -> (y: i8) {{
+            hw.module @M(in %a: i8, in %b: i8, out y: i8) {{
               %0 = comb.add %a, %b : i8
               hw.output %0 : i8
             }}
@@ -102,8 +102,8 @@ def test_disallow_expression_inlining_in_ports(disallow_expression_inlining_in_p
     ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle=none{disallow_expression_inlining_in_ports_attr}"}} {{
-          hw.module.extern @Foo(%I: i1) -> (O: i1)
-          hw.module @M(%I: i1) -> (O: i1) {{
+          hw.module.extern @Foo(in %I: i1, out O: i1)
+          hw.module @M(in %I: i1, out O: i1) {{
               %1 = hw.constant -1 : i1
               %0 = comb.xor %1, %I : i1
               %2 = hw.instance "foo" @Foo(I: %0: i1) -> (O: i1)
@@ -141,7 +141,7 @@ def test_omit_version_comment(omit_version_comment):
     ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle=none{omit_version_comment_attr}"}} {{
-          hw.module @M() -> () {{}}
+          hw.module @M() {{}}
         }}
         """
     )
@@ -162,7 +162,7 @@ def test_split_verilog(specify_output_file):
     ir = textwrap.dedent(
         """
         module attributes {{circt.loweringOptions = "locationInfoStyle=none"}} {{
-          hw.module @M() -> () {attribute_string} {{}}
+          hw.module @M() {attribute_string} {{}}
         }}
         """
     )

@@ -1561,7 +1561,7 @@ def test_when_2d_array_assign_slice():
 
 def test_when_unique():
 
-    class Gen(m.Generator2):
+    class Gen(m.Generator):
         def __init__(self, width: int):
             self.io = io = m.IO(
                 a=m.In(m.Bits[8]),

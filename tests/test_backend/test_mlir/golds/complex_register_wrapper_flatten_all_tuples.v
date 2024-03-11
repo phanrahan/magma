@@ -34,7 +34,7 @@ module complex_register_wrapper(
   initial begin
     Register_inst0 = 8'hA;
     Register_inst0_0 = 1'h1;
-    Register_inst1 = {16'h0, 16'h2, 16'h4, 16'h6, 16'h8, 16'hA};
+    Register_inst1 = '{16'h0, 16'h2, 16'h4, 16'h6, 16'h8, 16'hA};
     Register_inst2 = 8'h0;
   end // initial
   assign y_u_x = Register_inst0;

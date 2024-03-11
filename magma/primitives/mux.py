@@ -10,7 +10,7 @@ from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
 from magma.common import is_int
 from magma.debug import magma_helper_function
-from magma.generator import Generator2
+from magma.generator import Generator
 from magma.interface import IO
 from magma.protocol_type import MagmaProtocol, magma_type
 from magma.t import Type, In, Out, Direction
@@ -19,7 +19,7 @@ from magma.type_utils import type_to_sanitized_string
 from magma.conversions import tuple_, as_bits, from_bits
 
 
-class CoreIRCommonLibMuxN(Generator2):
+class CoreIRCommonLibMuxN(Generator):
     def __init__(self, N: int, width: int):
         self.name = f"coreir_commonlib_mux{N}x{width}"
         FlatT = Array[width, Bit]
@@ -41,7 +41,7 @@ class CoreIRCommonLibMuxN(Generator2):
         self.simulate = simulate
 
 
-class Mux(Generator2):
+class Mux(Generator):
     def __init__(self, height: int, T: Type):
         if issubclass(T, BitVector):
             T = Bits[len(T)]
@@ -177,6 +177,7 @@ def mux(I: Union[Sequence, Array], S, **kwargs):
 
 # Monkey patch for ite impl without circular dependency
 Bit._mux = staticmethod(mux)
+Bits._mux = staticmethod(mux)
 
 
 # NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular
@@ -205,15 +206,18 @@ def dict_lookup(dict_, select, default=0):
 
 
 @magma_helper_function
-def list_lookup(list_, select, default=0):
+def seq_lookup(seq: Sequence, select, default=0):
     """
-    Use `select` as an index into `list` (similar to a case statement)
+    Use `select` as an index into `seq` (similar to a case statement)
 
     `default` is used when `select` does not match any of the indices (e.g.
-    when the select width is longer than the list) and has a default value of
-    0.
+    when the select width is longer than the sequence) and has a default value
+    of 0.
     """
     output = default
-    for i, elem in enumerate(list_):
+    for i, elem in enumerate(seq):
         output = mux([output, elem], i == select)
     return output
+
+
+list_lookup = seq_lookup

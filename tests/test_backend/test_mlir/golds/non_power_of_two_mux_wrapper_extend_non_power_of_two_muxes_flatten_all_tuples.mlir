@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @non_power_of_two_mux_wrapper(%a_x: i8, %a_y: i1, %s: i4) -> (y_x: i8, y_y: i1) {
+    hw.module @non_power_of_two_mux_wrapper(in %a_x: i8, in %a_y: i1, in %s: i4, out y_x: i8, out y_y: i1) {
         %1 = hw.constant -1 : i8
         %0 = comb.xor %1, %a_x : i8
         %3 = hw.constant -1 : i1

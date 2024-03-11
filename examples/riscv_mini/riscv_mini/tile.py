@@ -5,7 +5,7 @@ from riscv_mini.core import make_HostIO, Core
 from riscv_mini.cache import Cache
 
 
-class MemArbiter(m.Generator2):
+class MemArbiter(m.Generator):
     def __init__(self, x_len):
         nasti_params = NastiParameters(data_bits=64, addr_bits=x_len,
                                        id_bits=5)
@@ -113,7 +113,7 @@ class MemArbiter(m.Generator2):
                 state.I @= State.IDLE
 
 
-class Tile(m.Generator2):
+class Tile(m.Generator):
     def __init__(self, x_len):
         nasti_params = NastiParameters(data_bits=64, addr_bits=x_len,
                                        id_bits=5)

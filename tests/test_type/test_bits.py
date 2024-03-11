@@ -250,16 +250,16 @@ def test_ite(n):
 
     assert repr(TestITE) == f"""\
 TestITE = DefineCircuit("TestITE", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "S", In(Bits[{n}]), "O", Out(Bits[{n}]))
+Mux2xBits{n}_inst0 = Mux2xBits{n}()
 magma_Bit_not_inst0 = magma_Bit_not()
 magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
-magma_Bits_{n}_ite_Out_Bits_{n}_inst0 = magma_Bits_{n}_ite_Out_Bits_{n}()
+wire(TestITE.I1, Mux2xBits{n}_inst0.I0)
+wire(TestITE.I0, Mux2xBits{n}_inst0.I1)
+wire(magma_Bit_not_inst0.out, Mux2xBits{n}_inst0.S)
 wire(magma_Bits_{n}_eq_inst0.out, magma_Bit_not_inst0.in)
 wire(TestITE.S, magma_Bits_{n}_eq_inst0.in0)
 wire(BitVector[{n}](0), magma_Bits_{n}_eq_inst0.in1)
-wire(TestITE.I0, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in0)
-wire(TestITE.I1, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in1)
-wire(magma_Bit_not_inst0.out, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.sel)
-wire(magma_Bits_{n}_ite_Out_Bits_{n}_inst0.out, TestITE.O)
+wire(Mux2xBits{n}_inst0.O, TestITE.O)
 EndCircuit()\
 """
     m.compile(f"build/TestBits{n}ITE", TestITE, output="coreir-verilog")
@@ -267,14 +267,14 @@ EndCircuit()\
                              f"gold/TestBits{n}ITE.v")
 
     sim = PythonSimulator(TestITE)
-    for S in [0, 1]:
+    for S in [0, 2 ** n - 1]:
         I0 = BitVector.random(n)
         I1 = BitVector.random(n)
         sim.set_value(TestITE.I0, I0)
         sim.set_value(TestITE.I1, I1)
         sim.set_value(TestITE.S, S)
         sim.evaluate()
-        assert sim.get_value(TestITE.O) == (I1 if S else I0)
+        assert sim.get_value(TestITE.O) == (I0 if S else I1)
 
 
 @pytest.mark.parametrize("n", [1, 3])

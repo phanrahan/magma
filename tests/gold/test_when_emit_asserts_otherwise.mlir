@@ -1,5 +1,5 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module @test_when_emit_asserts_otherwise(%I: i2, %S: i1) -> (O: i1) {
+    hw.module @test_when_emit_asserts_otherwise(in %I: i2, in %S: i1, out O: i1) {
         %0 = comb.extract %I from 0 : (i2) -> i1
         %1 = comb.extract %I from 1 : (i2) -> i1
         %3 = sv.reg : !hw.inout<i1>

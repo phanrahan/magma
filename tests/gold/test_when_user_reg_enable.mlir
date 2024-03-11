@@ -1,6 +1,6 @@
 module attributes {circt.loweringOptions = "locationInfoStyle=none,omitVersionComment"} {
-    hw.module.extern @Register(%I: i8, %CE: i1, %CLK: i1) -> (O: i8)
-    hw.module @test_when_user_reg_enable(%I: i8, %x: i2, %CLK: i1) -> (O: i8) {
+    hw.module.extern @Register(in %I: i8, in %CE: i1, in %CLK: i1, out O: i8)
+    hw.module @test_when_user_reg_enable(in %I: i8, in %x: i2, in %CLK: i1, out O: i8) {
         %0 = comb.extract %x from 0 : (i2) -> i1
         %1 = hw.constant 1 : i1
         %2 = comb.extract %x from 1 : (i2) -> i1
