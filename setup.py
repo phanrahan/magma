@@ -45,7 +45,7 @@ setup(
         "staticfg",
         "networkx",
         "uinspect",
-        "circt==1.59.1.dev51",
+        "circt==1.66.0",
     ],
     python_requires='>=3.6',
     long_description=long_description,
