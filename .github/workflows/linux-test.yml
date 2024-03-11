@@ -52,6 +52,7 @@ jobs:
       run: |
         cd examples
         # TODO(leonardt): Merge with top-level coverage
+        pip install pylfsr
         pytest --pycodestyle tests/ . --ignore=riscv_mini
         cd -
 
