@@ -4,7 +4,6 @@ from magma.bits import Bits
 from magma.tuple import Tuple
 from magma import clear_cachedFunctions
 
-from magma.frontend import coreir_
 from magma.generator import reset_generator_cache
 from magma.logging import flush_all
 from magma.when import reset_context as reset_when_context
@@ -54,7 +53,12 @@ def reset_global_context():
     compiler's state
     """
     clear_cachedFunctions()
-    coreir_.ResetCoreIR()
+    try:
+        from magma.frontend import coreir_
+    except ImportError:
+        pass
+    else:
+        coreir_.ResetCoreIR()
     reset_generator_cache()
     flush_all()  # flush all staged logs
     reset_when_context()
