@@ -193,12 +193,13 @@ class Cache(m.Generator):
 
         rmeta = meta_mem.read(idx, ren)
         rdata = m.concat(*(mem.read(idx, ren) for mem in data_mem))
-        rdata_buf = m.Register(type(rdata), has_enable=True)()(rdata,
-                                                               CE=ren_reg)
+        rdata_buf_reg = m.Register(type(rdata), has_enable=True)()
+        rdata_buf_reg.I @= rdata
+        rdata_buf_reg.CE @= ren_reg
 
         read = m.mux([
             m.as_bits(m.mux([
-                rdata_buf,
+                rdata_buf_reg.O,
                 rdata
             ], ren_reg)),
             m.as_bits(refill_buf.O)
