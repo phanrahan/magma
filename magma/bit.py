@@ -94,7 +94,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @magma_helper_function
     @bit_cast
     def __and__(self, other):
-        return type(self).undirected_t._declare_binary_op("and")()(self, other)
+        return self.And()(self, other)
+
 
     @magma_helper_function
     @bit_cast
@@ -104,7 +105,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @magma_helper_function
     @bit_cast
     def __or__(self, other):
-        return type(self).undirected_t._declare_binary_op("or")()(self, other)
+        return self.Or()(self, other)
 
     @magma_helper_function
     @bit_cast

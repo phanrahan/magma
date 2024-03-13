@@ -70,6 +70,8 @@ def _declare_binary_op(cls, op):
 # NOTE(leonardt): Monkey patched functions.
 Bit._declare_unary_op = _declare_unary_op
 Bit._declare_binary_op = _declare_binary_op
+Bit.And = Bit._declare_binary_op("and")
+Bit.Or = Bit._declare_binary_op("or")
 
 
 def make_Define(_name, port, direction):
