@@ -18,7 +18,7 @@ class EvenOddSwaps(m.Generator):
         self.io.O @= m.flat(m.join([Swap() for _ in range(n // 2)]))(self.io.I)
 
 
-def flatten(l):
+def flatten(l: list):
     return sum(l, [])
 
 
@@ -26,15 +26,16 @@ def riffle(n: int):
     return flatten([[i, i + n // 2] for i in range(n // 2)])
 
 
-def inverse(l):
+def inverse(l: list):
     return [l.index(i) for i in range(len(l))]
 
 
-def _unriffle(n: int):
+def unriffle(n: int):
     return inverse(riffle(n))
 
 
 class Permute(m.Generator):
-    def __init__(self, permutation: list[int]):
+    def __init__(self, permutation: tuple[int]):
         n = len(permutation)
         self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
+        self.io.O @= m.bits([self.io.I[i] for i in permutation])
