@@ -13,7 +13,8 @@ def test_swap():
         tester.eval()
         tester.circuit.O.expect(BitVector[2](list(sorted(bits))))
     with tempfile.TemporaryDirectory() as dir:
-        tester.compile_and_run('verilator', magma_output="mlir-verilog", directory=dir)
+        tester.compile_and_run('verilator', magma_output="mlir-verilog",
+                               directory=dir)
 
 
 @pytest.mark.parametrize('n', [4, 8, 16])
@@ -27,4 +28,5 @@ def test_even_odd_swap(n):
             expected.extend(list(sorted(bits[i * 2:i * 2 + 2])))
         tester.circuit.O.expect(BitVector[n](expected))
     with tempfile.TemporaryDirectory() as dir:
-        tester.compile_and_run('verilator', magma_output="mlir-verilog", directory=dir)
+        tester.compile_and_run('verilator', magma_output="mlir-verilog",
+                               directory=dir)
