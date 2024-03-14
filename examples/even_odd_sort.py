@@ -34,7 +34,7 @@ def _unriffle(n: int):
     return inverse(riffle(n))
 
 
-class Permute(m.Generator2):
+class Permute(m.Generator):
     def __init__(self, permutation: list[int]):
         n = len(permutation)
         self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
