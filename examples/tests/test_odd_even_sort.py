@@ -54,7 +54,6 @@ def test_odd_even_sorter(n):
     tester = f.Tester(OddEvenSorter(n))
     for _ in range(16):
         tester.circuit.I = I = BitVector.random(n)
-        tester.print("I=%x\n", tester.circuit.I)
         tester.eval()
         tester.circuit.O.expect(BitVector[n](list(sorted(I.bits()))))
     with tempfile.TemporaryDirectory() as dir:
