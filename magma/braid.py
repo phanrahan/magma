@@ -311,7 +311,6 @@ def uncurry(circuit, prefix='I'):
     otherargs = []
     uncurryargs = []
     for name, port in circuit.interface.ports.items():
-        print(port.driven(), name)
         # should we insert the argument in the position of the first match?
         if not port.driven() and name.startswith(prefix) and \
                 circuit.interface.is_input(port):
