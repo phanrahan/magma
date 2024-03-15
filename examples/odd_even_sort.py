@@ -1,3 +1,11 @@
+"""
+Batcher odd–even mergesort sorting network
+
+Useful references:
+* https://hwlang.de/algorithmen/sortieren/networks/oemen.htm
+* https://cs.wmich.edu/gupta/teaching/cs5260/5260Sp15web/lectureNotes/Odd-even%20mergesort%20basics.pdf
+"""
+
 import magma as m
 from typing import Tuple
 
@@ -17,7 +25,7 @@ def swap(I: m.Bits[2]):
     return Swap()(I)
 
 
-class EvenOddSwaps(m.Generator):
+class OddEvenSwaps(m.Generator):
     """Swap adjacent indices"""
 
     def __init__(self, n: int):
@@ -64,35 +72,35 @@ def Unriffle(n: int):
     return Permute(unriffle(n))
 
 
-class EvenOddMerger(m.Generator):
+class OddEvenMerger(m.Generator):
     def __init__(self, n: int):
-        self.name = f'EvenOddMerger{n}'
+        self.name = f'OddEvenMerger{n}'
         assert is_power_of_two(n)
         self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
         if n == 2:
             self.io.O @= swap(self.io.I)
             return
-        even_merger = EvenOddMerger(n // 2)()
-        odd_merger = EvenOddMerger(n // 2)()
+        even_merger = OddEvenMerger(n // 2)()
+        odd_merger = OddEvenMerger(n // 2)()
         merger = m.flat(m.join(even_merger, odd_merger))
-        sorter = m.compose(EvenOddSwaps(n)(),
+        sorter = m.compose(OddEvenSwaps(n)(),
                            Riffle(n)(),
                            merger,
                            Unriffle(n)())
         self.io.O @= sorter(self.io.I)
 
 
-class EvenOddSorter(m.Generator):
+class OddEvenSorter(m.Generator):
     def __init__(self, n: int):
         # TODO: update fault to emit names after uniquification
-        self.name = f'EvenOddSorter{n}'
+        self.name = f'OddEvenSorter{n}'
         assert is_power_of_two(n)
         self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
         if n == 1:
             self.io.O @= self.io.I
             return
-        bot_sorter = EvenOddSorter(n // 2)()
-        top_sorter = EvenOddSorter(n // 2)()
+        bot_sorter = OddEvenSorter(n // 2)()
+        top_sorter = OddEvenSorter(n // 2)()
         sorter = m.flat(m.join(bot_sorter, top_sorter))
-        merger = EvenOddMerger(n)()
+        merger = OddEvenMerger(n)()
         self.io.O @= m.compose(merger, sorter)(self.io.I)

@@ -3,7 +3,7 @@ import tempfile
 import itertools
 import fault as f
 from ..even_odd_sort import (
-    Swap, EvenOddSwaps, Permute, riffle, unriffle, EvenOddSorter
+    Swap, OddEvenSwaps, Permute, riffle, unriffle, OddEvenSorter
 )
 from hwtypes import BitVector
 
@@ -21,7 +21,7 @@ def test_swap():
 
 @pytest.mark.parametrize('n', [4, 8, 16])
 def test_even_odd_swap(n):
-    tester = f.Tester(EvenOddSwaps(n))
+    tester = f.Tester(OddEvenSwaps(n))
     for _ in range(16):
         tester.circuit.I = I = BitVector.random(n)
         tester.eval()
@@ -50,7 +50,7 @@ def test_permute(n, fn):
 
 @pytest.mark.parametrize('n', [4, 8, 16])
 def test_even_odd_sorter(n):
-    tester = f.Tester(EvenOddSorter(n))
+    tester = f.Tester(OddEvenSorter(n))
     for _ in range(16):
         tester.circuit.I = I = BitVector.random(n)
         tester.print("I=%x\n", tester.circuit.I)
