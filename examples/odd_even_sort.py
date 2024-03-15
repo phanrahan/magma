@@ -96,8 +96,7 @@ class OddEvenSorter(m.Generator):
         if n == 1:
             self.io.O @= self.io.I
             return
-        bot_sorter = OddEvenSorter(n // 2)()
-        top_sorter = OddEvenSorter(n // 2)()
-        sorter = m.flat(m.join(bot_sorter, top_sorter))
-        merger = OddEvenMerger(n)()
-        self.io.O @= m.compose(merger, sorter)(self.io.I)
+        sorter = m.compose(OddEvenMerger(n)(),
+                           m.flat(m.join(OddEvenSorter(n // 2)(),
+                                         OddEvenSorter(n // 2)())))
+        self.io.O @= sorter(self.io.I)
