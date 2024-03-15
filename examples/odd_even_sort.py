@@ -79,12 +79,10 @@ class OddEvenMerger(m.Generator):
         if n == 2:
             self.io.O @= swap(self.io.I)
             return
-        even_merger = OddEvenMerger(n // 2)()
-        odd_merger = OddEvenMerger(n // 2)()
-        merger = m.flat(m.join(even_merger, odd_merger))
         sorter = m.compose(OddEvenSwaps(n)(),
                            Riffle(n)(),
-                           merger,
+                           m.flat(m.join(OddEvenMerger(n // 2)(),
+                                         OddEvenMerger(n // 2)())),
                            Unriffle(n)())
         self.io.O @= sorter(self.io.I)
 
