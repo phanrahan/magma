@@ -2,7 +2,7 @@ import pytest
 import tempfile
 import itertools
 import fault as f
-from ..even_odd_sort import (
+from ..odd_even_sort import (
     Swap, OddEvenSwaps, Permute, riffle, unriffle, OddEvenSorter
 )
 from hwtypes import BitVector
@@ -11,7 +11,7 @@ from hwtypes import BitVector
 def test_swap():
     tester = f.Tester(Swap)
     for bits in itertools.product(range(2), repeat=2):
-        tester.circuit.I = I = BitVector[2](bits)
+        tester.circuit.I = BitVector[2](bits)
         tester.eval()
         tester.circuit.O.expect(BitVector[2](list(sorted(bits))))
     with tempfile.TemporaryDirectory() as dir:

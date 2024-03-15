@@ -32,10 +32,9 @@ class OddEvenSwaps(m.Generator):
         assert n % 2 == 0, "Expected n to be even"
         self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
         if n > 2:
-            x = m.flat(m.join(
-                [Swap() for _ in range((n - 2) // 2)]
-            ))(self.io.I[1:-1])
-            self.io.O[1:-1] @= x
+            self.io.O[1:-1] @= m.flat(
+                m.join([Swap() for _ in range(n // 2 - 1)])
+            )(self.io.I[1:-1])
         self.io.O[0] @= self.io.I[0]
         self.io.O[-1] @= self.io.I[-1]
 
