@@ -26,7 +26,7 @@ def swap(I: m.Bits[2]):
 
 
 class OddEvenSwaps(m.Generator):
-    """Swap adjacent indices"""
+    """Swap adjacent indices for [1:-2]"""
 
     def __init__(self, n: int):
         assert n % 2 == 0, "Expected n to be even"
