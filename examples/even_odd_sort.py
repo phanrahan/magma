@@ -1,4 +1,5 @@
 import magma as m
+from typing import Tuple
 
 
 def is_power_of_two(n):
@@ -49,7 +50,7 @@ def unriffle(n: int):
 
 
 class Permute(m.Generator):
-    def __init__(self, permutation: tuple[int]):
+    def __init__(self, permutation: Tuple[int]):
         n = len(permutation)
         self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
         self.io.O @= m.bits([self.io.I[i] for i in permutation])
