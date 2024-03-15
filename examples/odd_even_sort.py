@@ -89,7 +89,8 @@ class OddEvenMerger(m.Generator):
 
 class OddEvenSorter(m.Generator):
     def __init__(self, n: int):
-        # TODO: update fault to emit names after uniquification
+        # NOTE(leonardt): need explicit name due to fault issue
+        # https://github.com/leonardt/fault/issues/338
         self.name = f'OddEvenSorter{n}'
         assert is_power_of_two(n)
         self.io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
