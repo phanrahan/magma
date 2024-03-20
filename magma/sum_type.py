@@ -15,13 +15,15 @@ class SumMeta(MagmaProtocolMeta):
         return cls._magma_T_
 
     def _qualify_magma_(cls, direction: Direction):
-        dct = {k: v.qualify(direction)
-               for k, v in cls._magma_Ts_.items()}
+        dct = {"_magma_T_": cls._magma_T_.qualify(direction)}
+        for k, v in cls._magma_Ts_.items():
+            dct[k] = v.qualify(direction)
         return type(cls)(cls.__name__, (cls, ), dct)
 
     def _flip_magma_(cls):
-        dct = {k: v.flip()
-               for k, v in cls._magma_Ts_.items()}
+        dct = {"_magma_T_": cls._magma_T_.flip()}
+        for k, v in cls._magma_Ts_.items():
+            dct[k] = v.flip()
         return type(cls)(cls.__name__, (cls, ), dct)
 
     def _from_magma_value_(cls, val: Type):
@@ -34,6 +36,8 @@ class SumMeta(MagmaProtocolMeta):
         is_input, is_output = True, True
 
         for key, value in namespace.items():
+            if key.startswith("_magma_"):
+                continue
             if isinstance(value, Kind):
                 data_len = max(data_len, value.flat_length())
                 Ts[key] = value
@@ -241,14 +245,6 @@ class Enum2Meta(SumMeta):
             namespace['_magma_TagMap_'] = tag_map
 
         return type.__new__(mcs, name, bases, namespace)
-
-    def _qualify_magma_(cls, direction: Direction):
-        dct = {"_magma_T_": cls._magma_T_.qualify(direction)}
-        return type(cls)(cls.__name__, (cls, ), dct)
-
-    def _flip_magma_(cls):
-        dct = {"_magma_T_": cls._magma_T_.flip()}
-        return type(cls)(cls.__name__, (cls, ), dct)
 
 
 class Enum2(Sum, metaclass=Enum2Meta):
