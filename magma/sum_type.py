@@ -95,17 +95,16 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
     def num_tags(self):
         return len(self._tag_map)
 
+    def _check_case_type(self, T):
+        if T.undirected_t not in self._tag_map:
+            raise TypeError(f"Unexpected case type {T}")
+
     def activate_case(self, T):
         if self._active_case is not None:
             raise TypeError("Cannot have more than one active case")
         if any(T is x for x in self._activated_cases):
             raise TypeError(f"Cannot call case({T}) twice")
-        if isinstance(T, Kind):
-            if T.undirected_t not in self._tag_map:
-                raise TypeError(f"Unexpected case type {T}")
-        else:
-            if not isinstance(T, Type):
-                raise TypeError(f"Unexpected case type {T}")
+        self._check_case_type(T)
 
         self._active_case = T
         self._activated_cases.append(T)
@@ -250,3 +249,7 @@ class Enum2Meta(SumMeta):
 class Enum2(Sum, metaclass=Enum2Meta):
     def _get_tag(self, driver):
         return self._tag_map[driver]
+
+    def _check_case_type(self, value):
+        if not isinstance(value, Type):
+            raise TypeError(f"Unexpected case value {value}")
