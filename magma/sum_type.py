@@ -45,6 +45,7 @@ class SumMeta(MagmaProtocolMeta):
                 is_input &= value.is_input()
                 is_output &= value.is_output()
                 tag_map[value.undirected_t] = len(tag_map)
+
         if len(Ts):
             assert data_len > 0, "Expected non zero length data"
 
