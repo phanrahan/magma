@@ -138,17 +138,17 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
     # TODO(leonardt/sum): define all operators (can we metaprogram delegator to
     # self._get_magma_value_()?)
 
+    def _get_tag(self, driver):
+        try:
+            return self._tag_map[type(driver).undirected_t]
+        except KeyError:
+            raise TypeError(f"Cannot wire {driver} to {self}")
+
     def wire(self, other):
         if self._active_case:
             self._get_magma_value_().wire(other)
             return
-        if other not in self._tag_map:
-            T = type(other).undirected_t
-            if T not in self._tag_map:
-                raise TypeError(f"Cannot wire {other} to {self}")
-        else:
-            T = other
-        self._val.tag @= self._tag_map[T]
+        self._val.tag @= self._get_tag(other)
         if hasattr(self._val, "data"):
             self._val.data @= zext_to(as_bits(other), len(self._val.data))
 
@@ -248,4 +248,5 @@ class Enum2Meta(SumMeta):
 
 
 class Enum2(Sum, metaclass=Enum2Meta):
-    pass
+    def _get_tag(self, driver):
+        return self._tag_map[driver]
