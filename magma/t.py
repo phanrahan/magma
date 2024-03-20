@@ -2,7 +2,6 @@ import abc
 import enum
 from functools import lru_cache
 from magma.common import deprecated
-from magma.compatibility import IntegerTypes, StringTypes
 from magma.debug import get_debug_info
 from magma.ref import (
     AnonRef, NamedRef, TempNamedRef, DefnRef, InstRef, PortViewRef

@@ -19,6 +19,7 @@ from magma.clock import (
 )
 from magma.clock_io import ClockIO
 from magma.primitives.mux import Mux
+from magma.protocol_type import MagmaProtocolMeta, magma_type
 from magma.wire import wire
 
 
@@ -180,9 +181,9 @@ class Register(AbstractRegister):
                                  " which T will be inferred)")
             T = _get_T_from_init(init)
         else:
-            if not isinstance(T, Kind):
+            if not isinstance(T, (Kind, MagmaProtocolMeta)):
                 raise TypeError(
-                    f"Expected instance of Kind for argument T, not {type(T)}")
+                    f"Unexpected type for argument T: {type(T)}")
             if init is not None and not _check_init_T(init, T):
                 raise ValueError(
                     f"Type {_get_T_from_init(init)} of init ({init}) does not "

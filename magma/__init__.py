@@ -146,7 +146,7 @@ from magma.value_utils import fill
 from magma.bind import bind, make_bind_ports
 from magma.debug import magma_helper_function
 import magma.mantle
-from magma.sum_type import Sum, match, case
+from magma.sum_type import Sum, match, case, Enum2
 
 ################################################################################
 # BEGIN ALIASES

@@ -52,6 +52,7 @@ class SumMeta(MagmaProtocolMeta):
                 T = T.qualify(Direction.Out)
             namespace['_magma_T_'] = T
             namespace['_magma_Ts_'] = Ts
+            namespace['_magma_TagMap_'] = {}
 
         return type.__new__(mcs, name, bases, namespace)
 
@@ -63,9 +64,12 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         self._val = val
 
         self._tag_map = {}  # map from T to int id value
-        for T in self._magma_Ts_.values():
-            # For now, tags map to index in _magma_Ts_ order.
-            self._tag_map[T.undirected_t] = len(self._tag_map)
+        if self._magma_TagMap_:
+            self._tag_map = self._magma_TagMap_
+        else:
+            for T in self._magma_Ts_.values():
+                # For now, tags map to index in _magma_Ts_ order.
+                self._tag_map[T.undirected_t] = len(self._tag_map)
 
         self._match_active = False  # must be True to use case
         self._active_case = None  # tracks current case type
@@ -90,10 +94,14 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
     def activate_case(self, T):
         if self._active_case is not None:
             raise TypeError("Cannot have more than one active case")
-        if T in self._activated_cases:
+        if any(T is x for x in self._activated_cases):
             raise TypeError(f"Cannot call case({T}) twice")
-        if T.undirected_t not in self._tag_map:
-            raise TypeError(f"Unexpected case type {T}")
+        if isinstance(T, Kind):
+            if T.undirected_t not in self._tag_map:
+                raise TypeError(f"Unexpected case type {T}")
+        else:
+            if not isinstance(T, Type):
+                raise TypeError(f"Unexpected case type {T}")
 
         self._active_case = T
         self._activated_cases.append(T)
@@ -130,11 +138,15 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         if self._active_case:
             self._get_magma_value_().wire(other)
             return
-        T = type(other).undirected_t
-        if T not in self._tag_map:
-            raise TypeError(f"Cannot wire {other} to {self}")
+        if other not in self._tag_map:
+            T = type(other).undirected_t
+            if T not in self._tag_map:
+                raise TypeError(f"Cannot wire {other} to {self}")
+        else:
+            T = other
         self._val.tag @= self._tag_map[T]
-        self._val.data @= zext_to(as_bits(other), len(self._val.data))
+        if hasattr(self._val, "data"):
+            self._val.data @= zext_to(as_bits(other), len(self._val.data))
 
 
 _MATCH_STACK = Stack()
@@ -208,3 +220,36 @@ class CaseContext:
 
 
 case = CaseContext
+
+
+class Enum2Meta(SumMeta):
+    def __new__(mcs, name, bases, namespace):
+        tag_len = 0
+        for key, value in namespace.items():
+            if isinstance(value, int):
+                tag_len = max(tag_len, value.bit_length())
+
+        if tag_len:
+            tag_map = {}
+            T = AnonProduct[{"tag": Bits[tag_len]}]
+            for key, value in namespace.items():
+                if isinstance(value, int):
+                    namespace[key] = value = T(Bits[tag_len](value))
+                    tag_map[value] = value.tag
+            namespace['_magma_T_'] = T
+            namespace['_magma_Ts_'] = {}
+            namespace['_magma_TagMap_'] = tag_map
+
+        return type.__new__(mcs, name, bases, namespace)
+
+    def _qualify_magma_(cls, direction: Direction):
+        dct = {"_magma_T_": cls._magma_T_.qualify(direction)}
+        return type(cls)(cls.__name__, (cls, ), dct)
+
+    def _flip_magma_(cls):
+        dct = {"_magma_T_": cls._magma_T_.flip()}
+        return type(cls)(cls.__name__, (cls, ), dct)
+
+
+class Enum2(Sum, metaclass=Enum2Meta):
+    pass
