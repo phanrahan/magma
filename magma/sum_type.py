@@ -32,6 +32,7 @@ class SumMeta(MagmaProtocolMeta):
     def __new__(mcs, name, bases, namespace):
         data_len = 0
         Ts = {}
+        tag_map = {}
         # TODO(leonardt/sum): How to handle mixed direction type?
         is_input, is_output = True, True
 
@@ -43,6 +44,7 @@ class SumMeta(MagmaProtocolMeta):
                 Ts[key] = value
                 is_input &= value.is_input()
                 is_output &= value.is_output()
+                tag_map[value.undirected_t] = len(tag_map)
         if len(Ts):
             assert data_len > 0, "Expected non zero length data"
 
@@ -56,7 +58,7 @@ class SumMeta(MagmaProtocolMeta):
                 T = T.qualify(Direction.Out)
             namespace['_magma_T_'] = T
             namespace['_magma_Ts_'] = Ts
-            namespace['_magma_TagMap_'] = {}
+            namespace['_tag_map'] = tag_map
 
         return type.__new__(mcs, name, bases, namespace)
 
@@ -66,14 +68,6 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         if val is None:
             val = self._magma_T_()
         self._val = val
-
-        self._tag_map = {}  # map from T to int id value
-        if self._magma_TagMap_:
-            self._tag_map = self._magma_TagMap_
-        else:
-            for T in self._magma_Ts_.values():
-                # For now, tags map to index in _magma_Ts_ order.
-                self._tag_map[T.undirected_t] = len(self._tag_map)
 
         self._match_active = False  # must be True to use case
         self._active_case = None  # tracks current case type
@@ -241,7 +235,7 @@ class Enum2Meta(SumMeta):
                     tag_map[value] = value.tag
             namespace['_magma_T_'] = T
             namespace['_magma_Ts_'] = {}
-            namespace['_magma_TagMap_'] = tag_map
+            namespace['_tag_map'] = tag_map
 
         return type.__new__(mcs, name, bases, namespace)
 
