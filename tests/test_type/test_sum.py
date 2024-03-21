@@ -30,3 +30,28 @@ def test_sum_basic():
     assert check_gold(__file__, "test_sum_basic.mlir")
 
     # TODO: fault support for sum
+
+
+def test_sum_enum():
+    class State(m.Enum2):
+        INIT = 0
+        RUN = 1
+        DONE = 2
+
+    class Foo(m.Circuit):
+        io = m.IO(O=m.Out(m.Bits[16]))
+        state = m.Register(State, init=State.INIT)()
+        with m.match(state.O):
+            with m.case(State.INIT):
+                io.O @= 0xFEED
+                state.I @= State.RUN
+            with m.case(State.RUN):
+                io.O @= 0xDEAD
+                state.I @= State.DONE
+            with m.case(State.DONE):
+                io.O @= 0xBEEF
+                state.I @= State.DONE
+
+    m.compile("build/test_sum_enum", Foo, output="mlir",
+              flatten_all_tuples=True)
+    assert check_gold(__file__, "test_sum_enum.mlir")
