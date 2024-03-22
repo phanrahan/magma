@@ -12,6 +12,7 @@ import weakref
 
 class Stack:
     """Lightweight wrapper over builtin lists to provide a stack interface"""
+
     def __init__(self):
         self._stack = []
 
@@ -35,6 +36,9 @@ class Stack:
 
     def __bool__(self) -> bool:
         return bool(self._stack)
+
+    def clear(self):
+        self._stack.clear()
 
 
 class _Ref(object):
