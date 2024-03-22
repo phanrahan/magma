@@ -44,7 +44,7 @@ def test_fsm_loop_unroll():
     class Foo(m.Circuit):
         io = m.IO(O=m.Out(m.Bits[2]))
         with m.fsm(State, init=State.INIT) as state:
-            states = list(State.states)
+            states = list(State.get_states())
             for i, x in enumerate(states):
                 with m.case(x):
                     io.O @= i
