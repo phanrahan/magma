@@ -43,12 +43,14 @@ def fsm(T: m.Kind, init: FSMState):
     return FSMContext(state_reg)
 
 
-def wait():
-    class State(FSMState):
-        WAIT = 0
-        DONE = 1
+def wait_until(cond: m.Bit):
     curr_fsm = _FSM_STACK.peek()
     with m.no_when():
         state_reg = m.Register(m.Bit, init=0)()
-    state_reg.I @= 1
+        state_reg.I @= 0
+    state_reg.I @= cond
     curr_fsm.cases[-1].exit_stack.enter_context(m.when(state_reg.O))
+
+
+def wait():
+    wait_until(1)
