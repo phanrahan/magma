@@ -249,14 +249,17 @@ class Enum2Meta(SumMeta):
 
         if tag_len:
             tag_map = {}
+            key_map = {}
             T = AnonProduct[{"tag": Bits[tag_len]}]
             for key, value in namespace.items():
                 if isinstance(value, int):
                     namespace[key] = value = T(Bits[tag_len](value))
                     tag_map[value] = value.tag
+                    key_map[key] = value
             namespace['_magma_T_'] = T
             namespace['_magma_Ts_'] = {}
             namespace['_tag_map'] = tag_map
+            namespace['_key_map'] = key_map
 
         return type.__new__(mcs, name, bases, namespace)
 

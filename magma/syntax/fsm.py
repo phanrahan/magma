@@ -11,7 +11,10 @@ def reset_fsm_context():
 
 
 class FSMState(Enum2):
-    pass
+    @classmethod
+    @property
+    def states(cls):
+        return cls._key_map.values()
 
 
 class FSMContext(MatchContext):
