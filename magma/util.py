@@ -7,6 +7,8 @@ from magma import clear_cachedFunctions
 from magma.generator import reset_generator_cache
 from magma.logging import flush_all
 from magma.when import reset_context as reset_when_context
+from magma.sum_type import reset_match_context
+from magma.syntax.fsm import reset_fsm_context
 
 
 def BitOrBits(width):
@@ -62,3 +64,5 @@ def reset_global_context():
     reset_generator_cache()
     flush_all()  # flush all staged logs
     reset_when_context()
+    reset_match_context()
+    reset_fsm_context()

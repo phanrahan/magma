@@ -9,6 +9,7 @@ from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.primitives.register import AbstractRegister
 from magma.primitives.wire import Wire
+from magma.protocol_type import magma_value
 from magma.ref import DerivedRef
 from magma.t import Type, In, Out
 from magma.when import (
@@ -96,7 +97,7 @@ def _get_corresponding_register_default(value: Type) -> Optional[Type]:
     if value is value_inst_T.get_enable(value_inst):
         return type(value)(False)
     sel = make_selector(value)
-    return sel.select(value_inst.O)
+    return sel.select(magma_value(value_inst.O))
 
 
 def _add_default_drivers_to_register_inputs(
@@ -200,6 +201,7 @@ class WhenBuilder(CircuitBuilder):
             name_prefix,
             type_qualifier,
     ):
+        value = magma_value(value)
         if value in value_to_index:
             return
         value_to_index[value] = next(index_counter)

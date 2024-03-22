@@ -6,26 +6,29 @@ def test_fsm_wait():
     class State(m.FSMState):
         INIT = 0
         RUN = 1
-        DONE = 2
+        WAIT = 2
+        DONE = 3
 
     class Foo(m.Circuit):
         io = m.IO(O=m.Out(m.Bits[16]))
-        # Must delay elaboration of state register until total number states
-        # computed (number of wait statements)
-        # Could use a builder here?
-        with m.fsm(State) as state:
+        with m.fsm(State, init=State.INIT) as state:
             with m.case(State.INIT):
                 io.O @= 0xFEED
-                state.next @= State.RUN
-            with m.case(State.RUN):
+                state.next @= State.WAIT
+            with m.case(State.WAIT):
                 io.O @= 0xDEAD
                 m.wait()
                 io.O @= 0xBEEF
+                state.next @= State.RUN
+            with m.case(State.RUN):
+                io.O @= 0xBEEF
+                # Assumes state.next is not assigned before when
+                m.wait()
+                io.O @= 0xDEAD
                 state.next @= State.DONE
             with m.case(State.DONE):
-                io.O @= 0xBEEF
+                io.O @= 0xDEED
                 state.next @= State.DONE
 
-    m.compile("build/test_sum_enum", Foo, output="mlir",
-              flatten_all_tuples=True)
-    assert check_gold(__file__, "test_sum_enum.mlir")
+    m.compile("build/test_fsm_wait", Foo, output="mlir")
+    assert check_gold(__file__, "test_fsm_wait.mlir")

@@ -132,19 +132,26 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
     # TODO(leonardt/sum): define all operators (can we metaprogram delegator to
     # self._get_magma_value_()?)
 
+    def _has_tag(self, driver):
+        return self._get_tag_map_key(driver) in self._tag_map
+
+    def _get_tag_map_key(self, driver):
+        return type(driver).undirected_t
+
     def _get_tag(self, driver):
         try:
-            return self._tag_map[type(driver).undirected_t]
+            return self._tag_map[self._get_tag_map_key(driver)]
         except KeyError:
             raise TypeError(f"Cannot wire {driver} to {self}")
 
-    def wire(self, other):
-        if self._active_case:
-            self._get_magma_value_().wire(other)
+    def wire(self, other, debug_info=None):
+        if self._active_case or self._has_tag(other):
+            self._val.tag.wire(self._get_tag(other), debug_info)
+            if hasattr(self._val, "data"):
+                self._val.data.wire(zext_to(as_bits(other),
+                                            len(self._val.data)), debug_info)
             return
-        self._val.tag @= self._get_tag(other)
-        if hasattr(self._val, "data"):
-            self._val.data @= zext_to(as_bits(other), len(self._val.data))
+        self._get_magma_value_().wire(other._get_magma_value_(), debug_info)
 
 
 _MATCH_STACK = Stack()
@@ -162,6 +169,7 @@ class MatchContext:
 
     def __init__(self, value):
         self._value = value
+        self.cases = []
         _MATCH_STACK.push(self)
 
     @property
@@ -177,6 +185,9 @@ class MatchContext:
         assert _MATCH_STACK.pop() is self
         self._value.match_active = False
 
+    def add_case(self, case):
+        self.cases.append(case)
+
 
 match = MatchContext
 
@@ -189,9 +200,11 @@ class CaseContext:
 
     def __init__(self, T):
         try:
-            value = _MATCH_STACK.peek().value
+            self.match_ctx = _MATCH_STACK.peek()
         except IndexError:
             raise TypeError("Case used outside of match statement")
+        self.match_ctx.add_case(self)
+        value = self.match_ctx.value
         assert value.match_active
 
         self._value = value
@@ -205,15 +218,20 @@ class CaseContext:
             self._when_ctx = elsewhen(value.check_tag(T))
         else:
             self._when_ctx = when(value.check_tag(T))
+        self.exit_hooks = []
 
     def __enter__(self):
         self._value.activate_case(self._T)
         self._when_ctx.__enter__()
         return self
 
+    def add_exit_hook(self, hook):
+        self.exit_hooks.append(hook)
+
     def __exit__(self, exc_type, exc_value, exc_tb):
-        last_T = self._value.deactivate_case()
-        assert last_T is self._T, "Got wrong expected activate case"
+        for hook in self.exit_hooks:
+            hook.__exit__(exc_type, exc_value, exc_tb)
+        self._value.deactivate_case()
         self._when_ctx.__exit__(exc_type, exc_value, exc_tb)
 
 
@@ -242,8 +260,11 @@ class Enum2Meta(SumMeta):
 
 
 class Enum2(Sum, metaclass=Enum2Meta):
-    def _get_tag(self, driver):
-        return self._tag_map[driver]
+    def _get_magma_value_(self):
+        return self._val
+
+    def _get_tag_map_key(self, driver):
+        return driver
 
     def _check_case_type(self, value):
         if not isinstance(value, Type):
