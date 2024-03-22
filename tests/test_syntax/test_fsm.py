@@ -50,5 +50,5 @@ def test_fsm_loop_unroll():
                     io.O @= i
                     state.next @= states[(i + 1) % 3]
 
-    m.compile("build/test_fsm_loop_unroll", Foo, output="mlir-verilog")
+    m.compile("build/test_fsm_loop_unroll", Foo, output="mlir")
     assert check_gold(__file__, "test_fsm_loop_unroll.mlir")
