@@ -232,7 +232,8 @@ class CaseContext:
         self._exit_stack.push(ctx)
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        self._value.deactivate_case()
+        last_T = self._value.deactivate_case()
+        assert last_T is self._T, "Got wrong expected activate case"
         self._when_ctx.__exit__(exc_type, exc_value, exc_tb)
 
 
