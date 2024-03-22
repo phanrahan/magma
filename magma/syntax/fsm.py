@@ -49,6 +49,4 @@ def wait():
     with m.no_when():
         state_reg = m.Register(m.Bit, init=0)()
     state_reg.I @= 1
-    case = m.when(state_reg.O)
-    case.__enter__()
-    curr_fsm.cases[-1].push_exit_stack(case)
+    curr_fsm.cases[-1].exit_stack.enter_context(m.when(state_reg.O))

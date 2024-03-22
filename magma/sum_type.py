@@ -219,22 +219,22 @@ class CaseContext:
             self._when_ctx = elsewhen(value.check_tag(T))
         else:
             self._when_ctx = when(value.check_tag(T))
-        self._exit_stack = None
+        self._exit_stack = contextlib.ExitStack()
 
     def __enter__(self):
         self._value.activate_case(self._T)
-        self._when_ctx.__enter__()
-        self._exit_stack = contextlib.ExitStack()
-        self._exit_stack.push(self)
-        return self._exit_stack
+        self._exit_stack.__enter__()
+        self._exit_stack.enter_context(self._when_ctx)
+        return self
 
-    def push_exit_stack(self, ctx):
-        self._exit_stack.push(ctx)
+    @property
+    def exit_stack(self):
+        return self._exit_stack
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         last_T = self._value.deactivate_case()
         assert last_T is self._T, "Got wrong expected activate case"
-        self._when_ctx.__exit__(exc_type, exc_value, exc_tb)
+        self._exit_stack.__exit__(exc_type, exc_value, exc_tb)
 
 
 case = CaseContext
