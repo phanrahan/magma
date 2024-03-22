@@ -51,4 +51,4 @@ def wait():
     state_reg.I @= 1
     case = m.when(state_reg.O)
     case.__enter__()
-    curr_fsm.cases[-1].add_exit_hook(case)
+    curr_fsm.cases[-1].push_exit_stack(case)

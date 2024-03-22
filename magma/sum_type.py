@@ -1,3 +1,4 @@
+import contextlib
 from typing import Optional
 
 from magma.bits import Bits
@@ -218,19 +219,19 @@ class CaseContext:
             self._when_ctx = elsewhen(value.check_tag(T))
         else:
             self._when_ctx = when(value.check_tag(T))
-        self.exit_hooks = []
+        self._exit_stack = None
 
     def __enter__(self):
         self._value.activate_case(self._T)
         self._when_ctx.__enter__()
-        return self
+        self._exit_stack = contextlib.ExitStack()
+        self._exit_stack.push(self)
+        return self._exit_stack
 
-    def add_exit_hook(self, hook):
-        self.exit_hooks.append(hook)
+    def push_exit_stack(self, ctx):
+        self._exit_stack.push(ctx)
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        for hook in self.exit_hooks:
-            hook.__exit__(exc_type, exc_value, exc_tb)
         self._value.deactivate_case()
         self._when_ctx.__exit__(exc_type, exc_value, exc_tb)
 
