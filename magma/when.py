@@ -75,6 +75,7 @@ class _BlockBase(contextlib.AbstractContextManager):
         self._children = list()
         self._conditional_wires = list()
         self._default_drivers = dict()
+        self.exit_stack = contextlib.ExitStack()
 
     def spawn(self, info: 'WhenBlockInfo') -> 'WhenBlock':
         child = WhenBlock(self, info)
@@ -220,6 +221,7 @@ class _BlockBase(contextlib.AbstractContextManager):
         self._add_reg_enables()
         _set_curr_block(self._get_exit_block())
         _set_prev_block(self)
+        self.exit_stack.__exit__(exc_type, exc_value, traceback)
 
 
 BlockBase = _BlockBase

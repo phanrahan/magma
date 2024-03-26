@@ -82,5 +82,37 @@ def test_fsm_wait_until():
                 io.O @= 0xDEED
                 state.next @= State.DONE
 
-    m.compile("build/test_fsm_wait_until", Foo, output="mlir-verilog")
+    m.compile("build/test_fsm_wait_until", Foo, output="mlir")
     assert check_gold(__file__, "test_fsm_wait_until.mlir")
+
+
+def test_fsm_wait_loop():
+    class State(m.FSMState):
+        INIT = 0
+        RUN = 1
+        WAIT = 2
+        DONE = 3
+
+    class Foo(m.Circuit):
+        io = m.IO(n=m.In(m.UInt[8]), O=m.Out(m.Bits[16]))
+        with m.fsm(State, init=State.INIT) as state:
+            with m.case(State.INIT):
+                io.O @= 0xFEED
+                state.next @= State.WAIT
+            with m.case(State.WAIT):
+                io.O @= 0xDEAD
+                with m.loop(0, io.n) as i:
+                    io.O @= m.zext_to(i, 16)
+                io.O @= 0xBEEF
+                state.next @= State.RUN
+            with m.case(State.RUN):
+                io.O @= 0xBEEF
+                m.wait()
+                io.O @= 0xDEAD
+                state.next @= State.DONE
+            with m.case(State.DONE):
+                io.O @= 0xDEED
+                state.next @= State.DONE
+
+    m.compile("build/test_fsm_wait_loop", Foo, output="mlir-verilog")
+    assert check_gold(__file__, "test_fsm_wait_loop.mlir")
