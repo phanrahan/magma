@@ -54,3 +54,37 @@ def wait_until(cond: m.Bit):
 
 def wait():
     wait_until(1)
+
+
+class LoopWrapper:
+    def __init__(self, value, when_ctx):
+        self._value = value
+        self._when_ctx = when_ctx
+
+    def __enter__(self):
+        self._when_ctx.__enter__()
+        return self._value
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self._when_ctx.__exit__(exc_type, exc_value, exc_tb)
+
+
+def loop(start, end, step=1):
+    with m.no_when():
+        end_reg = m.Register(type(end))()
+        end_reg.I @= end_reg.O
+    end_reg.I @= end
+    with m.no_when():
+        i = m.Register(type(end))()
+        i.I @= i.O + step
+    i.I @= start
+    m.wait()
+    # TODO: We explicitly override after wait, otherwise defautl value will set
+    # start, can we avoid this?
+    i.I @= i.O + step
+    when = m.when(end_reg.O < i.O)
+    curr_fsm = _FSM_STACK.peek()
+    when.exit_stack.callback(
+        lambda: curr_fsm.cases[-1].exit_stack.enter_context(m.otherwise())
+    )
+    return LoopWrapper(i.O, when)
