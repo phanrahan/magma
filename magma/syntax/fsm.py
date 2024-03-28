@@ -69,7 +69,7 @@ class LoopWrapper:
         self._when_ctx.__exit__(exc_type, exc_value, exc_tb)
 
 
-def loop(start, end, step=1):
+def loop(start, end, step=1, iter_cond=None):
     with m.no_when():
         end_reg = m.Register(type(end))()
         end_reg.I @= end_reg.O
@@ -79,9 +79,12 @@ def loop(start, end, step=1):
         i.I @= i.O + step
     i.I @= start
     m.wait()
-    # TODO: We explicitly override after wait, otherwise defautl value will set
+    # TODO: We explicitly override after wait, otherwise default value will set
     # start, can we avoid this?
     i.I @= i.O + step
+    if iter_cond is not None:
+        with m.when(~iter_cond):
+            i.I @= i.O
     when = m.when(end_reg.O < i.O)
     curr_fsm = _FSM_STACK.peek()
     when.exit_stack.callback(
