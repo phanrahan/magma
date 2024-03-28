@@ -1,4 +1,5 @@
 from magma.config import config as magma_config
+import pytest
 
 
 def pytest_configure(config):
@@ -8,3 +9,10 @@ def pytest_configure(config):
     #
     # magma_config.use_namer_dict = True
     magma_config.use_uinspect = True
+
+
+@pytest.fixture
+def use_namer_dict():
+    magma_config.use_namer_dict = True
+    yield
+    magma_config.use_namer_dict = False
