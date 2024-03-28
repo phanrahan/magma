@@ -213,7 +213,10 @@ class CaseContext:
         # Use elsewhen/otherwise to avoid latch detect issues
         # TODO(leonardt/sum): Enforce that this isn't interleaved with other
         # when/case statements
-        if len(self._value.activated_cases) == self._value.num_tags - 1:
+        if (
+            self._value.num_tags > 1 and
+            len(self._value.activated_cases) == self._value.num_tags - 1
+        ):
             self._when_ctx = otherwise()
         elif self._value.activated_cases:
             self._when_ctx = elsewhen(value.check_tag(T))
@@ -245,7 +248,7 @@ class Enum2Meta(SumMeta):
         tag_len = 0
         for key, value in namespace.items():
             if isinstance(value, int):
-                tag_len = max(tag_len, value.bit_length())
+                tag_len = max(tag_len, value.bit_length(), 1)
 
         if tag_len:
             tag_map = {}
