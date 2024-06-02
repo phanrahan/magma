@@ -3,8 +3,8 @@ import magma as m
 
 def make_Float(exponent_width, significand_width):
     class Float(m.Product):
-        sign = m.Bit,
-        exponent = m.UInt[exponent_width],
+        sign = m.Bit
+        exponent = m.UInt[exponent_width]
         significand = m.UInt[significand_width]
     return Float
 

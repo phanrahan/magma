@@ -1,28 +1,31 @@
 module Memory(
-  input  [1:0]                                      RADDR,
-  input                                             CLK,
-  input  [1:0]                                      WADDR,
-  input  struct packed {logic [22:0] significand; } WDATA,
-  input                                             WE,
-  output struct packed {logic [22:0] significand; } RDATA
+  input  [1:0]                                                                        RADDR,
+  input                                                                               CLK,
+  input  [1:0]                                                                        WADDR,
+  input  struct packed {logic sign; logic [7:0] exponent; logic [22:0] significand; } WDATA,
+  input                                                                               WE,
+  output struct packed {logic sign; logic [7:0] exponent; logic [22:0] significand; } RDATA
 );
 
-  reg [3:0][22:0] coreir_mem4x23_inst0;
+  reg [3:0][31:0] coreir_mem4x32_inst0;
   always_ff @(posedge CLK) begin
     if (WE)
-      coreir_mem4x23_inst0[WADDR] <= WDATA.significand;
+      coreir_mem4x32_inst0[WADDR] <= {WDATA.significand, WDATA.exponent, WDATA.sign};
   end // always_ff @(posedge)
-  assign RDATA = '{significand: coreir_mem4x23_inst0[RADDR]};
+  assign RDATA =
+    '{sign: (coreir_mem4x32_inst0[RADDR][0]),
+      exponent: (coreir_mem4x32_inst0[RADDR][8:1]),
+      significand: (coreir_mem4x32_inst0[RADDR][31:9])};
 endmodule
 
 module FIFO(
-  input                                             data_in_valid,
-  input  struct packed {logic [22:0] significand; } data_in_data,
-  input                                             data_out_ready,
-                                                    CLK,
-  output                                            data_in_ready,
-                                                    data_out_valid,
-  output struct packed {logic [22:0] significand; } data_out_data
+  input                                                                               data_in_valid,
+  input  struct packed {logic sign; logic [7:0] exponent; logic [22:0] significand; } data_in_data,
+  input                                                                               data_out_ready,
+                                                                                      CLK,
+  output                                                                              data_in_ready,
+                                                                                      data_out_valid,
+  output struct packed {logic sign; logic [7:0] exponent; logic [22:0] significand; } data_out_data
 );
 
   wire       _GEN;
