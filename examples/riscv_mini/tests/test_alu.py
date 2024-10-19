@@ -1,3 +1,4 @@
+import tempfile
 import pytest
 
 import fault
@@ -33,7 +34,9 @@ def test_alu_basic(alu):
         tester.eval()
         tester.circuit.O.expect(py_op(A, B))
 
-    tester.compile_and_run("verilator", flags=["-Wno-unused"],
-                           magma_opts={"disallow_local_variables": True,
-                                       "check_circt_opt_version": False},
-                           magma_output="mlir-verilog")
+    with tempfile.TemporaryDirectory() as tempdir:
+        tester.compile_and_run("verilator", flags=["-Wno-unused"],
+                               directory=tempdir,
+                               magma_opts={"disallow_local_variables": True,
+                                           "check_circt_opt_version": False},
+                               magma_output="mlir-verilog")

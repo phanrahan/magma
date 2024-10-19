@@ -1,5 +1,7 @@
 import itertools
 import random
+import tempfile
+
 from hwtypes import BitVector
 import magma as m
 from magma.mantle.counter import Counter
@@ -597,19 +599,21 @@ def test_cache():
     tester = ResetTester(DUT, DUT.CLK)
     tester.reset()
     tester.wait_until_high(DUT.done)
-    tester.compile_and_run(
-        "verilator",
-        magma_opts={
-            "flatten_all_tuples": True,
-            "disallow_local_variables": True,
-            "check_circt_opt_version": False,
-        },
-        flags=[
-            '-Wno-unused',
-            '-Wno-PINCONNECTEMPTY',
-            '--assert',
-            '-Wno-width',
-        ],
-        disp_type="realtime",
-        magma_output="mlir-verilog",
-    )
+    with tempfile.TemporaryDirectory() as tempdir:
+        tester.compile_and_run(
+            "verilator",
+            directory=tempdir,
+            magma_opts={
+                "flatten_all_tuples": True,
+                "disallow_local_variables": True,
+                "check_circt_opt_version": False,
+            },
+            flags=[
+                '-Wno-unused',
+                '-Wno-PINCONNECTEMPTY',
+                '--assert',
+                '-Wno-width',
+            ],
+            disp_type="realtime",
+            magma_output="mlir-verilog",
+        )
