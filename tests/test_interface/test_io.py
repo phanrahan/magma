@@ -102,6 +102,13 @@ def test_add_intersecting_io(caplog):
     )
 
 
+def test_iadd():
+    io = m.IO(a=m.In(m.Bit))
+    a = io.a
+    io += m.IO(b=m.In(m.Bit))
+    assert io.a is a
+
+
 def test_flip():
     A = m.Product.from_fields("anon", dict(x=m.In(m.Bit), y=m.Out(m.Bit)))
     B = m.In(m.Bits[8])
